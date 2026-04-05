@@ -1,0 +1,22 @@
+{
+  "name": "report-flow",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "workspaces": {
+    "packages": ["apps/*"],
+    "catalog": {
+      "@types/bun": "1.3.11"
+    }
+  },
+  "scripts": {
+    "start": "bun --workspaces run start",
+    "dev": "bun --workspaces run dev"
+  },
+  "devDependencies": {
+    "@types/bun": "1.3.11"
+  },
+  "peerDependencies": {
+    "typescript": "^6"
+  },
+}

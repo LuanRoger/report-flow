@@ -1,0 +1,15 @@
+{
+  "name": "ingest",
+  "version": "1.0.0",
+  "module": "src/index.js",
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "start": "bun src/index.js"
+  },
+  "dependencies": {
+    "elysia": "latest"
+  },
+  "devDependencies": {
+    "@types/bun": "catalog:"
+  }
+}
