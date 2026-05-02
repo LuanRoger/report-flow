@@ -14,7 +14,7 @@
 	},
 	"scripts": {
 		"start": "bun --workspaces run start",
-		"dev": "bun --workspaces run dev",
+		"dev": "bun --filter='*' run dev",
 		"check": "biome check",
 		"check:fix": "biome check --fix"
 	},

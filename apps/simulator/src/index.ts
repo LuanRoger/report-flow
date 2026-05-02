@@ -112,8 +112,7 @@ async function send(payload: any) {
 		"Content-Type": "application/json",
 	};
 
-	const token = process.env.INGEST_TOKEN;
-	if (token) headers["Authorization"] = `Bearer ${token}`;
+	console.log("Enviando:", payload);
 
 	const res = await fetch(url, {
 		method: "POST",
