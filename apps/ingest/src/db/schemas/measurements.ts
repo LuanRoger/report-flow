@@ -1,29 +1,20 @@
 import {
-	index,
 	numeric,
 	pgEnum,
 	pgTable,
+	serial,
 	text,
 	timestamp,
+	unique,
 } from "drizzle-orm/pg-core";
+import { parameterCodes as parameterCodesValues } from "@/models/params";
 
-export const parameterCodes = pgEnum("parameter_code", [
-	"temperature",
-	"ph",
-	"salinity",
-	"turbidity",
-	"dissolved_oxygen",
-	"ammonia",
-	"nitrate",
-	"nitrite",
-]);
+export const parameterCodes = pgEnum("parameter_code", parameterCodesValues);
 
 export const measurements = pgTable(
 	"measurements",
 	{
-		id: text("id")
-			.primaryKey()
-			.$defaultFn(() => crypto.randomUUID()),
+		id: serial("id").primaryKey(),
 
 		farmId: text("farm_id").notNull(),
 		pondId: text("pond_id").notNull(),
@@ -45,18 +36,9 @@ export const measurements = pgTable(
 			.notNull()
 			.defaultNow(),
 	},
-	(table) => ({
-		pondTimeIdx: index("measurements_pond_time_idx").on(
-			table.pondId,
-			table.recordedAt,
-		),
-		farmTimeIdx: index("measurements_farm_time_idx").on(
-			table.farmId,
-			table.recordedAt,
-		),
-		paramTimeIdx: index("measurements_param_time_idx").on(
-			table.parameterCode,
-			table.recordedAt,
-		),
-	}),
+	(t) => [
+		unique("measurements_pond_time_idx").on(t.pondId, t.recordedAt),
+		unique("measurements_farm_time_idx").on(t.farmId, t.recordedAt),
+		unique("measurements_param_time_idx").on(t.parameterCode, t.recordedAt),
+	],
 );

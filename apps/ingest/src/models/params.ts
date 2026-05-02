@@ -8,7 +8,7 @@ export type ParameterCode =
 	| "nitrate"
 	| "nitrite";
 
-export const parameterCodes: ParameterCode[] = [
+export const parameterCodes = [
 	"temperature",
 	"ph",
 	"salinity",
