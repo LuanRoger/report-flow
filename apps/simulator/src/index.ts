@@ -11,6 +11,17 @@ const PARAMS = [
 
 type ParamCode = (typeof PARAMS)[number];
 
+interface Payload {
+	farmId: string;
+	pondId: string;
+	cycleId: string;
+	recordedAt: string;
+	parameterCode: ParamCode;
+	value: number;
+	unit: string;
+	source: string;
+}
+
 const DEFAULTS = {
 	farmId: "FAZ001",
 	pondId: "V01",
@@ -58,7 +69,7 @@ const RANGES: Record<
 		turbidity: [60, 200],
 		dissolved_oxygen: [1, 3.5],
 	},
-	misto: {} as any, // resolvido dinamicamente
+	misto: {} as Record<ParamCode, [number, number]>,
 };
 
 function pickScenario(s: Scenario): Scenario {
@@ -77,11 +88,15 @@ function pickScenario(s: Scenario): Scenario {
 	return randomScenario;
 }
 
-function rand(min: number, max: number): string {
-	return (+(Math.random() * (max - min) + min)).toFixed(3);
+function rand(min: number, max: number): number {
+	return +(Math.random() * (max - min) + min).toFixed(3);
 }
 
-function buildPayload(param: ParamCode, recordedAt: Date, scenario: Scenario) {
+function buildPayload(
+	param: ParamCode,
+	recordedAt: Date,
+	scenario: Scenario,
+): Payload {
 	const sc = pickScenario(scenario);
 	const [min, max] = RANGES[sc][param];
 	return {
@@ -96,7 +111,7 @@ function buildPayload(param: ParamCode, recordedAt: Date, scenario: Scenario) {
 	};
 }
 
-async function send(payload: any) {
+async function send(payload: Payload, enableLogs: boolean) {
 	const url = process.env.INGEST_URL;
 	if (!url) throw new Error("INGEST_URL não definido.");
 
@@ -104,7 +119,9 @@ async function send(payload: any) {
 		"Content-Type": "application/json",
 	};
 
-	console.log("Enviando:", payload);
+	if (enableLogs) {
+		console.log("Enviando:", payload);
+	}
 
 	const res = await fetch(url, {
 		method: "POST",
@@ -125,6 +142,7 @@ function parseArgs(): {
 	from: string | undefined;
 	to: string | undefined;
 	stepMinutes: number;
+	enableLogs: boolean;
 } {
 	const args = process.argv.slice(2);
 	const get = (key: string) => {
@@ -138,18 +156,29 @@ function parseArgs(): {
 	const from = get("from");
 	const to = get("to");
 	const stepMinutes = Number(get("step-minutes") ?? "30");
+	const enableLogs = get("enable-logs")?.toLowerCase() === "true";
 
-	return { scenario, mode, rate, from, to, stepMinutes };
+	return { scenario, mode, rate, from, to, stepMinutes, enableLogs };
 }
 
-async function runConstant(scenario: Scenario, rate: number) {
+async function runConstant(
+	scenario: Scenario,
+	rate: number,
+	enableLogs: boolean,
+) {
 	const intervalMs = Math.floor(60000 / rate);
-	console.log(`Modo constante: ${rate}/min, intervalo ${intervalMs}ms`);
+	if (enableLogs) {
+		console.log(`Modo constante: ${rate}/min, intervalo ${intervalMs}ms`);
+	}
 
 	while (true) {
-		const param = PARAMS[Math.floor(Math.random() * PARAMS.length)]!;
+		const param = PARAMS[Math.floor(Math.random() * PARAMS.length)];
+		if (!param) {
+			continue;
+		}
+
 		const payload = buildPayload(param, new Date(), scenario);
-		await send(payload);
+		await send(payload, enableLogs);
 		await new Promise((r) => setTimeout(r, intervalMs));
 	}
 }
@@ -159,6 +188,7 @@ async function runPrecalc(
 	fromIso: string,
 	toIso: string,
 	stepMinutes: number,
+	enableLogs: boolean,
 ) {
 	const start = new Date(fromIso);
 	const end = new Date(toIso);
@@ -166,27 +196,30 @@ async function runPrecalc(
 		throw new Error("Datas inválidas para --from e --to");
 	}
 
-	console.log(
-		`Modo pre-calculado: ${start.toISOString()} -> ${end.toISOString()} | step ${stepMinutes} min`,
-	);
+	if (enableLogs) {
+		console.log(
+			`Modo pre-calculado: ${start.toISOString()} -> ${end.toISOString()} | step ${stepMinutes} min`,
+		);
+	}
 
 	for (let t = start.getTime(); t <= end.getTime(); t += stepMinutes * 60000) {
 		for (const param of PARAMS) {
 			const payload = buildPayload(param, new Date(t), scenario);
-			await send(payload);
+			await send(payload, enableLogs);
 		}
 	}
 }
 
 (async () => {
-	const { scenario, mode, rate, from, to, stepMinutes } = parseArgs();
+	const { scenario, mode, rate, from, to, stepMinutes, enableLogs } =
+		parseArgs();
 
 	if (mode === "constant") {
-		await runConstant(scenario, rate);
+		await runConstant(scenario, rate, enableLogs);
 	} else {
 		if (!from || !to) {
 			throw new Error("No modo precalc, informe --from e --to");
 		}
-		await runPrecalc(scenario, from, to, stepMinutes);
+		await runPrecalc(scenario, from, to, stepMinutes, enableLogs);
 	}
 })();
