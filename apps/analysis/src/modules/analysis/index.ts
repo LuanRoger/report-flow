@@ -7,7 +7,7 @@ import {
   checkDataCoverage,
 } from "../../utils/scoring";
 import { analysisQuerySchema } from "./schemas";
-import type { ParameterCode } from "../../types/parameters";
+import type { ParameterCode } from "../../db";
 
 // Predefined time windows in days
 const TIME_WINDOWS: Record<string, number> = {

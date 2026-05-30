@@ -1,5 +1,4 @@
-import { measurements } from "@/db/schemas/measurements";
-import { db } from "~/src/db";
+import { measurements, db } from "@/db";
 import type { IngestManualRouteBody } from "./schemas/types";
 
 export async function registerMesurement(data: IngestManualRouteBody) {

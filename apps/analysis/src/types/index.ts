@@ -1,4 +1,4 @@
-import type { ParameterCode } from "./parameters";
+import type { ParameterCode } from "@/db";
 
 export interface PondScoreResult {
   pondId: string;

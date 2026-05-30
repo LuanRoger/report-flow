@@ -1,7 +1,6 @@
-import { db } from "../../db";
-import { measurements } from "../../../ingest/src/db/schemas/measurements";
+import { db, measurements } from "../../db";
 import { and, eq, gte, lte } from "drizzle-orm";
-import type { ParameterCode } from "../../types/parameters";
+import type { ParameterCode } from "../../db";
 
 interface MeasurementRecord {
   pondId: string;

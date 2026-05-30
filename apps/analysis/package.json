@@ -7,6 +7,7 @@
 		"start": "bun src/index.js"
 	},
 	"dependencies": {
+		"database": "workspace:*",
 		"drizzle-orm": "^1.0.0-rc.4",
 		"elysia": "^1.4.28",
 		"pg": "^8.21.0",

@@ -1,4 +1,4 @@
-import type { ParameterCode } from "../types/parameters";
+import type { ParameterCode } from "@/db";
 import type { NormalizedScore, ParameterMetrics, ParameterTemporalScore, PondScoreResult } from "../types";
 import {
   normalizeParameter,

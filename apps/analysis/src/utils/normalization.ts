@@ -1,4 +1,4 @@
-import type { ParameterCode } from "../types/parameters";
+import type { ParameterCode } from "@/db";
 import type { GaussianConfig, TriangularConfig, NormalizationConfig } from "../types";
 
 // Normalization configurations for each parameter
