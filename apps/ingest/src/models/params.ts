@@ -3,11 +3,7 @@ export type ParameterCode =
 	| "ph"
 	| "salinity"
 	| "turbidity"
-	| "dissolved_oxygen"
-	| "suspended_solids"
-	| "ammonia"
-	| "nitrate"
-	| "nitrite";
+	| "dissolved_oxygen";
 
 export const parameterCodes = [
 	"temperature",
@@ -15,8 +11,4 @@ export const parameterCodes = [
 	"salinity",
 	"turbidity",
 	"dissolved_oxygen",
-	"suspended_solids",
-	"ammonia",
-	"nitrate",
-	"nitrite",
 ] as const;

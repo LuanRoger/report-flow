@@ -36,9 +36,12 @@ export const measurements = pgTable(
 			.notNull()
 			.defaultNow(),
 	},
-	(t) => [
-		unique("measurements_pond_time_idx").on(t.pondId, t.recordedAt),
-		unique("measurements_farm_time_idx").on(t.farmId, t.recordedAt),
-		unique("measurements_param_time_idx").on(t.parameterCode, t.recordedAt),
+	(table) => [
+		unique("measurements_pond_time_idx").on(table.pondId, table.recordedAt),
+		unique("measurements_farm_time_idx").on(table.farmId, table.recordedAt),
+		unique("measurements_param_time_idx").on(
+			table.parameterCode,
+			table.recordedAt,
+		),
 	],
 );

@@ -11,5 +11,3 @@ export const ingestManualRouteBodySchema = z.object({
 	unit: z.string().optional(),
 	source: z.string(),
 });
-
-export type IngestManualRouteBody = z.infer<typeof ingestManualRouteBodySchema>;
