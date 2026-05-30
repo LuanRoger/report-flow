@@ -5,19 +5,23 @@
 	"type": "module",
 	"private": true,
 	"scripts": {
+		"env:load": "varlock load",
 		"db:migrate": "varlock run --no-redact-stdout -- drizzle-kit migrate",
 		"db:push": "varlock run --no-redact-stdout -- drizzle-kit push",
 		"db:studio": "varlock run --no-redact-stdout -- drizzle-kit studio"
 	},
+	"exports": {
+		".": "./src/index.ts"
+	},
 	"dependencies": {
 		"drizzle-orm": "^1.0.0-rc.4",
-		"pg": "^8.21.0"
+		"pg": "^8.21.0",
+		"varlock": "^1.4.0"
 	},
 	"devDependencies": {
 		"@types/bun": "catalog:",
 		"@types/pg": "^8.20.0",
 		"drizzle-kit": "^1.0.0-rc.4",
-		"typescript": "catalog:",
-		"varlock": "^1.4.0"
+		"typescript": "catalog:"
 	}
 }

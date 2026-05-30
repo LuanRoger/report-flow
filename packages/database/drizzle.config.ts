@@ -1,5 +1,5 @@
 import { defineConfig } from "drizzle-kit";
-import { ENV } from "varlock";
+import { ENV } from "varlock/env";
 
 // This config is used by drizzle-kit for migrations
 // Services should use their own config pointing to this package
