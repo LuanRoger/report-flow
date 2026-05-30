@@ -2,6 +2,7 @@ import {
 	numeric,
 	pgEnum,
 	pgTable,
+	primaryKey,
 	serial,
 	text,
 	timestamp,
@@ -25,7 +26,7 @@ export const measurements = pgTable(
 			mode: "date",
 		}).notNull(),
 
-		parameterCode: parameterCodes().notNull(),
+		parameterCode: parameterCodes("parameter_code").notNull(),
 		value: numeric("value", { precision: 12, scale: 4 }).notNull(),
 		unit: text("unit").notNull().default(""),
 

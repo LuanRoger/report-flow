@@ -4,7 +4,7 @@ import { ingestManualRouteBodySchema } from "./schemas";
 
 export const ingestModule = new Elysia().group("/ingest", (app) =>
 	app.post(
-		"/",
+		"/manual",
 		async ({ status, body }) => {
 			const result = await registerMesurement(body);
 

@@ -5,7 +5,10 @@
 	"scripts": {
 		"dev": "bun run --watch src/index.ts",
 		"start": "bun src/index.js",
-		"env:load": "varlock load"
+		"env:load": "varlock load",
+		"db:migrate": "varlock run --no-redact-stdout -- drizzle-kit migrate",
+		"db:push": "varlock run --no-redact-stdout -- drizzle-kit push",
+		"db:studio": "varlock run --no-redact-stdout -- drizzle-kit studio"
 	},
 	"dependencies": {
 		"dotenv": "^17.4.2",
