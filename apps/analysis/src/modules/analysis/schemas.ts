@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { parameterCodes } from "../../db";
 
 // Query parameters for the analysis endpoint
 export const analysisQuerySchema = z.object({
@@ -11,7 +12,7 @@ export const analysisQuerySchema = z.object({
 
 export type AnalysisQuery = z.infer<typeof analysisQuerySchema>;
 
-// Response schema
+// Response schema with enhanced metadata
 export const pondScoreResultSchema = z.object({
   pondId: z.string(),
   startDate: z.string().datetime(),
@@ -38,6 +39,43 @@ export const pondScoreResultSchema = z.object({
       dissolvedOxygen: z.number(),
       turbidity: z.number(),
     }),
+    // Enhanced debugging information
+    executionStats: z.object({
+      totalMeasurements: z.number(),
+      measurementsByParameter: z.record(z.string(), z.number()),
+      dataCoverage: z.object({
+        requiredParameters: z.array(z.string()),
+        presentParameters: z.array(z.string()),
+        coveragePercentage: z.number().min(0).max(100),
+        hasSufficientCoverage: z.boolean(),
+      }),
+      timeRange: z.object({
+        requestedStart: z.string().datetime(),
+        requestedEnd: z.string().datetime(),
+        actualStart: z.string().datetime().nullable(),
+        actualEnd: z.string().datetime().nullable(),
+      }),
+    }),
+    parameterStats: z.record(z.string(), z.object({
+      rawValues: z.object({
+        min: z.number().nullable(),
+        max: z.number().nullable(),
+        mean: z.number().nullable(),
+        count: z.number(),
+      }),
+      normalizedScores: z.object({
+        min: z.number().nullable(),
+        max: z.number().nullable(),
+        mean: z.number().nullable(),
+        count: z.number(),
+      }),
+      temporalMetrics: z.object({
+        meanScore: z.number(),
+        minScore: z.number(),
+        criticalTimeRatio: z.number(),
+        criticalCount: z.number(),
+      }),
+    })),
   }),
 });
 

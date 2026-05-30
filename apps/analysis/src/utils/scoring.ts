@@ -1,4 +1,4 @@
-import type { ParameterCode } from "@/db";
+import type { ParameterCode } from "../../db";
 import type { NormalizedScore, ParameterMetrics, ParameterTemporalScore, PondScoreResult } from "../types";
 import {
   normalizeParameter,
@@ -7,6 +7,48 @@ import {
   CRITICAL_THRESHOLD,
   PARAMETER_WEIGHTS,
 } from "./normalization";
+
+/**
+ * Calculate raw value statistics for a parameter
+ */
+export function calculateRawValueStats(values: number[]): {
+  min: number | null;
+  max: number | null;
+  mean: number | null;
+  count: number;
+} {
+  if (values.length === 0) {
+    return { min: null, max: null, mean: null, count: 0 };
+  }
+
+  return {
+    min: Math.min(...values),
+    max: Math.max(...values),
+    mean: values.reduce((sum, val) => sum + val, 0) / values.length,
+    count: values.length,
+  };
+}
+
+/**
+ * Calculate normalized score statistics for a parameter
+ */
+export function calculateNormalizedScoreStats(scores: number[]): {
+  min: number | null;
+  max: number | null;
+  mean: number | null;
+  count: number;
+} {
+  if (scores.length === 0) {
+    return { min: null, max: null, mean: null, count: 0 };
+  }
+
+  return {
+    min: Math.min(...scores),
+    max: Math.max(...scores),
+    mean: scores.reduce((sum, val) => sum + val, 0) / scores.length,
+    count: scores.length,
+  };
+}
 
 /**
  * Calculate temporal metrics for a parameter from normalized scores
@@ -30,6 +72,7 @@ export function calculateTemporalMetrics(scores: number[]): ParameterMetrics {
     meanScore,
     minScore,
     criticalTimeRatio,
+    criticalCount,
   };
 }
 
@@ -94,6 +137,49 @@ export function normalizeMeasurements(
 }
 
 /**
+ * Calculate comprehensive parameter statistics including raw values and normalized scores
+ */
+export function calculateParameterStats(
+  measurements: Array<{ parameterCode: ParameterCode; value: number }>,
+  normalizedByParameter: Record<ParameterCode, NormalizedScore[]>
+): Record<string, {
+  rawValues: { min: number | null; max: number | null; mean: number | null; count: number };
+  normalizedScores: { min: number | null; max: number | null; mean: number | null; count: number };
+  temporalMetrics: ParameterMetrics;
+}> {
+  const parameterStats: Record<string, any> = {};
+
+  for (const parameterCode of Object.keys(normalizedByParameter) as ParameterCode[]) {
+    // Get raw values for this parameter
+    const rawValues = measurements
+      .filter(m => m.parameterCode === parameterCode)
+      .map(m => m.value);
+
+    // Get normalized scores for this parameter
+    const normalizedScores = normalizedByParameter[parameterCode].map(n => n.score);
+
+    // Calculate raw value stats
+    const rawStats = calculateRawValueStats(rawValues);
+
+    // Calculate normalized score stats
+    const normalizedStats = calculateNormalizedScoreStats(normalizedScores);
+
+    // Calculate temporal metrics
+    const temporalMetrics = normalizedScores.length > 0 
+      ? calculateTemporalMetrics(normalizedScores)
+      : { meanScore: 1, minScore: 1, criticalTimeRatio: 0, criticalCount: 0 };
+
+    parameterStats[parameterCode] = {
+      rawValues: rawStats,
+      normalizedScores: normalizedStats,
+      temporalMetrics,
+    };
+  }
+
+  return parameterStats;
+}
+
+/**
  * Calculate parameter temporal scores from normalized measurements
  */
 export function calculateParameterTemporalScores(
@@ -124,14 +210,24 @@ export function calculateParameterTemporalScores(
 }
 
 /**
- * Build the complete pond score result
+ * Build the complete pond score result with enhanced metadata
  */
 export function buildPondScoreResult(
   pondId: string,
-  startDate: Date,
-  endDate: Date,
-  parameterTemporalScores: Record<ParameterCode, ParameterTemporalScore>
+  requestedStartDate: Date,
+  requestedEndDate: Date,
+  actualStartDate: Date | null,
+  actualEndDate: Date | null,
+  measurements: Array<{ parameterCode: ParameterCode; value: number }>,
+  parameterTemporalScores: Record<ParameterCode, ParameterTemporalScore>,
+  normalizedByParameter: Record<ParameterCode, NormalizedScore[]>,
+  hasSufficientCoverage: boolean,
+  coveragePercentage: number,
+  requiredParameters: ParameterCode[],
+  presentParameters: ParameterCode[]
 ): PondScoreResult {
+  const parameterStats = calculateParameterStats(measurements, normalizedByParameter);
+
   const parameterScores: Record<string, number> = {
     temperature: 1,
     ph: 1,
@@ -154,10 +250,16 @@ export function buildPondScoreResult(
     turbidity: parameterScores.turbidity,
   });
 
+  // Count measurements by parameter
+  const measurementsByParameter: Record<string, number> = {};
+  for (const param of Object.keys(normalizedByParameter)) {
+    measurementsByParameter[param] = normalizedByParameter[param as ParameterCode].length;
+  }
+
   return {
     pondId,
-    startDate,
-    endDate,
+    startDate: requestedStartDate.toISOString(),
+    endDate: requestedEndDate.toISOString(),
     finalScore,
     parameterScores: {
       temperature: parameterScores.temperature,
@@ -170,6 +272,23 @@ export function buildPondScoreResult(
       criticalThreshold: CRITICAL_THRESHOLD,
       aggregationWeights: { ...AGGREGATION_WEIGHTS },
       parameterWeights: { ...PARAMETER_WEIGHTS },
+      executionStats: {
+        totalMeasurements: measurements.length,
+        measurementsByParameter,
+        dataCoverage: {
+          requiredParameters: requiredParameters.map(p => p),
+          presentParameters: presentParameters.map(p => p),
+          coveragePercentage,
+          hasSufficientCoverage,
+        },
+        timeRange: {
+          requestedStart: requestedStartDate.toISOString(),
+          requestedEnd: requestedEndDate.toISOString(),
+          actualStart: actualStartDate?.toISOString() || null,
+          actualEnd: actualEndDate?.toISOString() || null,
+        },
+      },
+      parameterStats,
     },
   };
 }
@@ -181,8 +300,15 @@ export function buildPondScoreResult(
 export function checkDataCoverage(
   measurements: Array<{ parameterCode: ParameterCode }>,
   expectedParameters: ParameterCode[] = ["temperature", "ph", "salinity", "dissolved_oxygen", "turbidity"]
-): boolean {
+): { hasSufficientCoverage: boolean; coveragePercentage: number; presentParameters: ParameterCode[] } {
   const presentParameters = new Set(measurements.map(m => m.parameterCode));
   const coverage = presentParameters.size / expectedParameters.length;
-  return coverage >= 0.7; // At least 70% coverage
+  const coveragePercentage = Math.round(coverage * 100);
+  const hasSufficientCoverage = coverage >= 0.7; // At least 70% coverage
+
+  return {
+    hasSufficientCoverage,
+    coveragePercentage,
+    presentParameters: Array.from(presentParameters) as ParameterCode[],
+  };
 }

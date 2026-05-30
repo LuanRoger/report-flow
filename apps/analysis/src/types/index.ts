@@ -1,9 +1,9 @@
-import type { ParameterCode } from "@/db";
+import type { ParameterCode } from "../../db";
 
 export interface PondScoreResult {
   pondId: string;
-  startDate: Date;
-  endDate: Date;
+  startDate: string;
+  endDate: string;
   finalScore: number;
   parameterScores: {
     temperature: number;
@@ -26,13 +26,50 @@ export interface PondScoreResult {
       dissolvedOxygen: number;
       turbidity: number;
     };
+    executionStats: {
+      totalMeasurements: number;
+      measurementsByParameter: Record<string, number>;
+      dataCoverage: {
+        requiredParameters: string[];
+        presentParameters: string[];
+        coveragePercentage: number;
+        hasSufficientCoverage: boolean;
+      };
+      timeRange: {
+        requestedStart: string;
+        requestedEnd: string;
+        actualStart: string | null;
+        actualEnd: string | null;
+      };
+    };
+    parameterStats: Record<string, {
+      rawValues: {
+        min: number | null;
+        max: number | null;
+        mean: number | null;
+        count: number;
+      };
+      normalizedScores: {
+        min: number | null;
+        max: number | null;
+        mean: number | null;
+        count: number;
+      };
+      temporalMetrics: {
+        meanScore: number;
+        minScore: number;
+        criticalTimeRatio: number;
+        criticalCount: number;
+      };
+    }>;
   };
 }
 
 export interface AnalysisQueryParams {
   pondId: string;
-  startDate: Date;
-  endDate: Date;
+  startDate?: string;
+  endDate?: string;
+  window?: string;
 }
 
 export interface MeasurementData {
@@ -52,6 +89,7 @@ export interface ParameterMetrics {
   meanScore: number;
   minScore: number;
   criticalTimeRatio: number;
+  criticalCount: number;
 }
 
 export interface ParameterTemporalScore {
