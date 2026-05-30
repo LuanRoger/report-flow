@@ -1,13 +1,13 @@
 {
-  "name": "simulator",
-  "module": "index.ts",
-  "type": "module",
-  "private": true,
-  "scripts": {
-  	"start": "bun run ./src/index.ts"
-  },
-  "devDependencies": {
-    "@types/bun": "catalog:",
-    "typescript": "catalog:"
-  }
+	"name": "simulator",
+	"module": "index.ts",
+	"type": "module",
+	"private": true,
+	"scripts": {
+		"start": "bun run ./src/index.ts"
+	},
+	"devDependencies": {
+		"@types/bun": "catalog:",
+		"typescript": "catalog:"
+	}
 }
