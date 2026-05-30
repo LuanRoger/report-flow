@@ -1,17 +1,12 @@
 import { z } from "zod";
 
-// Query parameters for the analysis endpoint
 export const analysisQuerySchema = z.object({
 	pondId: z.string().min(1, "pondId is required"),
 	startDate: z.coerce.date().optional(),
 	endDate: z.coerce.date().optional(),
-	// Optional: allow predefined time windows
 	window: z.enum(["7d", "30d", "90d", "custom"]).optional().default("7d"),
 });
 
-export type AnalysisQuery = z.infer<typeof analysisQuerySchema>;
-
-// Response schema with enhanced metadata
 export const pondScoreResultSchema = z.object({
 	pondId: z.string(),
 	startDate: z.date(),
@@ -38,7 +33,6 @@ export const pondScoreResultSchema = z.object({
 			dissolvedOxygen: z.number(),
 			turbidity: z.number(),
 		}),
-		// Enhanced debugging information
 		executionStats: z.object({
 			totalMeasurements: z.number(),
 			measurementsByParameter: z.record(z.string(), z.number()),
@@ -81,13 +75,8 @@ export const pondScoreResultSchema = z.object({
 	}),
 });
 
-export type PondScoreResult = z.infer<typeof pondScoreResultSchema>;
-
-// Error response schema
 export const errorResponseSchema = z.object({
 	error: z.string(),
 	message: z.string().optional(),
 	details: z.any().optional(),
 });
-
-export type ErrorResponse = z.infer<typeof errorResponseSchema>;
