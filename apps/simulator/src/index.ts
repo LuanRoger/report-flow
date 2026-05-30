@@ -6,10 +6,7 @@ const PARAMS = [
 	"ph",
 	"salinity",
 	"turbidity",
-	"suspended_solids",
 	"dissolved_oxygen",
-	"ammonia",
-	"nitrite",
 ] as const;
 
 type ParamCode = (typeof PARAMS)[number];
@@ -26,10 +23,7 @@ const UNITS: Record<ParamCode, string> = {
 	ph: "",
 	salinity: "ppt",
 	turbidity: "NTU",
-	suspended_solids: "mg/L",
 	dissolved_oxygen: "mg/L",
-	ammonia: "mg/L",
-	nitrite: "mg/L",
 };
 
 const RANGES: Record<
@@ -41,52 +35,50 @@ const RANGES: Record<
 		ph: [7.5, 8.3],
 		salinity: [15, 25],
 		turbidity: [5, 20],
-		suspended_solids: [10, 30],
 		dissolved_oxygen: [6, 9],
-		ammonia: [0.0, 0.2],
-		nitrite: [0.0, 0.1],
 	},
 	normal: {
 		temperature: [26, 31],
 		ph: [7.2, 8.6],
 		salinity: [10, 30],
 		turbidity: [10, 40],
-		suspended_solids: [20, 60],
 		dissolved_oxygen: [5, 7],
-		ammonia: [0.1, 0.5],
-		nitrite: [0.05, 0.2],
 	},
 	alerta: {
 		temperature: [24, 33],
 		ph: [6.8, 9.0],
 		salinity: [5, 35],
 		turbidity: [30, 80],
-		suspended_solids: [50, 120],
 		dissolved_oxygen: [3.5, 5],
-		ammonia: [0.5, 1.5],
-		nitrite: [0.2, 0.6],
 	},
 	critico: {
 		temperature: [20, 36],
 		ph: [6.2, 9.5],
 		salinity: [0, 40],
 		turbidity: [60, 200],
-		suspended_solids: [100, 300],
 		dissolved_oxygen: [1, 3.5],
-		ammonia: [1.5, 5],
-		nitrite: [0.6, 2],
 	},
 	misto: {} as any, // resolvido dinamicamente
 };
 
 function pickScenario(s: Scenario): Scenario {
-	if (s !== "misto") return s;
+	const scenario: Scenario = s;
+	if (scenario !== "misto") {
+		return scenario;
+	}
+
 	const options: Scenario[] = ["ideal", "normal", "alerta", "critico"];
-	return options[Math.floor(Math.random() * options.length)];
+	const randomIndex = Math.floor(Math.random() * options.length);
+	const randomScenario = options[randomIndex];
+	if (!randomScenario) {
+		throw new Error("Cenario não encontrado.");
+	}
+
+	return randomScenario;
 }
 
-function rand(min: number, max: number) {
-	return +(Math.random() * (max - min) + min).toFixed(3);
+function rand(min: number, max: number): string {
+	return (+(Math.random() * (max - min) + min)).toFixed(3);
 }
 
 function buildPayload(param: ParamCode, recordedAt: Date, scenario: Scenario) {
@@ -126,7 +118,14 @@ async function send(payload: any) {
 	}
 }
 
-function parseArgs() {
+function parseArgs(): {
+	scenario: Scenario;
+	mode: Mode;
+	rate: number;
+	from: string | undefined;
+	to: string | undefined;
+	stepMinutes: number;
+} {
 	const args = process.argv.slice(2);
 	const get = (key: string) => {
 		const i = args.indexOf(`--${key}`);
@@ -148,7 +147,7 @@ async function runConstant(scenario: Scenario, rate: number) {
 	console.log(`Modo constante: ${rate}/min, intervalo ${intervalMs}ms`);
 
 	while (true) {
-		const param = PARAMS[Math.floor(Math.random() * PARAMS.length)];
+		const param = PARAMS[Math.floor(Math.random() * PARAMS.length)]!;
 		const payload = buildPayload(param, new Date(), scenario);
 		await send(payload);
 		await new Promise((r) => setTimeout(r, intervalMs));
