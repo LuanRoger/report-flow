@@ -8,8 +8,10 @@
 		"env:load": "varlock load"
 	},
 	"dependencies": {
+		"@ai-sdk/mistral": "^1.0.0",
 		"@elysia/cors": "^1.4.2",
 		"@elysiajs/html": "^1.4.28",
+		"ai": "^3.0.0",
 		"database": "workspace:*",
 		"drizzle-orm": "^1.0.0-rc.4",
 		"elysia": "^1.4.28",

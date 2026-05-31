@@ -1,5 +1,9 @@
 import type { PondScoreResult } from "../schemas/types";
 
+export interface ReportOptions {
+	aiSummary?: string;
+}
+
 /**
  * Parameter display names for the report
  */
@@ -55,6 +59,18 @@ function formatDate(date: Date | null): string {
 		hour: "2-digit",
 		minute: "2-digit",
 	});
+}
+
+/**
+ * Escape HTML special characters to prevent XSS
+ */
+function escapeHtml(text: string): string {
+	return text
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/"/g, "&quot;")
+		.replace(/'/g, "&#039;");
 }
 
 /**
@@ -191,10 +207,11 @@ function generateMeasurementsByParameterRows(result: PondScoreResult): string {
 /**
  * Generate the complete HTML report
  */
-export function generateHtmlReport(result: PondScoreResult): string {
+export function generateHtmlReport(result: PondScoreResult, options: ReportOptions = {}): string {
 	const { pondId, startDate, endDate, finalScore, parameterScores, metadata } = result;
 	const { executionStats, parameterStats, criticalThreshold, aggregationWeights, parameterWeights } = metadata;
 	const { totalMeasurements, measurementsByParameter, dataCoverage, timeRange } = executionStats;
+	const { aiSummary } = options;
 	
 	const finalScoreColor = getScoreColor(finalScore);
 	const coverageColor = getCoverageColor(dataCoverage.coveragePercentage);
@@ -444,6 +461,51 @@ export function generateHtmlReport(result: PondScoreResult): string {
 			border-top: 1px solid #e5e7eb;
 		}
 		
+		/* AI Summary Card Styles */
+		.ai-summary-card {
+			background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+			border-radius: 12px;
+			padding: 20px;
+			margin-top: 20px;
+			color: white;
+			border: 1px solid #334155;
+			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+		}
+		
+		.ai-summary-header {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			margin-bottom: 15px;
+			padding-bottom: 10px;
+			border-bottom: 1px solid #334155;
+		}
+		
+		.ai-icon {
+			font-size: 1.5em;
+		}
+		
+		.ai-label {
+			font-weight: 600;
+			font-size: 1.1em;
+			color: #94a3b8;
+		}
+		
+		.ai-summary-content {
+			line-height: 1.7;
+			font-size: 1em;
+			color: #e2e8f0;
+			white-space: pre-wrap;
+		}
+		
+		.ai-summary-content p {
+			margin: 0;
+		}
+		
+		.ai-summary-content p + p {
+			margin-top: 10px;
+		}
+		
 		@media (max-width: 768px) {
 			.summary-grid {
 				grid-template-columns: 1fr;
@@ -496,6 +558,15 @@ export function generateHtmlReport(result: PondScoreResult): string {
 						<div class="value">${dataCoverage.presentParameters.length}</div>
 					</div>
 				</div>
+				${aiSummary ? `
+				<div class="ai-summary-card">
+					<div class="ai-summary-header">
+						<span class="ai-icon">🤖</span>
+						<span class="ai-label">Farm Advisor Summary</span>
+					</div>
+					<div class="ai-summary-content">${escapeHtml(aiSummary)}</div>
+				</div>
+				` : ""}
 			</div>
 			
 			<!-- Time Range Section -->

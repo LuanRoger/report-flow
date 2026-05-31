@@ -4,6 +4,7 @@ import { getAllPondIds } from "./repository";
 import { analysisQuerySchema } from "./schemas";
 import { performAnalysis } from "./use-cases";
 import { generateHtmlReport } from "./utils/report";
+import { generateAiSummary } from "./utils/ai-summary";
 
 export const analysisModule = new Elysia({ prefix: "/analysis" })
 	.use(html())
@@ -32,7 +33,8 @@ export const analysisModule = new Elysia({ prefix: "/analysis" })
 		"/report",
 		async ({ query, set }) => {
 			const result = await performAnalysis(query);
-			const htmlReport = generateHtmlReport(result);
+			const aiSummary = await generateAiSummary(result);
+			const htmlReport = generateHtmlReport(result, { aiSummary });
 
 			set.headers["Content-Type"] = "text/html; charset=utf-8";
 			return html(htmlReport);
