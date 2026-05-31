@@ -9,7 +9,7 @@
 		"types": ["bun"],
 		"paths": {
 			"~/*": ["./*"],
-			"@/*": ["./src/*"],
+			"@/*": ["./src/*"]
 		},
 
 		/* Interop Constraints */
@@ -20,6 +20,6 @@
 		"strict": true,
 
 		/* Completeness */
-		"skipLibCheck": true,
-	},
+		"skipLibCheck": true
+	}
 }

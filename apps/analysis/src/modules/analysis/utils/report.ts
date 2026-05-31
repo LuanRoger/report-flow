@@ -207,12 +207,27 @@ function generateMeasurementsByParameterRows(result: PondScoreResult): string {
 /**
  * Generate the complete HTML report
  */
-export function generateHtmlReport(result: PondScoreResult, options: ReportOptions = {}): string {
-	const { pondId, startDate, endDate, finalScore, parameterScores, metadata } = result;
-	const { executionStats, parameterStats, criticalThreshold, aggregationWeights, parameterWeights } = metadata;
-	const { totalMeasurements, measurementsByParameter, dataCoverage, timeRange } = executionStats;
+export function generateHtmlReport(
+	result: PondScoreResult,
+	options: ReportOptions = {},
+): string {
+	const { pondId, startDate, endDate, finalScore, parameterScores, metadata } =
+		result;
+	const {
+		executionStats,
+		parameterStats,
+		criticalThreshold,
+		aggregationWeights,
+		parameterWeights,
+	} = metadata;
+	const {
+		totalMeasurements,
+		measurementsByParameter,
+		dataCoverage,
+		timeRange,
+	} = executionStats;
 	const { aiSummary } = options;
-	
+
 	const finalScoreColor = getScoreColor(finalScore);
 	const coverageColor = getCoverageColor(dataCoverage.coveragePercentage);
 
@@ -558,7 +573,9 @@ export function generateHtmlReport(result: PondScoreResult, options: ReportOptio
 						<div class="value">${dataCoverage.presentParameters.length}</div>
 					</div>
 				</div>
-				${aiSummary ? `
+				${
+					aiSummary
+						? `
 				<div class="ai-summary-card">
 					<div class="ai-summary-header">
 						<span class="ai-icon">🤖</span>
@@ -566,7 +583,9 @@ export function generateHtmlReport(result: PondScoreResult, options: ReportOptio
 					</div>
 					<div class="ai-summary-content">${escapeHtml(aiSummary)}</div>
 				</div>
-				` : ""}
+				`
+						: ""
+				}
 			</div>
 			
 			<!-- Time Range Section -->

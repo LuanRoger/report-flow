@@ -1,7 +1,7 @@
-import { mistral, MistralLanguageModelOptions } from "@ai-sdk/mistral";
+import { MistralLanguageModelOptions, mistral } from "@ai-sdk/mistral";
 import { generateText } from "ai";
-import type { PondScoreResult } from "../schemas/types";
 import { ENV } from "varlock/env";
+import type { PondScoreResult } from "../schemas/types";
 
 // System prompt for the AI to act as a shrimp farm advisor
 const SYSTEM_PROMPT = `
@@ -34,6 +34,7 @@ IMPORTANT GUIDELINES:
 - Always end with a positive, encouraging note
 
 Remember: You are advising real shrimp farmers who rely on your expertise to maintain healthy ponds and successful harvests.
+Output: Must generate the response in Portuguese (Brasil)
 `;
 
 /**
@@ -139,7 +140,8 @@ export async function generateAiSummary(
 			model: mistral("ministral-3b-latest"),
 			system: SYSTEM_PROMPT,
 			prompt: `\n\n${context}\n\nPlease provide your professional analysis and advice for this pond.`,
-			temperature: 0.7,
+			temperature: 0.4,
+			maxOutputTokens: 400,
 		});
 
 		return text;

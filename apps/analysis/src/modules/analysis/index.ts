@@ -3,8 +3,8 @@ import Elysia from "elysia";
 import { getAllPondIds } from "./repository";
 import { analysisQuerySchema } from "./schemas";
 import { performAnalysis } from "./use-cases";
-import { generateHtmlReport } from "./utils/report";
 import { generateAiSummary } from "./utils/ai-summary";
+import { generateHtmlReport } from "./utils/report";
 
 export const analysisModule = new Elysia({ prefix: "/analysis" })
 	.use(html())
