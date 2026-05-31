@@ -6,7 +6,7 @@ const PARAMS = [
 	"ph",
 	"salinity",
 	"turbidity",
-	"dissolved_oxygen",
+	"dissolvedOxygen",
 ] as const;
 
 type ParamCode = (typeof PARAMS)[number];
@@ -34,7 +34,7 @@ const UNITS: Record<ParamCode, string> = {
 	ph: "",
 	salinity: "ppt",
 	turbidity: "NTU",
-	dissolved_oxygen: "mg/L",
+	dissolvedOxygen: "mg/L",
 };
 
 const RANGES: Record<
@@ -46,28 +46,28 @@ const RANGES: Record<
 		ph: [7.5, 8.3],
 		salinity: [15, 25],
 		turbidity: [5, 20],
-		dissolved_oxygen: [6, 9],
+		dissolvedOxygen: [6, 9],
 	},
 	normal: {
 		temperature: [26, 31],
 		ph: [7.2, 8.6],
 		salinity: [10, 30],
 		turbidity: [10, 40],
-		dissolved_oxygen: [5, 7],
+		dissolvedOxygen: [5, 7],
 	},
 	alerta: {
 		temperature: [24, 33],
 		ph: [6.8, 9.0],
 		salinity: [5, 35],
 		turbidity: [30, 80],
-		dissolved_oxygen: [3.5, 5],
+		dissolvedOxygen: [3.5, 5],
 	},
 	critico: {
 		temperature: [20, 36],
 		ph: [6.2, 9.5],
 		salinity: [0, 40],
 		turbidity: [60, 200],
-		dissolved_oxygen: [1, 3.5],
+		dissolvedOxygen: [1, 3.5],
 	},
 	misto: {} as Record<ParamCode, [number, number]>,
 };
