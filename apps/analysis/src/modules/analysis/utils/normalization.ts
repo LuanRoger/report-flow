@@ -141,7 +141,7 @@ export function normalizeParameter(
 		return triangularNormalize(value, normalization.xopt, normalization.w);
 	}
 
-	throw new Error(`Unknown normalization type: ${(normalization as any).type}`);
+	throw new Error(`Unknown normalization type: ${normalization}`);
 }
 
 /**

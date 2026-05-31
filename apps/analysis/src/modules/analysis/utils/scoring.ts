@@ -1,16 +1,17 @@
 import type { ParameterCode } from "database";
+import type { PondScoreResult } from "../schemas/types";
 import type {
 	NormalizedScore,
 	ParameterMetrics,
+	ParameterStats,
 	ParameterTemporalScore,
 } from "../types/analysis";
 import {
-	getParameterWeight,
 	AGGREGATION_WEIGHTS,
 	CRITICAL_THRESHOLD,
+	getParameterWeight,
 	PARAMETER_WEIGHTS,
 } from "./normalization";
-import type { PondScoreResult } from "../schemas/types";
 
 export function checkDataCoverage(
 	measurements: Array<{ parameterCode: ParameterCode }>,
@@ -137,25 +138,11 @@ export function calculatePondScore(
 export function calculateParameterStats(
 	measurements: Array<{ parameterCode: ParameterCode; value: number }>,
 	normalizedByParameter: Record<ParameterCode, NormalizedScore[]>,
-): Record<
-	string,
-	{
-		rawValues: {
-			min: number | null;
-			max: number | null;
-			mean: number | null;
-			count: number;
-		};
-		normalizedScores: {
-			min: number | null;
-			max: number | null;
-			mean: number | null;
-			count: number;
-		};
-		temporalMetrics: ParameterMetrics;
-	}
-> {
-	const parameterStats: Record<string, any> = {};
+): Record<string, ParameterStats> {
+	const parameterStats: Record<ParameterCode, ParameterStats> = {} as Record<
+		ParameterCode,
+		ParameterStats
+	>;
 
 	for (const parameterCode of Object.keys(
 		normalizedByParameter,

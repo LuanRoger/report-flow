@@ -2,12 +2,12 @@ import { InsufficientDataError, PondNotFoundError } from "../models/errors";
 import { getMeasurementsForPond, pondExists } from "../repository";
 import type { AnalysisQuery } from "../schemas/types";
 import { calculateTimeWindow } from "../utils/date";
+import { normalizeMeasurements } from "../utils/normalization";
 import {
 	buildPondScoreResult,
 	calculateParameterTemporalScores,
 	checkDataCoverage,
 } from "../utils/scoring";
-import { normalizeMeasurements } from "../utils/normalization";
 
 export async function performAnalysis(query: AnalysisQuery) {
 	const {

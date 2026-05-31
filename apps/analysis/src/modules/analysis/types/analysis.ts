@@ -20,6 +20,22 @@ export type NormalizedScore = {
 	recordedAt: Date;
 };
 
+export type ParameterStats = {
+	rawValues: {
+		min: number | null;
+		max: number | null;
+		mean: number | null;
+		count: number;
+	};
+	normalizedScores: {
+		min: number | null;
+		max: number | null;
+		mean: number | null;
+		count: number;
+	};
+	temporalMetrics: ParameterMetrics;
+};
+
 export type ParameterMetrics = {
 	meanScore: number;
 	minScore: number;
