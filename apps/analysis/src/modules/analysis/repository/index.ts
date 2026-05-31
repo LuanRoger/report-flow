@@ -1,14 +1,7 @@
-import type { ParameterCode } from "database";
 import { db, measurements } from "database";
 import { and, asc, eq, gte, lte } from "drizzle-orm";
 import { DEFAULT_MIN_MAX_DATE } from "../constants";
-
-interface MeasurementRecord {
-	pondId: string;
-	parameterCode: ParameterCode;
-	value: number;
-	recordedAt: Date;
-}
+import type { MeasurementRecord } from "./types";
 
 export async function getMeasurementsForPond(
 	pondId: string,

@@ -1,10 +1,11 @@
 import { z } from "zod";
+import { ANALYSIS_TIME_WINDOWS } from "../constants";
 
 export const analysisQuerySchema = z.object({
-	pondId: z.string().min(1, "pondId is required"),
+	pondId: z.string().min(1, { error: "pondId is required" }),
 	startDate: z.coerce.date().optional(),
 	endDate: z.coerce.date().optional(),
-	window: z.enum(["7d", "30d", "90d", "custom"]).optional().default("7d"),
+	window: z.enum(ANALYSIS_TIME_WINDOWS).optional().default("7d"),
 });
 
 export const pondScoreResultSchema = z.object({
@@ -37,7 +38,6 @@ export const pondScoreResultSchema = z.object({
 			totalMeasurements: z.number(),
 			measurementsByParameter: z.record(z.string(), z.number()),
 			dataCoverage: z.object({
-				requiredParameters: z.array(z.string()),
 				presentParameters: z.array(z.string()),
 				coveragePercentage: z.number().min(0).max(100),
 				hasSufficientCoverage: z.boolean(),
@@ -73,6 +73,11 @@ export const pondScoreResultSchema = z.object({
 			}),
 		),
 	}),
+});
+
+export const pondScoreResponseSchema = z.object({
+	success: z.boolean(),
+	data: pondScoreResultSchema,
 });
 
 export const errorResponseSchema = z.object({
