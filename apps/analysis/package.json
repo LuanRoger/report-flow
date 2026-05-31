@@ -1,18 +1,15 @@
 {
-	"name": "ingest",
+	"name": "analysis",
 	"version": "1.0.0",
 	"module": "src/index.js",
 	"scripts": {
 		"dev": "bun run --watch src/index.ts",
 		"start": "bun src/index.js",
-		"env:load": "varlock load",
-		"db:migrate": "varlock run --no-redact-stdout -- drizzle-kit migrate",
-		"db:push": "varlock run --no-redact-stdout -- drizzle-kit push",
-		"db:studio": "varlock run --no-redact-stdout -- drizzle-kit studio"
+		"env:load": "varlock load"
 	},
 	"dependencies": {
+		"@elysia/cors": "^1.4.2",
 		"database": "workspace:*",
-		"dotenv": "^17.4.2",
 		"drizzle-orm": "^1.0.0-rc.4",
 		"elysia": "^1.4.28",
 		"pg": "^8.21.0",

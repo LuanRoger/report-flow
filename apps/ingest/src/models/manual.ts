@@ -1,4 +1,4 @@
-import type { ParameterCode } from "./params";
+import type { ParameterCode } from "@/db";
 
 export type ManualIngestData = {
 	farmId: string;

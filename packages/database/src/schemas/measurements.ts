@@ -7,9 +7,9 @@ import {
 	timestamp,
 	unique,
 } from "drizzle-orm/pg-core";
-import { parameterCodes as parameterCodesValues } from "@/models/params";
+import { parameterCodes as parameterCodesArray } from "../constants";
 
-export const parameterCodes = pgEnum("parameter_code", parameterCodesValues);
+export const parameterCodes = pgEnum("parameter_code", parameterCodesArray);
 
 export const measurements = pgTable(
 	"measurements",

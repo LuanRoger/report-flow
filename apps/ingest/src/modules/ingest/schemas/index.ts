@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { parameterCodes } from "@/models/params";
+import { parameterCodes } from "@/db";
 
 export const ingestManualRouteBodySchema = z.object({
 	farmId: z.string(),

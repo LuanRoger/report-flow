@@ -5,7 +5,7 @@ CREATE TYPE parameter_code AS ENUM (
     'ph',
     'salinity',
     'turbidity',
-    'dissolved_oxygen'
+    'dissolvedOxygen'
 );
 
 CREATE TABLE measurements (
