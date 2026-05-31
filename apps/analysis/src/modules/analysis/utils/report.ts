@@ -84,14 +84,14 @@ function generateProgressBar(score: number, max: number = 100): string {
 function generateParameterStatsRows(result: PondScoreResult): string {
 	const { parameterStats } = result.metadata;
 	const parameterCodes = Object.keys(parameterStats);
-	
+
 	let rows = "";
-	
+
 	for (const paramCode of parameterCodes) {
 		const stats = parameterStats[paramCode];
 		const displayName = PARAMETER_DISPLAY_NAMES[paramCode] || paramCode;
 		const unit = PARAMETER_UNITS[paramCode] || "";
-		
+
 		rows += `
 		<tr>
 			<td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: left; font-weight: 600;">${displayName}</td>
@@ -102,7 +102,7 @@ function generateParameterStatsRows(result: PondScoreResult): string {
 		</tr>
 		`;
 	}
-	
+
 	return rows;
 }
 
@@ -112,14 +112,14 @@ function generateParameterStatsRows(result: PondScoreResult): string {
 function generateParameterScoresRows(result: PondScoreResult): string {
 	const { parameterScores } = result;
 	const parameterCodes = Object.keys(parameterScores);
-	
+
 	let rows = "";
-	
+
 	for (const paramCode of parameterCodes) {
 		const score = parameterScores[paramCode as keyof typeof parameterScores];
 		const displayName = PARAMETER_DISPLAY_NAMES[paramCode] || paramCode;
 		const color = getScoreColor(score);
-		
+
 		rows += `
 		<tr>
 			<td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: left; font-weight: 600;">${displayName}</td>
@@ -132,7 +132,7 @@ function generateParameterScoresRows(result: PondScoreResult): string {
 		</tr>
 		`;
 	}
-	
+
 	return rows;
 }
 
@@ -142,14 +142,14 @@ function generateParameterScoresRows(result: PondScoreResult): string {
 function generateTemporalMetricsRows(result: PondScoreResult): string {
 	const { parameterStats } = result.metadata;
 	const parameterCodes = Object.keys(parameterStats);
-	
+
 	let rows = "";
-	
+
 	for (const paramCode of parameterCodes) {
 		const stats = parameterStats[paramCode];
 		const displayName = PARAMETER_DISPLAY_NAMES[paramCode] || paramCode;
 		const temporal = stats.temporalMetrics;
-		
+
 		rows += `
 		<tr>
 			<td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: left; font-weight: 600;">${displayName}</td>
@@ -160,7 +160,7 @@ function generateTemporalMetricsRows(result: PondScoreResult): string {
 		</tr>
 		`;
 	}
-	
+
 	return rows;
 }
 
@@ -170,13 +170,13 @@ function generateTemporalMetricsRows(result: PondScoreResult): string {
 function generateMeasurementsByParameterRows(result: PondScoreResult): string {
 	const { measurementsByParameter } = result.metadata.executionStats;
 	const parameterCodes = Object.keys(measurementsByParameter);
-	
+
 	let rows = "";
-	
+
 	for (const paramCode of parameterCodes) {
 		const count = measurementsByParameter[paramCode];
 		const displayName = PARAMETER_DISPLAY_NAMES[paramCode] || paramCode;
-		
+
 		rows += `
 		<tr>
 			<td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: left; font-weight: 600;">${displayName}</td>
@@ -184,7 +184,7 @@ function generateMeasurementsByParameterRows(result: PondScoreResult): string {
 		</tr>
 		`;
 	}
-	
+
 	return rows;
 }
 
@@ -192,13 +192,25 @@ function generateMeasurementsByParameterRows(result: PondScoreResult): string {
  * Generate the complete HTML report
  */
 export function generateHtmlReport(result: PondScoreResult): string {
-	const { pondId, startDate, endDate, finalScore, parameterScores, metadata } = result;
-	const { executionStats, parameterStats, criticalThreshold, aggregationWeights, parameterWeights } = metadata;
-	const { totalMeasurements, measurementsByParameter, dataCoverage, timeRange } = executionStats;
-	
+	const { pondId, startDate, endDate, finalScore, parameterScores, metadata } =
+		result;
+	const {
+		executionStats,
+		parameterStats,
+		criticalThreshold,
+		aggregationWeights,
+		parameterWeights,
+	} = metadata;
+	const {
+		totalMeasurements,
+		measurementsByParameter,
+		dataCoverage,
+		timeRange,
+	} = executionStats;
+
 	const finalScoreColor = getScoreColor(finalScore);
 	const coverageColor = getCoverageColor(dataCoverage.coveragePercentage);
-	
+
 	return `
 <!DOCTYPE html>
 <html lang="en">
