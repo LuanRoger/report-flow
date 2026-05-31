@@ -1,6 +1,6 @@
 import Elysia from "elysia";
 import { getAllPondIds } from "./repository";
-import { analysisQuerySchema } from "./schemas";
+import { analysisQuerySchema, pondScoreResultSchema } from "./schemas";
 import { performAnalysis } from "./use-cases";
 import { generateAiSummary } from "./utils/ai-summary";
 import { generateHtmlReport } from "./utils/report";
@@ -45,17 +45,17 @@ const chatModule = new Elysia({ prefix: "/chat" })
 		"/store",
 		async ({ body }) => {
 			const { pondId, result } = body;
-			
+
 			if (!pondId || !result) {
 				return {
 					success: false,
 					error: "pondId and result are required",
 				};
 			}
-			
+
 			try {
 				await storeAnalysisEmbedding(pondId, result);
-				
+
 				return {
 					success: true,
 					message: "Analysis embedding stored successfully",
@@ -63,9 +63,18 @@ const chatModule = new Elysia({ prefix: "/chat" })
 			} catch (error) {
 				return {
 					success: false,
-					error: error instanceof Error ? error.message : "Failed to store embedding",
+					error:
+						error instanceof Error
+							? error.message
+							: "Failed to store embedding",
 				};
 			}
+		},
+		{
+			body: z.object({
+				pondId: z.string(),
+				result: pondScoreResultSchema,
+			}),
 		},
 	)
 	// Get conversational response using RAG
@@ -73,10 +82,10 @@ const chatModule = new Elysia({ prefix: "/chat" })
 		"/",
 		async ({ body }) => {
 			const { query: userQuery, pondId } = body;
-			
+
 			try {
 				const response = await generateRagResponse(userQuery, pondId);
-				
+
 				return {
 					success: true,
 					data: response,
@@ -84,7 +93,10 @@ const chatModule = new Elysia({ prefix: "/chat" })
 			} catch (error) {
 				return {
 					success: false,
-					error: error instanceof Error ? error.message : "Failed to generate response",
+					error:
+						error instanceof Error
+							? error.message
+							: "Failed to generate response",
 				};
 			}
 		},
@@ -93,43 +105,39 @@ const chatModule = new Elysia({ prefix: "/chat" })
 		},
 	)
 	// Get stored analyses for a pond
-	.get(
-		"/:pondId",
-		async ({ params: { pondId } }) => {
-			try {
-				const analyses = await getStoredAnalysesForPond(pondId);
-				
-				return {
-					success: true,
-					data: { pondId, analyses },
-				};
-			} catch (error) {
-				return {
-					success: false,
-					error: error instanceof Error ? error.message : "Failed to get analyses",
-				};
-			}
-		},
-	)
+	.get("/:pondId", async ({ params: { pondId } }) => {
+		try {
+			const analyses = await getStoredAnalysesForPond(pondId);
+
+			return {
+				success: true,
+				data: { pondId, analyses },
+			};
+		} catch (error) {
+			return {
+				success: false,
+				error:
+					error instanceof Error ? error.message : "Failed to get analyses",
+			};
+		}
+	})
 	// Delete stored analyses for a pond
-	.delete(
-		"/:pondId",
-		async ({ params: { pondId } }) => {
-			try {
-				const deletedCount = await deleteAnalysesForPond(pondId);
-				
-				return {
-					success: true,
-					data: { pondId, deletedCount },
-				};
-			} catch (error) {
-				return {
-					success: false,
-					error: error instanceof Error ? error.message : "Failed to delete analyses",
-				};
-			}
-		},
-	);
+	.delete("/:pondId", async ({ params: { pondId } }) => {
+		try {
+			const deletedCount = await deleteAnalysesForPond(pondId);
+
+			return {
+				success: true,
+				data: { pondId, deletedCount },
+			};
+		} catch (error) {
+			return {
+				success: false,
+				error:
+					error instanceof Error ? error.message : "Failed to delete analyses",
+			};
+		}
+	});
 
 export const analysisModule = new Elysia({ prefix: "/analysis" })
 	.use(aiModule)
@@ -161,11 +169,11 @@ export const analysisModule = new Elysia({ prefix: "/analysis" })
 			const result = await performAnalysis(query);
 			const aiSummary = await generateAiSummary(result);
 			const htmlReport = generateHtmlReport(result, { aiSummary });
-			
+
 			// Store the analysis embedding for RAG knowledge base
 			// This is fire-and-forget - we don't wait for it to complete
 			// to keep the report generation fast
-			storeAnalysisEmbedding(result.pondId, result).catch(error => {
+			storeAnalysisEmbedding(result.pondId, result).catch((error) => {
 				console.error("Failed to store analysis embedding:", error);
 			});
 

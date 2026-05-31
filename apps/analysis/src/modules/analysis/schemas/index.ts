@@ -10,8 +10,8 @@ export const analysisQuerySchema = z.object({
 
 export const pondScoreResultSchema = z.object({
 	pondId: z.string(),
-	startDate: z.date(),
-	endDate: z.date(),
+	startDate: z.coerce.date(),
+	endDate: z.coerce.date(),
 	finalScore: z.number().min(1).max(100),
 	parameterScores: z.object({
 		temperature: z.number().min(1).max(100),
@@ -43,10 +43,10 @@ export const pondScoreResultSchema = z.object({
 				hasSufficientCoverage: z.boolean(),
 			}),
 			timeRange: z.object({
-				requestedStart: z.date(),
-				requestedEnd: z.date(),
-				actualStart: z.date().nullable(),
-				actualEnd: z.date().nullable(),
+				requestedStart: z.coerce.date(),
+				requestedEnd: z.coerce.date(),
+				actualStart: z.coerce.date().nullable(),
+				actualEnd: z.coerce.date().nullable(),
 			}),
 		}),
 		parameterStats: z.record(
