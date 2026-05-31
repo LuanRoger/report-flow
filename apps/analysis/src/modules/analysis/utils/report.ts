@@ -638,7 +638,7 @@ export function generateHtmlReport(result: PondScoreResult): string {
 		// Add print styles for better PDF generation
 		window.addEventListener('beforeprint', function() {
 			const style = document.createElement('style');
-			style.textContent = `
+			style.textContent = \`
 				@media print {
 					.download-btn {
 						display: none !important;
@@ -651,7 +651,7 @@ export function generateHtmlReport(result: PondScoreResult): string {
 						border: 1px solid #ccc !important;
 					}
 				}
-			`;
+			\`;
 			document.head.appendChild(style);
 		});
 	</script>

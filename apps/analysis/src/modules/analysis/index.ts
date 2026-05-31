@@ -30,12 +30,11 @@ export const analysisModule = new Elysia({ prefix: "/analysis" })
 	})
 	.get(
 		"/report",
-		async ({ query, set }) => {
+		async ({ query }) => {
 			const result = await performAnalysis(query);
 			const htmlReport = generateHtmlReport(result);
 
-			set.headers["Content-Type"] = "text/html; charset=utf-8";
-			return html(htmlReport);
+			return htmlReport;
 		},
 		{
 			query: analysisQuerySchema,
