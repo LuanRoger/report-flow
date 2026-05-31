@@ -1,9 +1,12 @@
 import Elysia from "elysia";
+import { html } from "@elysiajs/html";
 import { getAllPondIds } from "./repository";
 import { analysisQuerySchema } from "./schemas";
 import { performAnalysis } from "./use-cases";
+import { generateHtmlReport } from "./utils/report";
 
 export const analysisModule = new Elysia({ prefix: "/analysis" })
+	.use(html())
 	.get(
 		"/",
 		async ({ query, status }) => {
@@ -24,4 +27,17 @@ export const analysisModule = new Elysia({ prefix: "/analysis" })
 			success: true,
 			data: { pondIds },
 		};
-	});
+	})
+	.get(
+		"/report",
+		async ({ query, set }) => {
+			const result = await performAnalysis(query);
+			const htmlReport = generateHtmlReport(result);
+
+			set.headers["Content-Type"] = "text/html; charset=utf-8";
+			return html(htmlReport);
+		},
+		{
+			query: analysisQuerySchema,
+		},
+	);
