@@ -41,4 +41,23 @@ export const analysisModule = new Elysia({ prefix: "/analysis" })
 		{
 			query: analysisQuerySchema,
 		},
+	)
+	.get(
+		"/ai",
+		async ({ query }) => {
+			const result = await performAnalysis(query);
+			const aiSummary = await generateAiSummary(result);
+
+			return {
+				success: true,
+				data: {
+					pondId: result.pondId,
+					finalScore: result.finalScore,
+					summary: aiSummary,
+				},
+			};
+		},
+		{
+			query: analysisQuerySchema,
+		},
 	);
