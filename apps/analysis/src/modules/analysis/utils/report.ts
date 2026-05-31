@@ -211,21 +211,14 @@ export function generateHtmlReport(
 	result: PondScoreResult,
 	options: ReportOptions = {},
 ): string {
-	const { pondId, startDate, endDate, finalScore, parameterScores, metadata } =
-		result;
+	const { pondId, finalScore, metadata } = result;
 	const {
 		executionStats,
-		parameterStats,
 		criticalThreshold,
 		aggregationWeights,
 		parameterWeights,
 	} = metadata;
-	const {
-		totalMeasurements,
-		measurementsByParameter,
-		dataCoverage,
-		timeRange,
-	} = executionStats;
+	const { totalMeasurements, dataCoverage, timeRange } = executionStats;
 	const { aiSummary } = options;
 
 	const finalScoreColor = getScoreColor(finalScore);
@@ -244,36 +237,36 @@ export function generateHtmlReport(
 			padding: 0;
 			box-sizing: border-box;
 		}
-		
+
 		body {
 			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
 			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 			min-height: 100vh;
 			padding: 20px;
 		}
-		
+
 		.container {
 			max-width: 1200px;
 			margin: 0 auto;
 		}
-		
+
 		.header {
 			text-align: center;
 			color: white;
 			margin-bottom: 30px;
 		}
-		
+
 		.header h1 {
 			font-size: 2.5em;
 			margin-bottom: 10px;
 			text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
 		}
-		
+
 		.header .subtitle {
 			font-size: 1.2em;
 			opacity: 0.9;
 		}
-		
+
 		.report-card {
 			background: white;
 			border-radius: 16px;
@@ -281,7 +274,7 @@ export function generateHtmlReport(
 			padding: 30px;
 			margin-bottom: 20px;
 		}
-		
+
 		.report-header {
 			border-bottom: 3px solid #667eea;
 			padding-bottom: 20px;
@@ -292,12 +285,12 @@ export function generateHtmlReport(
 			flex-wrap: wrap;
 			gap: 15px;
 		}
-		
+
 		.report-header h2 {
 			color: #1f2937;
 			font-size: 1.8em;
 		}
-		
+
 		.download-btn {
 			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 			color: white;
@@ -309,30 +302,30 @@ export function generateHtmlReport(
 			font-weight: 600;
 			transition: transform 0.2s ease, box-shadow 0.2s ease;
 		}
-		
+
 		.download-btn:hover {
 			transform: translateY(-2px);
 			box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 		}
-		
+
 		.download-btn:active {
 			transform: translateY(0);
 		}
-		
+
 		.summary-grid {
 			display: grid;
 			grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
 			gap: 20px;
 			margin-bottom: 30px;
 		}
-		
+
 		.summary-card {
 			background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
 			border-radius: 12px;
 			padding: 20px;
 			text-align: center;
 		}
-		
+
 		.summary-card .label {
 			color: #6b7280;
 			font-size: 0.9em;
@@ -341,27 +334,27 @@ export function generateHtmlReport(
 			text-transform: uppercase;
 			letter-spacing: 0.5px;
 		}
-		
+
 		.summary-card .value {
 			color: #1f2937;
 			font-size: 2em;
 			font-weight: 700;
 		}
-		
+
 		.final-score-card {
 			background: linear-gradient(135deg, ${finalScoreColor}22 0%, ${finalScoreColor}44 100%);
 			border: 3px solid ${finalScoreColor};
 		}
-		
+
 		.final-score-card .value {
 			color: ${finalScoreColor};
 			font-size: 3em;
 		}
-		
+
 		.section {
 			margin-bottom: 30px;
 		}
-		
+
 		.section h3 {
 			color: #1f2937;
 			font-size: 1.4em;
@@ -369,11 +362,11 @@ export function generateHtmlReport(
 			padding-bottom: 10px;
 			border-bottom: 2px solid #e5e7eb;
 		}
-		
+
 		.table-container {
 			overflow-x: auto;
 		}
-		
+
 		.table {
 			width: 100%;
 			border-collapse: collapse;
@@ -382,7 +375,7 @@ export function generateHtmlReport(
 			overflow: hidden;
 			box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 		}
-		
+
 		.table th {
 			padding: 15px;
 			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -393,20 +386,20 @@ export function generateHtmlReport(
 			font-size: 0.85em;
 			letter-spacing: 0.5px;
 		}
-		
+
 		.table td {
 			padding: 12px;
 			border-bottom: 1px solid #e5e7eb;
 		}
-		
+
 		.table tr:last-child td {
 			border-bottom: none;
 		}
-		
+
 		.table tr:hover {
 			background: #f9fafb;
 		}
-		
+
 		.status-badge {
 			display: inline-block;
 			padding: 6px 12px;
@@ -414,45 +407,45 @@ export function generateHtmlReport(
 			font-size: 0.85em;
 			font-weight: 600;
 		}
-		
+
 		.status-excellent {
 			background: #22c55e;
 			color: white;
 		}
-		
+
 		.status-good {
 			background: #84cc16;
 			color: white;
 		}
-		
+
 		.status-fair {
 			background: #eab308;
 			color: white;
 		}
-		
+
 		.status-poor {
 			background: #f97316;
 			color: white;
 		}
-		
+
 		.status-critical {
 			background: #ef4444;
 			color: white;
 		}
-		
+
 		.info-grid {
 			display: grid;
 			grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 			gap: 20px;
 		}
-		
+
 		.info-card {
 			background: #f9fafb;
 			border-radius: 8px;
 			padding: 15px;
 			border-left: 4px solid #667eea;
 		}
-		
+
 		.info-card .title {
 			color: #667eea;
 			font-weight: 600;
@@ -461,12 +454,12 @@ export function generateHtmlReport(
 			text-transform: uppercase;
 			letter-spacing: 0.5px;
 		}
-		
+
 		.info-card .content {
 			color: #4b5563;
 			line-height: 1.6;
 		}
-		
+
 		.footer {
 			text-align: center;
 			color: #9ca3af;
@@ -475,7 +468,7 @@ export function generateHtmlReport(
 			padding-top: 20px;
 			border-top: 1px solid #e5e7eb;
 		}
-		
+
 		/* AI Summary Card Styles */
 		.ai-summary-card {
 			background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
@@ -486,7 +479,7 @@ export function generateHtmlReport(
 			border: 1px solid #334155;
 			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 		}
-		
+
 		.ai-summary-header {
 			display: flex;
 			align-items: center;
@@ -495,42 +488,42 @@ export function generateHtmlReport(
 			padding-bottom: 10px;
 			border-bottom: 1px solid #334155;
 		}
-		
+
 		.ai-icon {
 			font-size: 1.5em;
 		}
-		
+
 		.ai-label {
 			font-weight: 600;
 			font-size: 1.1em;
 			color: #94a3b8;
 		}
-		
+
 		.ai-summary-content {
 			line-height: 1.7;
 			font-size: 1em;
 			color: #e2e8f0;
 			white-space: pre-wrap;
 		}
-		
+
 		.ai-summary-content p {
 			margin: 0;
 		}
-		
+
 		.ai-summary-content p + p {
 			margin-top: 10px;
 		}
-		
+
 		@media (max-width: 768px) {
 			.summary-grid {
 				grid-template-columns: 1fr;
 			}
-			
+
 			.report-header {
 				flex-direction: column;
 				align-items: flex-start;
 			}
-			
+
 			.table th, .table td {
 				padding: 10px 8px;
 				font-size: 0.9em;
@@ -544,13 +537,13 @@ export function generateHtmlReport(
 			<h1>📊 Pond Analysis Report</h1>
 			<p class="subtitle">Comprehensive Water Quality Analysis for Pond ${pondId}</p>
 		</div>
-		
+
 		<div class="report-card">
 			<div class="report-header">
 				<h2>Analysis Report: ${pondId}</h2>
 				<button class="download-btn" onclick="window.print()">📥 Download Report</button>
 			</div>
-			
+
 			<!-- Summary Section -->
 			<div class="section">
 				<h3>📈 Overall Results</h3>
@@ -587,7 +580,7 @@ export function generateHtmlReport(
 						: ""
 				}
 			</div>
-			
+
 			<!-- Time Range Section -->
 			<div class="section">
 				<h3>📅 Analysis Period</h3>
@@ -606,7 +599,7 @@ export function generateHtmlReport(
 					</div>
 				</div>
 			</div>
-			
+
 			<!-- Parameter Scores Section -->
 			<div class="section">
 				<h3>🎯 Parameter Scores</h3>
@@ -625,7 +618,7 @@ export function generateHtmlReport(
 					</table>
 				</div>
 			</div>
-			
+
 			<!-- Parameter Statistics Section -->
 			<div class="section">
 				<h3>📊 Parameter Statistics</h3>
@@ -646,7 +639,7 @@ export function generateHtmlReport(
 					</table>
 				</div>
 			</div>
-			
+
 			<!-- Temporal Metrics Section -->
 			<div class="section">
 				<h3>⏱️ Temporal Metrics</h3>
@@ -670,7 +663,7 @@ export function generateHtmlReport(
 					<strong>Note:</strong> Critical threshold is set at ${criticalThreshold}. Scores below this indicate unfavorable conditions.
 				</p>
 			</div>
-			
+
 			<!-- Measurements Distribution Section -->
 			<div class="section">
 				<h3>📋 Measurements Distribution</h3>
@@ -688,7 +681,7 @@ export function generateHtmlReport(
 					</table>
 				</div>
 			</div>
-			
+
 			<!-- Configuration Section -->
 			<div class="section">
 				<h3>⚙️ Analysis Configuration</h3>
@@ -717,13 +710,13 @@ export function generateHtmlReport(
 					</div>
 				</div>
 			</div>
-			
+
 			<div class="footer">
 				<p>Generated on ${new Date().toLocaleString()} | Report Flow Analysis Service</p>
 			</div>
 		</div>
 	</div>
-	
+
 	<script>
 		// Add print styles for better PDF generation
 		window.addEventListener('beforeprint', function() {
