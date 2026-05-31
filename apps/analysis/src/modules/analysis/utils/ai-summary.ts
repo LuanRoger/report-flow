@@ -1,10 +1,11 @@
-import { mistral } from "@ai-sdk/mistral";
+import { mistral, MistralLanguageModelOptions } from "@ai-sdk/mistral";
 import { generateText } from "ai";
 import type { PondScoreResult } from "../schemas/types";
+import { ENV } from "varlock/env";
 
 // System prompt for the AI to act as a shrimp farm advisor
 const SYSTEM_PROMPT = `
-You are an expert shrimp farm advisor with years of experience in aquaculture and water quality management. 
+You are an expert shrimp farm advisor with years of experience in aquaculture and water quality management.
 Your role is to analyze pond water quality data and provide professional, actionable advice to shrimp farmers.
 
 You will receive analysis results containing:
@@ -40,7 +41,8 @@ Remember: You are advising real shrimp farmers who rely on your expertise to mai
  * This provides structured information without raw database values
  */
 function formatAnalysisContext(result: PondScoreResult): string {
-	const { pondId, startDate, endDate, finalScore, parameterScores, metadata } = result;
+	const { pondId, startDate, endDate, finalScore, parameterScores, metadata } =
+		result;
 	const { executionStats, parameterStats, criticalThreshold } = metadata;
 	const { dataCoverage, timeRange, totalMeasurements } = executionStats;
 
@@ -52,7 +54,9 @@ function formatAnalysisContext(result: PondScoreResult): string {
 
 	// Build parameter analysis
 	const parameterAnalysis = [];
-	const parameterCodes = Object.keys(parameterScores) as Array<keyof typeof parameterScores>;
+	const parameterCodes = Object.keys(parameterScores) as Array<
+		keyof typeof parameterScores
+	>;
 
 	for (const paramCode of parameterCodes) {
 		const score = parameterScores[paramCode];
@@ -60,12 +64,13 @@ function formatAnalysisContext(result: PondScoreResult): string {
 		const temporal = stats.temporalMetrics;
 
 		const scoreDescription = getScoreDescription(score);
-		const criticalInfo = temporal.criticalTimeRatio > 0.1 
-			? `, with ${(temporal.criticalTimeRatio * 100).toFixed(0)}% of readings in critical range`
-			: "";
+		const criticalInfo =
+			temporal.criticalTimeRatio > 0.1
+				? `, with ${(temporal.criticalTimeRatio * 100).toFixed(0)}% of readings in critical range`
+				: "";
 
 		parameterAnalysis.push(
-			`${paramCode}: ${score.toFixed(0)}/100 (${scoreDescription}${criticalInfo})`
+			`${paramCode}: ${score.toFixed(0)}/100 (${scoreDescription}${criticalInfo})`,
 		);
 	}
 
@@ -74,10 +79,10 @@ function formatAnalysisContext(result: PondScoreResult): string {
 	for (const paramCode of parameterCodes) {
 		const stats = parameterStats[paramCode];
 		const temporal = stats.temporalMetrics;
-		
+
 		if (temporal.criticalCount > 0) {
 			temporalSummary.push(
-				`${paramCode} had ${temporal.criticalCount} critical readings`
+				`${paramCode} had ${temporal.criticalCount} critical readings`,
 			);
 		}
 	}
@@ -119,10 +124,11 @@ function getScoreDescription(score: number): string {
 /**
  * Generate an AI-powered summary for the pond analysis
  */
-export async function generateAiSummary(result: PondScoreResult): Promise<string> {
+export async function generateAiSummary(
+	result: PondScoreResult,
+): Promise<string> {
 	try {
-		const apiKey = process.env.MISTRAL_API_KEY;
-		
+		const apiKey = ENV.MISTRAL_API_KEY;
 		if (!apiKey) {
 			return generateFallbackSummary(result);
 		}
@@ -130,12 +136,9 @@ export async function generateAiSummary(result: PondScoreResult): Promise<string
 		const context = formatAnalysisContext(result);
 
 		const { text } = await generateText({
-			model: mistral("mistral/ministral-3b"),
-			apiKey: apiKey,
+			model: mistral("ministral-3b-latest"),
 			system: SYSTEM_PROMPT,
 			prompt: `\n\n${context}\n\nPlease provide your professional analysis and advice for this pond.`,
-			// Limit response to keep it concise
-			maxTokens: 500,
 			temperature: 0.7,
 		});
 
@@ -154,26 +157,28 @@ function generateFallbackSummary(result: PondScoreResult): string {
 	const { dataCoverage } = metadata.executionStats;
 
 	const overallDescription = getScoreDescription(finalScore);
-	
+
 	// Find best and worst parameters
-	const parameterCodes = Object.keys(parameterScores) as Array<keyof typeof parameterScores>;
-	const scores = parameterCodes.map(code => ({
+	const parameterCodes = Object.keys(parameterScores) as Array<
+		keyof typeof parameterScores
+	>;
+	const scores = parameterCodes.map((code) => ({
 		code,
 		score: parameterScores[code],
-		name: code.charAt(0).toUpperCase() + code.slice(1)
+		name: code.charAt(0).toUpperCase() + code.slice(1),
 	}));
-	
-	const bestParams = scores.filter(s => s.score >= 80);
-	const concerningParams = scores.filter(s => s.score < 60);
+
+	const bestParams = scores.filter((s) => s.score >= 80);
+	const concerningParams = scores.filter((s) => s.score < 60);
 
 	let summary = `Pond ${pondId} Analysis: Water quality is ${overallDescription.toLowerCase()} with a score of ${finalScore.toFixed(0)}/100.`;
 
 	if (bestParams.length > 0) {
-		summary += ` ${bestParams.map(p => p.name).join(", ")} ${bestParams.length > 1 ? "are" : "is"} performing well.`;
+		summary += ` ${bestParams.map((p) => p.name).join(", ")} ${bestParams.length > 1 ? "are" : "is"} performing well.`;
 	}
 
 	if (concerningParams.length > 0) {
-		summary += ` Attention needed for ${concerningParams.map(p => p.name).join(", ")} ${concerningParams.length > 1 ? "which are" : "which is"} below optimal levels.`;
+		summary += ` Attention needed for ${concerningParams.map((p) => p.name).join(", ")} ${concerningParams.length > 1 ? "which are" : "which is"} below optimal levels.`;
 	} else if (bestParams.length === 0) {
 		summary += ` All parameters require attention to improve water quality.`;
 	}
