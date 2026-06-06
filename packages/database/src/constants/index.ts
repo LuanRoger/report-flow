@@ -5,3 +5,5 @@ export const parameterCodes = [
 	"turbidity",
 	"dissolvedOxygen",
 ] as const;
+
+export const unitCodes = ["°C", "pH", "ppt", "NTU", "mg/L"] as const;

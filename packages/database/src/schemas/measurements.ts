@@ -7,18 +7,19 @@ import {
 	timestamp,
 	unique,
 } from "drizzle-orm/pg-core";
-import { parameterCodes as parameterCodesArray } from "../constants";
+import {
+	parameterCodes as parameterCodesArray,
+	unitCodes as unitCodesArray,
+} from "../constants";
 
 export const parameterCodes = pgEnum("parameter_code", parameterCodesArray);
+export const unitCodes = pgEnum("unit_code", unitCodesArray);
 
 export const measurements = pgTable(
 	"measurements",
 	{
 		id: serial("id").primaryKey(),
-
-		farmId: text("farm_id").notNull(),
-		pondId: text("pond_id").notNull(),
-		cycleId: text("cycle_id").notNull(),
+		pondId: serial("pond_id").notNull(),
 
 		recordedAt: timestamp("recorded_at", {
 			withTimezone: true,
@@ -27,7 +28,7 @@ export const measurements = pgTable(
 
 		parameterCode: parameterCodes("parameter_code").notNull(),
 		value: numeric("value", { precision: 12, scale: 4 }).notNull(),
-		unit: text("unit").notNull().default(""),
+		unit: unitCodes("unit").notNull(),
 
 		sourceType: text("source_type").notNull(),
 		sourceFile: text("source_file"),
@@ -38,7 +39,6 @@ export const measurements = pgTable(
 	},
 	(table) => [
 		unique("measurements_pond_time_idx").on(table.pondId, table.recordedAt),
-		unique("measurements_farm_time_idx").on(table.farmId, table.recordedAt),
 		unique("measurements_param_time_idx").on(
 			table.parameterCode,
 			table.recordedAt,

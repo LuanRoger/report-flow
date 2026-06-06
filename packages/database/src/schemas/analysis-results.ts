@@ -8,6 +8,7 @@ export const analysisResults = pgTable("analysis_results", {
 	endTime: timestamp("end_time").notNull(),
 
 	finalScore: real("final_score").notNull(),
+	temperatureScore: real("temperature_score").notNull(),
 	phScore: real("ph_score").notNull(),
 	salinityScore: real("salinity_score").notNull(),
 	dissolvedOxygenScore: real("dissolvedOxygen_score").notNull(),
