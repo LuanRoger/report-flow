@@ -1,4 +1,5 @@
 import {
+	index,
 	numeric,
 	pgEnum,
 	pgTable,
@@ -38,8 +39,24 @@ export const measurements = pgTable(
 			.defaultNow(),
 	},
 	(table) => [
+		// Unique constraints
 		unique("measurements_pond_time_idx").on(table.pondId, table.recordedAt),
 		unique("measurements_param_time_idx").on(
+			table.parameterCode,
+			table.recordedAt,
+		),
+		
+		// Indexes for performance
+		index("measurements_pond_idx").on(table.pondId),
+		index("measurements_parameter_idx").on(table.parameterCode),
+		index("measurements_recorded_at_idx").on(table.recordedAt),
+		index("measurements_source_type_idx").on(table.sourceType),
+		index("measurements_created_at_idx").on(table.createdAt),
+		
+		// Composite indexes for common query patterns
+		index("measurements_pond_parameter_idx").on(table.pondId, table.parameterCode),
+		index("measurements_pond_recorded_at_idx").on(table.pondId, table.recordedAt),
+		index("measurements_parameter_recorded_at_idx").on(
 			table.parameterCode,
 			table.recordedAt,
 		),
