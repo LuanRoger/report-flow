@@ -1,15 +1,31 @@
-import { InsufficientDataError, PondNotFoundError } from "../models/errors";
-import { getMeasurementsForPond, pondExists } from "../repository";
-import type { AnalysisQuery } from "../schemas/types";
+import {
+	AnalysisNotFound,
+	InsufficientDataError,
+	PondNotFoundError,
+} from "../models/errors";
+import * as repository from "../repository";
+import type { AnalysisQuery, PondScoreResult } from "../schemas/types";
 import { calculateTimeWindow } from "../utils/date";
 import { normalizeMeasurements } from "../utils/normalization";
+import { formatAnalysisForEmbedding, generateEmbedding } from "../utils/rag";
 import {
 	buildPondScoreResult,
 	calculateParameterTemporalScores,
 	checkDataCoverage,
 } from "../utils/scoring";
 
-export async function performAnalysis(query: AnalysisQuery) {
+export async function getAnalysisById(id: number) {
+	const analysis = await repository.getAnalysisById(id);
+	if (!analysis) {
+		throw new AnalysisNotFound(id);
+	}
+
+	return analysis;
+}
+
+export async function performAnalysis(
+	query: AnalysisQuery,
+): Promise<PondScoreResult> {
 	const {
 		pondId,
 		startDate: startDateQuery,
@@ -23,12 +39,16 @@ export async function performAnalysis(query: AnalysisQuery) {
 		endDateQuery,
 	);
 
-	const exists = await pondExists(pondId);
-	if (!exists) {
+	const pond = await repository.getPondById(pondId);
+	if (!pond) {
 		throw new PondNotFoundError(pondId);
 	}
 
-	const measurements = await getMeasurementsForPond(pondId, startDate, endDate);
+	const measurements = await repository.getMeasurementsForPond(
+		pondId,
+		startDate,
+		endDate,
+	);
 
 	if (measurements.length === 0) {
 		throw new InsufficientDataError();
@@ -44,15 +64,12 @@ export async function performAnalysis(query: AnalysisQuery) {
 		Math.max(...recordedAtDates.map((d) => d.getTime())),
 	);
 
-	// Normalize measurements
 	const normalizedByParameter = normalizeMeasurements(measurements);
 
-	// Calculate parameter temporal scores
 	const parameterTemporalScores = calculateParameterTemporalScores(
 		normalizedByParameter,
 	);
 
-	// Build the final result with enhanced metadata
 	const result = buildPondScoreResult(
 		pondId,
 		startDate,
@@ -68,4 +85,41 @@ export async function performAnalysis(query: AnalysisQuery) {
 	);
 
 	return result;
+}
+
+export async function storeAnalysis(result: PondScoreResult) {
+	const { pondId, finalScore, parameterScores, startDate, endDate, metadata } =
+		result;
+
+	const embeddingContent = formatAnalysisForEmbedding(result);
+	const embedding = await generateEmbedding(embeddingContent);
+
+	await repository.storeAnalysisResult(
+		{
+			pondId,
+			finalScore,
+			startTime: startDate,
+			endTime: endDate,
+			metadata: JSON.stringify(metadata),
+			temperatureScore: parameterScores.temperature,
+			phScore: parameterScores.ph,
+			dissolvedOxygenScore: parameterScores.dissolvedOxygen,
+			salinityScore: parameterScores.salinity,
+			turbidityScore: parameterScores.turbidity,
+		},
+		{
+			content: embeddingContent,
+			embedding,
+		},
+	);
+}
+
+export async function deleteAnalysisById(id: number) {
+	const analysis = getAnalysisById(id);
+	if (!analysis) {
+		throw new AnalysisNotFound(id);
+	}
+
+	await deleteAnalysisById(id);
+	return analysis;
 }

@@ -1,9 +1,4 @@
-import type { AnalysisTimeWindow } from "../types";
-
-export const DEFAULT_MIN_MAX_DATE = {
-	startDate: null,
-	endDate: null,
-};
+import type { AnalysisTimeWindow } from "../types/analysis";
 
 export const ANALYSIS_TIME_WINDOWS = ["7d", "30d", "90d", "custom"] as const;
 
