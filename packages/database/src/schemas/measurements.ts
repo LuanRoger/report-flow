@@ -49,7 +49,6 @@ export const measurements = pgTable(
 		// Indexes for performance
 		index("measurements_pond_idx").on(table.pondId),
 		index("measurements_parameter_idx").on(table.parameterCode),
-		index("measurements_recorded_at_idx").on(table.recordedAt),
 		index("measurements_source_type_idx").on(table.sourceType),
 		index("measurements_created_at_idx").on(table.createdAt),
 		

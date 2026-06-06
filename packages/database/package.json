@@ -8,6 +8,7 @@
 		"env:load": "varlock load",
 		"db:migrate": "varlock run --no-redact-stdout -- drizzle-kit migrate",
 		"db:push": "varlock run --no-redact-stdout -- drizzle-kit push",
+		"db:generate": "varlock run --no-redact-stdout -- drizzle-kit generate",
 		"db:studio": "varlock run --no-redact-stdout -- drizzle-kit studio"
 	},
 	"exports": {

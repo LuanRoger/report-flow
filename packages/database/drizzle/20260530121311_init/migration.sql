@@ -89,7 +89,6 @@ CREATE UNIQUE INDEX measurements_param_time_idx ON measurements (parameter_code,
 -- Performance indexes for common query patterns
 CREATE INDEX measurements_pond_idx ON measurements (pond_id);
 CREATE INDEX measurements_parameter_idx ON measurements (parameter_code);
-CREATE INDEX measurements_recorded_at_idx ON measurements (recorded_at);
 CREATE INDEX measurements_source_type_idx ON measurements (source_type);
 CREATE INDEX measurements_created_at_idx ON measurements (created_at);
 
