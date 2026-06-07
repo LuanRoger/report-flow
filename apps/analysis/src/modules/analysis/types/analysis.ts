@@ -1,5 +1,7 @@
 import type { ParameterCode } from "database";
 
+export type AnalysisTimeWindow = "7d" | "30d" | "90d" | "custom";
+
 export type AnalysisQueryParams = {
 	pondId: string;
 	startDate?: string;

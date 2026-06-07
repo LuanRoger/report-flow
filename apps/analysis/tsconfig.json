@@ -1,9 +1,25 @@
 {
-	"extends": "../../tsconfig.json",
 	"compilerOptions": {
-		"outDir": "./dist",
-		"rootDir": "./src"
-	},
-	"include": ["src/**/*"],
-	"exclude": ["node_modules", "dist"]
+		/* Language and Environment */
+		"target": "ES2021",
+
+		/* Modules */
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"types": ["bun"],
+		"paths": {
+			"~/*": ["./*"],
+			"@/*": ["./src/*"]
+		},
+
+		/* Interop Constraints */
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+
+		/* Type Checking */
+		"strict": true,
+
+		/* Completeness */
+		"skipLibCheck": true
+	}
 }

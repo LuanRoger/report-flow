@@ -1,11 +1,12 @@
 import { cors } from "@elysia/cors";
+import { html } from "@elysiajs/html";
 import { Elysia } from "elysia";
-import { analysisModule } from "./modules/analysis";
+import { analysesModule } from "./modules/analysis";
 
 const app = new Elysia()
 	.use(cors())
-	.get("/", () => "Analysis Service - OK")
-	.use(analysisModule)
+	.use(html())
+	.use(analysesModule)
 	.listen(3001);
 
 console.log(

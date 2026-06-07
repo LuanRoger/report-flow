@@ -1,102 +1,167 @@
-import { db, measurements } from "database";
-import { and, asc, eq, gte, lte } from "drizzle-orm";
-import { DEFAULT_MIN_MAX_DATE } from "../constants";
-import type { MeasurementRecord } from "./types";
+import { analysisEmbeddings, analysisResults, db } from "database";
+import { and, cosineDistance, desc, eq, gt, sql } from "drizzle-orm";
+import { generateEmbedding } from "../utils/rag";
+import {
+	analysisResultsSchema,
+	type AnalysisResult,
+	type CreateAnalysisEmbedding,
+	type CreateAnalysisResult,
+	type Measurement,
+} from "./types";
 
-export async function getMeasurementsForPond(
-	pondId: string,
-	startDate: Date,
-	endDate: Date,
-): Promise<MeasurementRecord[]> {
-	const result = await db
-		.select({
-			pondId: measurements.pondId,
-			parameterCode: measurements.parameterCode,
-			value: measurements.value,
-			recordedAt: measurements.recordedAt,
-		})
-		.from(measurements)
-		.where(
-			and(
-				eq(measurements.pondId, pondId),
-				gte(measurements.recordedAt, startDate),
-				lte(measurements.recordedAt, endDate),
-			),
-		)
-		.orderBy(measurements.recordedAt);
-
-	return result.map((row) => ({
-		pondId: row.pondId,
-		parameterCode: row.parameterCode,
-		value: Number(row.value),
-		recordedAt: row.recordedAt,
-	}));
-}
-
-export async function getAllPondIds(): Promise<string[]> {
-	const result = await db.query.measurements.findMany({
-		columns: {
-			pondId: true,
-		},
-		orderBy: {
-			pondId: "asc",
-		},
-	});
-
-	return result.map((row) => row.pondId);
-}
-
-export async function pondExists(pondId: string): Promise<boolean> {
-	const result = await db.query.measurements.findFirst({
+export async function getMeasurementsForCycle(
+	cycleId: number,
+): Promise<Measurement[]> {
+	return await db.query.measurements.findMany({
 		where: {
-			pondId,
-		},
-	});
-
-	return result !== undefined;
-}
-
-export async function getPondDataRange(
-	pondId: string,
-): Promise<{ startDate: Date | null; endDate: Date | null }> {
-	const result = await db
-		.select({
-			minDate: measurements.recordedAt,
-			maxDate: measurements.recordedAt,
-		})
-		.from(measurements)
-		.where(eq(measurements.pondId, pondId))
-		.orderBy(asc(measurements.recordedAt))
-		.limit(1);
-
-	if (result.length === 0) {
-		return DEFAULT_MIN_MAX_DATE;
-	}
-
-	const dates = await db.query.measurements.findMany({
-		columns: {
-			recordedAt: true,
-		},
-		where: {
-			pondId,
+			cycleId,
 		},
 		orderBy: {
 			recordedAt: "desc",
 		},
 	});
+}
 
-	if (dates.length === 0) {
-		return DEFAULT_MIN_MAX_DATE;
+export async function getMeasurementsForPond(
+	pondId: number,
+	startDate: Date,
+	endDate: Date,
+): Promise<Measurement[]> {
+	return db.query.measurements.findMany({
+		where: {
+			AND: [
+				{
+					pondId,
+				},
+				{
+					recordedAt: {
+						gte: startDate,
+						lte: endDate,
+					},
+				},
+			],
+		},
+		orderBy: {
+			recordedAt: "desc",
+		},
+	});
+}
+
+export async function getPondById(id: number) {
+	return await db.query.ponds.findFirst({
+		where: {
+			id,
+		},
+	});
+}
+
+export async function getAnalysisById(
+	id: number,
+): Promise<AnalysisResult | undefined> {
+	const result = await db.query.analysisResults.findFirst({
+		where: {
+			id,
+		},
+	});
+	if (!result) {
+		return undefined;
 	}
 
-	const firstDate = dates[0];
-	const lastDate = dates[dates.length - 1];
-	if (firstDate === undefined || lastDate === undefined) {
-		return DEFAULT_MIN_MAX_DATE;
-	}
+	return await analysisResultsSchema.parseAsync(result);
+}
 
-	return {
-		startDate: firstDate.recordedAt,
-		endDate: lastDate.recordedAt,
-	};
+export async function getAnalysesForPond(pondId: number) {
+	return await db
+		.select()
+		.from(analysisResults)
+		.where(eq(analysisResults.pondId, pondId))
+		.orderBy(desc(analysisResults.createdAt))
+		.execute();
+}
+
+export async function findRelevantAnalyses(
+	query: string,
+	analysisId?: number,
+	limit: number = 4,
+	minSimilarity: number = 0.5,
+) {
+	const queryEmbedding = await generateEmbedding(query);
+
+	const similarity = sql<number>`1 - (${cosineDistance(
+		analysisEmbeddings.embedding,
+		queryEmbedding,
+	)})`;
+
+	const whereClause = analysisId
+		? and(
+				gt(similarity, minSimilarity),
+				eq(analysisEmbeddings.analysisId, analysisId),
+			)
+		: gt(similarity, minSimilarity);
+	const dbQuery = db
+		.select({
+			id: analysisEmbeddings.id,
+			analysisId: analysisEmbeddings.analysisId,
+			content: analysisEmbeddings.content,
+			similarity,
+		})
+		.from(analysisEmbeddings)
+		.where(whereClause)
+		.orderBy(desc(similarity))
+		.limit(limit);
+
+	const results = await dbQuery.execute();
+	return results;
+}
+
+export async function storeAnalysisResult(
+	result: CreateAnalysisResult,
+	embeddingData: CreateAnalysisEmbedding,
+) {
+	await db.transaction(async (tx) => {
+		const newAnalysis = await tx
+			.insert(analysisResults)
+			.values(result)
+			.returning();
+		if (newAnalysis.length === 0) {
+			throw new Error("Failed to create analysis result");
+		}
+
+		const analysisId = newAnalysis[0].id;
+		await tx.insert(analysisEmbeddings).values({
+			analysisId,
+			...embeddingData,
+		});
+	});
+}
+
+export async function createAnalysisResult(data: CreateAnalysisResult) {
+	await db.insert(analysisResults).values(data);
+}
+
+export async function storeAnalysisEmbedding(
+	analysisId: number,
+	content: string,
+): Promise<void> {
+	const embedding = await generateEmbedding(content);
+
+	await db.insert(analysisEmbeddings).values({
+		analysisId,
+		content,
+		embedding,
+	});
+}
+
+export async function deleteAnalysisById(analysisId: number) {
+	await db.transaction(async (tx) => {
+		await tx
+			.delete(analysisResults)
+			.where(eq(analysisResults.id, analysisId))
+			.execute();
+
+		await tx
+			.delete(analysisEmbeddings)
+			.where(eq(analysisEmbeddings.analysisId, analysisId))
+			.execute();
+	});
 }

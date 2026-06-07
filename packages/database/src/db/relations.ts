@@ -1,4 +1,50 @@
 import { defineRelations } from "drizzle-orm";
-import { schemas } from "../schemas";
+import * as analysisEmbeddings from "../schemas/analysis-embeddings";
+import * as analysisResults from "../schemas/analysis-results";
+import * as measurements from "../schemas/measurements";
+import * as pondCycles from "../schemas/pond-cycles";
+import * as ponds from "../schemas/ponds";
 
-export const relations = defineRelations(schemas);
+export const schemas = {
+	...ponds,
+	...pondCycles,
+	...measurements,
+	...analysisResults,
+	...analysisEmbeddings,
+};
+
+export const relations = defineRelations(schemas, (relation) => ({
+	measurements: {
+		pond: relation.one.ponds({
+			from: relation.measurements.pondId,
+			to: relation.ponds.id,
+		}),
+		cycle: relation.one.pondCycles({
+			from: relation.measurements.cycleId,
+			to: relation.pondCycles.id,
+		}),
+	},
+	pondCycles: {
+		pond: relation.one.ponds({
+			from: relation.pondCycles.pondId,
+			to: relation.ponds.id,
+		}),
+		measurements: relation.many.measurements(),
+	},
+	analysisResults: {
+		pond: relation.one.ponds({
+			from: relation.analysisResults.pondId,
+			to: relation.ponds.id,
+		}),
+		cycle: relation.one.pondCycles({
+			from: relation.analysisResults.cycleId,
+			to: relation.pondCycles.id,
+		}),
+	},
+	analysisEmbeddings: {
+		analysis: relation.one.analysisResults({
+			from: relation.analysisEmbeddings.analysisId,
+			to: relation.analysisResults.id,
+		}),
+	},
+}));

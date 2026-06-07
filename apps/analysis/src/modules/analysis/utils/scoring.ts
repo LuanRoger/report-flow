@@ -211,7 +211,7 @@ export function calculateParameterTemporalScores(
 }
 
 export function buildPondScoreResult(
-	pondId: string,
+	pondId: number,
 	requestedStartDate: Date,
 	requestedEndDate: Date,
 	actualStartDate: Date | null,
