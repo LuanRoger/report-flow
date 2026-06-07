@@ -154,6 +154,6 @@ export async function deleteAnalysisById(id: number) {
 		throw new AnalysisNotFound(id);
 	}
 
-	await deleteAnalysisById(id);
+	await repository.deleteAnalysisById(id);
 	return analysis;
 }

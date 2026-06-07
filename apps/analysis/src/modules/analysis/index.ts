@@ -1,11 +1,11 @@
 import Elysia from "elysia";
-import { deleteAnalysisById } from "./repository";
 import {
 	analysisBodySchema,
 	analysisIdParamSchema,
 	createAnalysisCycleIdParamSchema,
 } from "./schemas";
 import {
+	deleteAnalysisById,
 	getAnalysisById,
 	performAnalysisByCycle,
 	performAnalysisByPond,

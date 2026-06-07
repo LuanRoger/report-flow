@@ -144,8 +144,15 @@ export async function storeAnalysisEmbedding(
 }
 
 export async function deleteAnalysisById(analysisId: number) {
-	await db
-		.delete(analysisResults)
-		.where(eq(analysisResults.id, analysisId))
-		.execute();
+	await db.transaction(async (tx) => {
+		await tx
+			.delete(analysisResults)
+			.where(eq(analysisResults.id, analysisId))
+			.execute();
+
+		await tx
+			.delete(analysisEmbeddings)
+			.where(eq(analysisEmbeddings.analysisId, analysisId))
+			.execute();
+	});
 }
