@@ -1,13 +1,12 @@
 import { z } from "zod";
-import { parameterCodes } from "@/db";
+import { parameterCodes, unitCodes } from "@/db";
 
 export const ingestManualRouteBodySchema = z.object({
-	farmId: z.string(),
-	pondId: z.string(),
-	cycleId: z.string(),
+	pondId: z.number(),
+	cycleId: z.number(),
 	recordedAt: z.coerce.date(),
 	parameterCode: z.enum(parameterCodes),
 	value: z.string(),
-	unit: z.string().optional(),
+	unit: z.enum(unitCodes),
 	source: z.string(),
 });

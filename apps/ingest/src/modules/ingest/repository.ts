@@ -1,12 +1,19 @@
 import { db, measurements } from "@/db";
 import type { IngestManualRouteBody } from "./schemas/types";
 
+export async function getPondCycle(pondId: number) {
+	return await db.query.pondCycles.findFirst({
+		where: {
+			pondId,
+		},
+	});
+}
+
 export async function registerMesurement(data: IngestManualRouteBody) {
 	try {
 		const result = await db
 			.insert(measurements)
 			.values({
-				farmId: data.farmId,
 				pondId: data.pondId,
 				cycleId: data.cycleId,
 				parameterCode: data.parameterCode,
