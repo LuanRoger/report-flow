@@ -6,9 +6,11 @@ import {
 import * as repository from "../repository";
 import type { Measurement } from "../repository/types";
 import type { AnalysisQuery, PondScoreResult } from "../schemas/types";
+import { generateAiSummary } from "../utils/ai-summary";
 import { calculateTimeWindow } from "../utils/date";
 import { normalizeMeasurements } from "../utils/normalization";
 import { formatAnalysisForEmbedding, generateEmbedding } from "../utils/rag";
+import { generateHtmlReport } from "../utils/report";
 import {
 	buildPondScoreResult,
 	calculateParameterTemporalScores,
@@ -160,4 +162,18 @@ export async function deleteAnalysisById(id: number) {
 
 	await repository.deleteAnalysisById(id);
 	return analysis;
+}
+
+export async function generateReportForAnalysis(analysisId: number) {
+	const analysis = await repository.getAnalysisById(analysisId);
+	if (!analysis) {
+		throw new AnalysisNotFound(analysisId);
+	}
+
+	const aiSummary = await generateAiSummary(analysis);
+	const report = generateHtmlReport(analysis, {
+		aiSummary,
+	});
+
+	return report;
 }

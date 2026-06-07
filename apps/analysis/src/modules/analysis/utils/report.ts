@@ -1,4 +1,5 @@
 import type { PondScoreResult } from "../schemas/types";
+import type { AnalysisResult } from "database";
 
 export interface ReportOptions {
 	aiSummary?: string;
@@ -97,8 +98,9 @@ function generateProgressBar(score: number, max: number = 100): string {
 /**
  * Generate parameter stats table rows
  */
-function generateParameterStatsRows(result: PondScoreResult): string {
-	const { parameterStats } = result.metadata;
+function generateParameterStatsRows(result: AnalysisResult): string {
+	const metadataContent = typeof result.metadata === 'string' ? JSON.parse(result.metadata) : result.metadata;
+	const { parameterStats } = metadataContent;
 	const parameterCodes = Object.keys(parameterStats);
 
 	let rows = "";
@@ -125,8 +127,14 @@ function generateParameterStatsRows(result: PondScoreResult): string {
 /**
  * Generate parameter scores table rows
  */
-function generateParameterScoresRows(result: PondScoreResult): string {
-	const { parameterScores } = result;
+function generateParameterScoresRows(result: AnalysisResult): string {
+	const parameterScores = {
+		temperature: result.temperatureScore,
+		ph: result.phScore,
+		salinity: result.salinityScore,
+		dissolvedOxygen: result.dissolvedOxygenScore,
+		turbidity: result.turbidityScore,
+	};
 	const parameterCodes = Object.keys(parameterScores);
 
 	let rows = "";
@@ -155,8 +163,9 @@ function generateParameterScoresRows(result: PondScoreResult): string {
 /**
  * Generate temporal metrics table rows
  */
-function generateTemporalMetricsRows(result: PondScoreResult): string {
-	const { parameterStats } = result.metadata;
+function generateTemporalMetricsRows(result: AnalysisResult): string {
+	const metadataContent = typeof result.metadata === 'string' ? JSON.parse(result.metadata) : result.metadata;
+	const { parameterStats } = metadataContent;
 	const parameterCodes = Object.keys(parameterStats);
 
 	let rows = "";
@@ -183,8 +192,9 @@ function generateTemporalMetricsRows(result: PondScoreResult): string {
 /**
  * Generate measurements by parameter table rows
  */
-function generateMeasurementsByParameterRows(result: PondScoreResult): string {
-	const { measurementsByParameter } = result.metadata.executionStats;
+function generateMeasurementsByParameterRows(result: AnalysisResult): string {
+	const metadataContent = typeof result.metadata === 'string' ? JSON.parse(result.metadata) : result.metadata;
+	const { measurementsByParameter } = metadataContent.executionStats;
 	const parameterCodes = Object.keys(measurementsByParameter);
 
 	let rows = "";
@@ -208,16 +218,17 @@ function generateMeasurementsByParameterRows(result: PondScoreResult): string {
  * Generate the complete HTML report
  */
 export function generateHtmlReport(
-	result: PondScoreResult,
+	result: AnalysisResult,
 	options: ReportOptions = {},
 ): string {
-	const { pondId, finalScore, metadata } = result;
+	const { pondId, finalScore, metadata, startTime, endTime } = result;
+	const metadataContent = typeof metadata === 'string' ? JSON.parse(metadata) : metadata;
 	const {
 		executionStats,
 		criticalThreshold,
 		aggregationWeights,
 		parameterWeights,
-	} = metadata;
+	} = metadataContent;
 	const { totalMeasurements, dataCoverage, timeRange } = executionStats;
 	const { aiSummary } = options;
 
@@ -586,9 +597,9 @@ export function generateHtmlReport(
 				<h3>📅 Analysis Period</h3>
 				<div class="info-grid">
 					<div class="info-card">
-						<div class="title">Requested Period</div>
+						<div class="title">Analysis Period</div>
 						<div class="content">
-							${formatDate(timeRange.requestedStart)} to ${formatDate(timeRange.requestedEnd)}
+							${formatDate(startTime)} to ${formatDate(endTime)}
 						</div>
 					</div>
 					<div class="info-card">

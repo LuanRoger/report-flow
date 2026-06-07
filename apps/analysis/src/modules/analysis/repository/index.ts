@@ -1,10 +1,12 @@
 import { analysisEmbeddings, analysisResults, db } from "database";
 import { and, cosineDistance, desc, eq, gt, sql } from "drizzle-orm";
 import { generateEmbedding } from "../utils/rag";
-import type {
-	CreateAnalysisEmbedding,
-	CreateAnalysisResult,
-	Measurement,
+import {
+	analysisResultsSchema,
+	type AnalysisResult,
+	type CreateAnalysisEmbedding,
+	type CreateAnalysisResult,
+	type Measurement,
 } from "./types";
 
 export async function getMeasurementsForCycle(
@@ -53,12 +55,19 @@ export async function getPondById(id: number) {
 	});
 }
 
-export async function getAnalysisById(id: number) {
-	return await db.query.analysisResults.findFirst({
+export async function getAnalysisById(
+	id: number,
+): Promise<AnalysisResult | undefined> {
+	const result = await db.query.analysisResults.findFirst({
 		where: {
 			id,
 		},
 	});
+	if (!result) {
+		return undefined;
+	}
+
+	return await analysisResultsSchema.parseAsync(result);
 }
 
 export async function getAnalysesForPond(pondId: number) {

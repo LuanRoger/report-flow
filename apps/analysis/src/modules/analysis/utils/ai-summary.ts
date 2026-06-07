@@ -2,12 +2,20 @@ import { mistral } from "@ai-sdk/mistral";
 import { generateText } from "ai";
 import { formatDate } from "@/utils/date";
 import { AI_ANALYSIS_SUMMARY_SYSTEM_PROMPT } from "../constants";
-import type { PondScoreResult } from "../schemas/types";
+import type { AnalysisResult } from "../repository/types";
 
-function formatAnalysisContext(result: PondScoreResult): string {
-	const { pondId, finalScore, parameterScores, metadata } = result;
+function formatAnalysisContext(result: AnalysisResult): string {
+	const { pondId, finalScore, metadata, startTime, endTime } = result;
 	const { executionStats, parameterStats, criticalThreshold } = metadata;
 	const { dataCoverage, timeRange, totalMeasurements } = executionStats;
+
+	const parameterScores = {
+		temperature: result.temperatureScore,
+		ph: result.phScore,
+		salinity: result.salinityScore,
+		dissolvedOxygen: result.dissolvedOxygenScore,
+		turbidity: result.turbidityScore,
+	};
 
 	const parameterAnalysis = [];
 	const parameterCodes = Object.keys(parameterScores) as Array<
@@ -41,11 +49,12 @@ function formatAnalysisContext(result: PondScoreResult): string {
 			);
 		}
 	}
+	console.log(typeof timeRange.actualStart);
 
 	return `
 Analysis Context:
 - Pond: ${pondId}
-- Period: ${formatDate(timeRange.requestedStart)} to ${formatDate(timeRange.requestedEnd)}
+- Period: ${formatDate(startTime)} to ${formatDate(endTime)}
 - Analysis Date Range: ${formatDate(timeRange.actualStart)} to ${formatDate(timeRange.actualEnd)}
 - Total Measurements: ${totalMeasurements}
 - Data Coverage: ${dataCoverage.coveragePercentage}% (${dataCoverage.presentParameters.length} parameters monitored)
@@ -74,7 +83,7 @@ function getScoreDescription(score: number): string {
 }
 
 export async function generateAiSummary(
-	result: PondScoreResult,
+	result: AnalysisResult,
 ): Promise<string> {
 	const context = formatAnalysisContext(result);
 

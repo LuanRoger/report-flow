@@ -1,18 +1,31 @@
+import html from "@elysiajs/html";
 import Elysia from "elysia";
-import {
-	analysisBodySchema,
-	analysisIdParamSchema,
-	createAnalysisCycleIdParamSchema,
-} from "./schemas";
+import { analysisBodySchema, idParamSchema } from "./schemas";
 import {
 	deleteAnalysisById,
+	generateReportForAnalysis,
 	getAnalysisById,
 	performAnalysisByCycle,
 	performAnalysisByPond,
 	storeAnalysis,
 } from "./use-cases";
 
+export const analysesReportModule = new Elysia({ prefix: "/report" })
+	.use(html())
+	.get(
+		"/:id",
+		async ({ params: { id } }) => {
+			const report = await generateReportForAnalysis(id);
+
+			return report;
+		},
+		{
+			params: idParamSchema,
+		},
+	);
+
 export const analysesModule = new Elysia({ prefix: "/analyses" })
+	.use(analysesReportModule)
 	.get(
 		"/:id",
 		async ({ status, params: { id } }) => {
@@ -21,7 +34,7 @@ export const analysesModule = new Elysia({ prefix: "/analyses" })
 			return status("OK", result);
 		},
 		{
-			params: analysisIdParamSchema,
+			params: idParamSchema,
 		},
 	)
 	.post(
@@ -36,7 +49,7 @@ export const analysesModule = new Elysia({ prefix: "/analyses" })
 			});
 		},
 		{
-			params: createAnalysisCycleIdParamSchema,
+			params: idParamSchema,
 			body: analysisBodySchema,
 		},
 	)
@@ -52,7 +65,7 @@ export const analysesModule = new Elysia({ prefix: "/analyses" })
 			});
 		},
 		{
-			params: createAnalysisCycleIdParamSchema,
+			params: idParamSchema,
 		},
 	)
 	.delete(
@@ -63,6 +76,6 @@ export const analysesModule = new Elysia({ prefix: "/analyses" })
 			return status("OK", result);
 		},
 		{
-			params: analysisIdParamSchema,
+			params: idParamSchema,
 		},
 	);
