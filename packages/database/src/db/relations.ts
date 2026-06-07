@@ -1,5 +1,17 @@
 import { defineRelations } from "drizzle-orm";
-import { schemas } from "../schemas";
+import * as analysisEmbeddings from "../schemas/analysis-embeddings";
+import * as analysisResults from "../schemas/analysis-results";
+import * as measurements from "../schemas/measurements";
+import * as pondCycles from "../schemas/pond-cycles";
+import * as ponds from "../schemas/ponds";
+
+export const schemas = {
+	...ponds,
+	...pondCycles,
+	...measurements,
+	...analysisResults,
+	...analysisEmbeddings,
+};
 
 export const relations = defineRelations(schemas, (relation) => ({
 	pondCycles: {
