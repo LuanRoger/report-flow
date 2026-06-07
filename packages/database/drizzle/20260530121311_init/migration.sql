@@ -43,7 +43,7 @@ CREATE TABLE measurements (
     cycle_id INTEGER NOT NULL,
     recorded_at TIMESTAMPTZ NOT NULL,
     parameter_code parameter_code NOT NULL,
-    value NUMERIC(12, 4) NOT NULL,
+    value REAL NOT NULL,
     unit unit_code NOT NULL,
     source_type TEXT NOT NULL,
     source_file TEXT,
@@ -149,20 +149,20 @@ CREATE INDEX analysis_embeddings_created_at_idx ON analysis_embeddings (created_
 -- ============================================
 
 -- Add foreign keys after all tables are created
-ALTER TABLE measurements ADD CONSTRAINT fk_measurements_pond 
+ALTER TABLE measurements ADD CONSTRAINT fk_measurements_pond
     FOREIGN KEY (pond_id) REFERENCES ponds(id) ON DELETE CASCADE;
 
-ALTER TABLE measurements ADD CONSTRAINT fk_measurements_cycle 
+ALTER TABLE measurements ADD CONSTRAINT fk_measurements_cycle
     FOREIGN KEY (cycle_id) REFERENCES pond_cycles(id) ON DELETE CASCADE;
 
-ALTER TABLE pond_cycles ADD CONSTRAINT fk_pond_cycles_pond 
+ALTER TABLE pond_cycles ADD CONSTRAINT fk_pond_cycles_pond
     FOREIGN KEY (pond_id) REFERENCES ponds(id) ON DELETE CASCADE;
 
-ALTER TABLE analysis_results ADD CONSTRAINT fk_analysis_results_pond 
+ALTER TABLE analysis_results ADD CONSTRAINT fk_analysis_results_pond
     FOREIGN KEY (pond_id) REFERENCES ponds(id) ON DELETE CASCADE;
 
-ALTER TABLE analysis_results ADD CONSTRAINT fk_analysis_results_cycle 
+ALTER TABLE analysis_results ADD CONSTRAINT fk_analysis_results_cycle
     FOREIGN KEY (cycle_id) REFERENCES pond_cycles(id) ON DELETE CASCADE;
 
-ALTER TABLE analysis_embeddings ADD CONSTRAINT fk_analysis_embeddings_analysis 
+ALTER TABLE analysis_embeddings ADD CONSTRAINT fk_analysis_embeddings_analysis
     FOREIGN KEY (analysis_id) REFERENCES analysis_results(id) ON DELETE CASCADE;

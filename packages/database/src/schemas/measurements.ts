@@ -3,6 +3,7 @@ import {
 	numeric,
 	pgEnum,
 	pgTable,
+	real,
 	serial,
 	text,
 	timestamp,
@@ -29,7 +30,7 @@ export const measurements = pgTable(
 		}).notNull(),
 
 		parameterCode: parameterCodes("parameter_code").notNull(),
-		value: numeric("value", { precision: 12, scale: 4 }).notNull(),
+		value: real("value").notNull(),
 		unit: unitCodes("unit").notNull(),
 
 		sourceType: text("source_type").notNull(),
@@ -46,16 +47,22 @@ export const measurements = pgTable(
 			table.parameterCode,
 			table.recordedAt,
 		),
-		
+
 		// Indexes for performance
 		index("measurements_pond_idx").on(table.pondId),
 		index("measurements_parameter_idx").on(table.parameterCode),
 		index("measurements_source_type_idx").on(table.sourceType),
 		index("measurements_created_at_idx").on(table.createdAt),
-		
+
 		// Composite indexes for common query patterns
-		index("measurements_pond_parameter_idx").on(table.pondId, table.parameterCode),
-		index("measurements_pond_recorded_at_idx").on(table.pondId, table.recordedAt),
+		index("measurements_pond_parameter_idx").on(
+			table.pondId,
+			table.parameterCode,
+		),
+		index("measurements_pond_recorded_at_idx").on(
+			table.pondId,
+			table.recordedAt,
+		),
 		index("measurements_parameter_recorded_at_idx").on(
 			table.parameterCode,
 			table.recordedAt,
