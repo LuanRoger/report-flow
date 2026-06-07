@@ -12,26 +12,32 @@ const PARAMS = [
 type ParamCode = (typeof PARAMS)[number];
 
 interface Payload {
-	farmId: string;
-	pondId: string;
-	cycleId: string;
+	pondId: number;
+	cycleId: number;
 	recordedAt: string;
 	parameterCode: ParamCode;
-	value: number;
+	value: string;
 	unit: string;
-	source: string;
+	sourceType: string;
 }
 
-const DEFAULTS = {
-	farmId: "FAZ001",
-	pondId: "V01",
-	cycleId: "C2026-01",
-	source: "simulator",
+let DEFAULTS = {
+	pondId: 1,
+	cycleId: 1,
+	sourceType: "simulator",
 };
+
+function setDefaults(pondId: number, cycleId: number) {
+	DEFAULTS = {
+		pondId,
+		cycleId,
+		sourceType: "simulator",
+	};
+}
 
 const UNITS: Record<ParamCode, string> = {
 	temperature: "°C",
-	ph: "",
+	ph: "pH",
 	salinity: "ppt",
 	turbidity: "NTU",
 	dissolvedOxygen: "mg/L",
@@ -100,14 +106,13 @@ function buildPayload(
 	const sc = pickScenario(scenario);
 	const [min, max] = RANGES[sc][param];
 	return {
-		farmId: DEFAULTS.farmId,
 		pondId: DEFAULTS.pondId,
 		cycleId: DEFAULTS.cycleId,
 		recordedAt: recordedAt.toISOString(),
 		parameterCode: param,
-		value: rand(min, max),
+		value: rand(min, max).toString(),
 		unit: UNITS[param],
-		source: DEFAULTS.source,
+		sourceType: DEFAULTS.sourceType,
 	};
 }
 
@@ -143,6 +148,8 @@ function parseArgs(): {
 	to: string | undefined;
 	stepMinutes: number;
 	enableLogs: boolean;
+	pondId: number;
+	cycleId: number;
 } {
 	const args = process.argv.slice(2);
 	const get = (key: string) => {
@@ -157,8 +164,10 @@ function parseArgs(): {
 	const to = get("to");
 	const stepMinutes = Number(get("step-minutes") ?? "30");
 	const enableLogs = get("enable-logs")?.toLowerCase() === "true";
+	const pondId = Number(get("pond-id") ?? "1");
+	const cycleId = Number(get("cycle-id") ?? "1");
 
-	return { scenario, mode, rate, from, to, stepMinutes, enableLogs };
+	return { scenario, mode, rate, from, to, stepMinutes, enableLogs, pondId, cycleId };
 }
 
 async function runConstant(
@@ -177,7 +186,10 @@ async function runConstant(
 			continue;
 		}
 
-		const payload = buildPayload(param, new Date(), scenario);
+		// Add small random offset (0-100ms) to avoid timestamp collisions
+		const now = new Date();
+		const offsetTime = new Date(now.getTime() + Math.floor(Math.random() * 100));
+		const payload = buildPayload(param, offsetTime, scenario);
 		await send(payload, enableLogs);
 		await new Promise((r) => setTimeout(r, intervalMs));
 	}
@@ -203,16 +215,25 @@ async function runPrecalc(
 	}
 
 	for (let t = start.getTime(); t <= end.getTime(); t += stepMinutes * 60000) {
-		for (const param of PARAMS) {
-			const payload = buildPayload(param, new Date(t), scenario);
+		for (let i = 0; i < PARAMS.length; i++) {
+			const param = PARAMS[i];
+			// Add small offset (1-5 seconds) for each parameter to avoid unique constraint violations
+			const paramTime = new Date(t + i * 1000);
+			const payload = buildPayload(param, paramTime, scenario);
 			await send(payload, enableLogs);
 		}
 	}
 }
 
 (async () => {
-	const { scenario, mode, rate, from, to, stepMinutes, enableLogs } =
+	const { scenario, mode, rate, from, to, stepMinutes, enableLogs, pondId, cycleId } =
 		parseArgs();
+
+	setDefaults(pondId, cycleId);
+
+	if (enableLogs) {
+		console.log(`Using pondId: ${pondId}, cycleId: ${cycleId}`);
+	}
 
 	if (mode === "constant") {
 		await runConstant(scenario, rate, enableLogs);
