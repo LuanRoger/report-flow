@@ -4,12 +4,12 @@ import { generateEmbedding } from "../utils/rag";
 import type {
 	CreateAnalysisEmbedding,
 	CreateAnalysisResult,
-	Measurements,
+	Measurement,
 } from "./types";
 
 export async function getMeasurementsForCycle(
 	cycleId: number,
-): Promise<Measurements[]> {
+): Promise<Measurement[]> {
 	return await db.query.measurements.findMany({
 		where: {
 			cycleId,
@@ -24,7 +24,7 @@ export async function getMeasurementsForPond(
 	pondId: number,
 	startDate: Date,
 	endDate: Date,
-): Promise<Measurements[]> {
+): Promise<Measurement[]> {
 	return db.query.measurements.findMany({
 		where: {
 			AND: [

@@ -4,6 +4,7 @@ import {
 	PondNotFoundError,
 } from "../models/errors";
 import * as repository from "../repository";
+import type { Measurement } from "../repository/types";
 import type { AnalysisQuery, PondScoreResult } from "../schemas/types";
 import { calculateTimeWindow } from "../utils/date";
 import { normalizeMeasurements } from "../utils/normalization";
@@ -25,7 +26,7 @@ export async function getAnalysisById(id: number) {
 
 async function performCoreAnalysis(
 	pondId: number,
-	measurements: any[],
+	measurements: Measurement[],
 	requestedStartDate: Date,
 	requestedEndDate: Date,
 ): Promise<PondScoreResult> {
@@ -38,8 +39,13 @@ async function performCoreAnalysis(
 	const actualEndDate = new Date(
 		Math.max(...recordedAtDates.map((d) => d.getTime())),
 	);
+	const minimalMeasurements = measurements.map((measurement) => ({
+		parameterCode: measurement.parameterCode,
+		value: measurement.value,
+		recordedAt: measurement.recordedAt,
+	}));
 
-	const normalizedByParameter = normalizeMeasurements(measurements);
+	const normalizedByParameter = normalizeMeasurements(minimalMeasurements);
 
 	const parameterTemporalScores = calculateParameterTemporalScores(
 		normalizedByParameter,
@@ -51,7 +57,7 @@ async function performCoreAnalysis(
 		requestedEndDate,
 		actualStartDate,
 		actualEndDate,
-		measurements,
+		minimalMeasurements,
 		parameterTemporalScores,
 		normalizedByParameter,
 		coverageResult.hasSufficientCoverage,
@@ -101,10 +107,8 @@ export async function performAnalysisByCycle(
 		throw new InsufficientDataError();
 	}
 
-	// Use the first pondId from measurements as the reference pond
 	const pondId = measurements[0].pondId;
 
-	// For cycle analysis, the requested dates are the same as actual dates
 	const actualStartDate = new Date(
 		Math.min(...measurements.map((m) => m.recordedAt.getTime())),
 	);
