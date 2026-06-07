@@ -21,6 +21,7 @@ export const measurements = pgTable(
 	{
 		id: serial("id").primaryKey(),
 		pondId: serial("pond_id").notNull(),
+		cycleId: serial("cycle_id").notNull(),
 
 		recordedAt: timestamp("recorded_at", {
 			withTimezone: true,

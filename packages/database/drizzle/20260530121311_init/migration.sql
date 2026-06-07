@@ -40,6 +40,7 @@ CREATE TABLE pond_cycles (
 CREATE TABLE measurements (
     id SERIAL,
     pond_id INTEGER NOT NULL,
+    cycle_id INTEGER NOT NULL,
     recorded_at TIMESTAMPTZ NOT NULL,
     parameter_code parameter_code NOT NULL,
     value NUMERIC(12, 4) NOT NULL,
@@ -83,16 +84,18 @@ CREATE TABLE analysis_embeddings (
 -- ============================================
 
 -- Unique indexes for measurements
-CREATE UNIQUE INDEX measurements_pond_time_idx ON measurements (pond_id, recorded_at);
+CREATE UNIQUE INDEX measurements_pond_time_idx ON measurements (pond_id, cycle_id, recorded_at);
 CREATE UNIQUE INDEX measurements_param_time_idx ON measurements (parameter_code, recorded_at);
 
 -- Performance indexes for common query patterns
 CREATE INDEX measurements_pond_idx ON measurements (pond_id);
+CREATE INDEX measurements_cycle_idx ON measurements (cycle_id);
 CREATE INDEX measurements_parameter_idx ON measurements (parameter_code);
 CREATE INDEX measurements_source_type_idx ON measurements (source_type);
 CREATE INDEX measurements_created_at_idx ON measurements (created_at);
 
 -- Composite indexes for common query patterns
+CREATE INDEX measurements_pond_cycle_idx ON measurements (pond_id, cycle_id);
 CREATE INDEX measurements_pond_parameter_idx ON measurements (pond_id, parameter_code);
 CREATE INDEX measurements_pond_recorded_at_idx ON measurements (pond_id, recorded_at);
 CREATE INDEX measurements_parameter_recorded_at_idx ON measurements (parameter_code, recorded_at);
@@ -146,6 +149,9 @@ CREATE INDEX analysis_embeddings_created_at_idx ON analysis_embeddings (created_
 -- Add foreign keys after all tables are created
 ALTER TABLE measurements ADD CONSTRAINT fk_measurements_pond 
     FOREIGN KEY (pond_id) REFERENCES ponds(id) ON DELETE CASCADE;
+
+ALTER TABLE measurements ADD CONSTRAINT fk_measurements_cycle 
+    FOREIGN KEY (cycle_id) REFERENCES pond_cycles(id) ON DELETE CASCADE;
 
 ALTER TABLE pond_cycles ADD CONSTRAINT fk_pond_cycles_pond 
     FOREIGN KEY (pond_id) REFERENCES ponds(id) ON DELETE CASCADE;

@@ -14,17 +14,22 @@ export const schemas = {
 };
 
 export const relations = defineRelations(schemas, (relation) => ({
-	pondCycles: {
-		pond: relation.one.ponds({
-			from: relation.pondCycles.pondId,
-			to: relation.ponds.id,
-		}),
-	},
 	measurements: {
 		pond: relation.one.ponds({
 			from: relation.measurements.pondId,
 			to: relation.ponds.id,
 		}),
+		cycle: relation.one.pondCycles({
+			from: relation.measurements.cycleId,
+			to: relation.pondCycles.id,
+		}),
+	},
+	pondCycles: {
+		pond: relation.one.ponds({
+			from: relation.pondCycles.pondId,
+			to: relation.ponds.id,
+		}),
+		measurements: relation.many.measurements(),
 	},
 	analysisResults: {
 		pond: relation.one.ponds({
