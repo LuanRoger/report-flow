@@ -1,41 +1,48 @@
-import {
-	analysisEmbeddings,
-	analysisResults,
-	db,
-	measurements,
-} from "database";
-import { and, desc, cosineDistance, eq, gt, gte, lte, sql } from "drizzle-orm";
+import { analysisEmbeddings, analysisResults, db } from "database";
+import { and, cosineDistance, desc, eq, gt, sql } from "drizzle-orm";
 import { generateEmbedding } from "../utils/rag";
-import type { CreateAnalysisEmbedding, CreateAnalysisResult } from "./types";
+import type {
+	CreateAnalysisEmbedding,
+	CreateAnalysisResult,
+	Measurements,
+} from "./types";
+
+export async function getMeasurementsForCycle(
+	cycleId: number,
+): Promise<Measurements[]> {
+	return await db.query.measurements.findMany({
+		where: {
+			cycleId,
+		},
+		orderBy: {
+			recordedAt: "desc",
+		},
+	});
+}
 
 export async function getMeasurementsForPond(
 	pondId: number,
 	startDate: Date,
 	endDate: Date,
-) {
-	const result = await db
-		.select({
-			pondId: measurements.pondId,
-			parameterCode: measurements.parameterCode,
-			value: measurements.value,
-			recordedAt: measurements.recordedAt,
-		})
-		.from(measurements)
-		.where(
-			and(
-				eq(measurements.pondId, pondId),
-				gte(measurements.recordedAt, startDate),
-				lte(measurements.recordedAt, endDate),
-			),
-		)
-		.orderBy(measurements.recordedAt);
-
-	return result.map((row) => ({
-		pondId: row.pondId,
-		parameterCode: row.parameterCode,
-		value: Number(row.value),
-		recordedAt: row.recordedAt,
-	}));
+): Promise<Measurements[]> {
+	return db.query.measurements.findMany({
+		where: {
+			AND: [
+				{
+					pondId,
+				},
+				{
+					recordedAt: {
+						gte: startDate,
+						lte: endDate,
+					},
+				},
+			],
+		},
+		orderBy: {
+			recordedAt: "desc",
+		},
+	});
 }
 
 export async function getPondById(id: number) {

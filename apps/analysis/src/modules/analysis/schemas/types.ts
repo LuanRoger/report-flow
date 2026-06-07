@@ -1,7 +1,7 @@
 import type z from "zod";
 import type {
 	aggregationWeightsSchema,
-	analysisQuerySchema,
+	analysisBodySchema,
 	dataCoverageSchema,
 	errorResponseSchema,
 	executionStatsSchema,
@@ -16,7 +16,7 @@ import type {
 	timeRangeSchema,
 } from ".";
 
-export type AnalysisQuery = z.infer<typeof analysisQuerySchema>;
+export type AnalysisQuery = z.infer<typeof analysisBodySchema>;
 export type ParametersScores = z.infer<typeof parametersScores>;
 export type PondScoreResult = z.infer<typeof pondScoreResultSchema>;
 export type ErrorResponse = z.infer<typeof errorResponseSchema>;

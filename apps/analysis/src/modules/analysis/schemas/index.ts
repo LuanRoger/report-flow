@@ -5,8 +5,11 @@ export const analysisIdParamSchema = z.object({
 	id: z.number().min(1, { error: "ID is required" }),
 });
 
-export const analysisQuerySchema = z.object({
-	pondId: z.coerce.number().min(1, { error: "pondId is required" }),
+export const createAnalysisCycleIdParamSchema = z.object({
+	id: z.number().min(1, { error: "ID is required" }),
+});
+
+export const analysisBodySchema = z.object({
 	startDate: z.coerce.date().optional(),
 	endDate: z.coerce.date().optional(),
 	window: z.enum(ANALYSIS_TIME_WINDOWS).optional().default("7d"),

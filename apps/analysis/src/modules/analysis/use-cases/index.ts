@@ -23,15 +23,50 @@ export async function getAnalysisById(id: number) {
 	return analysis;
 }
 
-export async function performAnalysis(
+async function performCoreAnalysis(
+	pondId: number,
+	measurements: any[],
+	requestedStartDate: Date,
+	requestedEndDate: Date,
+): Promise<PondScoreResult> {
+	const coverageResult = checkDataCoverage(measurements);
+
+	const recordedAtDates = measurements.map((m) => m.recordedAt);
+	const actualStartDate = new Date(
+		Math.min(...recordedAtDates.map((d) => d.getTime())),
+	);
+	const actualEndDate = new Date(
+		Math.max(...recordedAtDates.map((d) => d.getTime())),
+	);
+
+	const normalizedByParameter = normalizeMeasurements(measurements);
+
+	const parameterTemporalScores = calculateParameterTemporalScores(
+		normalizedByParameter,
+	);
+
+	const result = buildPondScoreResult(
+		pondId,
+		requestedStartDate,
+		requestedEndDate,
+		actualStartDate,
+		actualEndDate,
+		measurements,
+		parameterTemporalScores,
+		normalizedByParameter,
+		coverageResult.hasSufficientCoverage,
+		coverageResult.coveragePercentage,
+		coverageResult.presentParameters,
+	);
+
+	return result;
+}
+
+export async function performAnalysisByPond(
+	pondId: number,
 	query: AnalysisQuery,
 ): Promise<PondScoreResult> {
-	const {
-		pondId,
-		startDate: startDateQuery,
-		endDate: endDateQuery,
-		window,
-	} = query;
+	const { startDate: startDateQuery, endDate: endDateQuery, window } = query;
 
 	const { startDate, endDate } = calculateTimeWindow(
 		window,
@@ -54,40 +89,38 @@ export async function performAnalysis(
 		throw new InsufficientDataError();
 	}
 
-	const coverageResult = checkDataCoverage(measurements);
-
-	const recordedAtDates = measurements.map((m) => m.recordedAt);
-	const actualStartDate = new Date(
-		Math.min(...recordedAtDates.map((d) => d.getTime())),
-	);
-	const actualEndDate = new Date(
-		Math.max(...recordedAtDates.map((d) => d.getTime())),
-	);
-
-	const normalizedByParameter = normalizeMeasurements(measurements);
-
-	const parameterTemporalScores = calculateParameterTemporalScores(
-		normalizedByParameter,
-	);
-
-	const result = buildPondScoreResult(
-		pondId,
-		startDate,
-		endDate,
-		actualStartDate,
-		actualEndDate,
-		measurements,
-		parameterTemporalScores,
-		normalizedByParameter,
-		coverageResult.hasSufficientCoverage,
-		coverageResult.coveragePercentage,
-		coverageResult.presentParameters,
-	);
-
-	return result;
+	return performCoreAnalysis(pondId, measurements, startDate, endDate);
 }
 
-export async function storeAnalysis(result: PondScoreResult) {
+export async function performAnalysisByCycle(
+	cycleId: number,
+): Promise<PondScoreResult> {
+	const measurements = await repository.getMeasurementsForCycle(cycleId);
+
+	if (measurements.length === 0) {
+		throw new InsufficientDataError();
+	}
+
+	// Use the first pondId from measurements as the reference pond
+	const pondId = measurements[0].pondId;
+
+	// For cycle analysis, the requested dates are the same as actual dates
+	const actualStartDate = new Date(
+		Math.min(...measurements.map((m) => m.recordedAt.getTime())),
+	);
+	const actualEndDate = new Date(
+		Math.max(...measurements.map((m) => m.recordedAt.getTime())),
+	);
+
+	return performCoreAnalysis(
+		pondId,
+		measurements,
+		actualStartDate,
+		actualEndDate,
+	);
+}
+
+export async function storeAnalysis(result: PondScoreResult, cycleId?: number) {
 	const { pondId, finalScore, parameterScores, startDate, endDate, metadata } =
 		result;
 
@@ -97,6 +130,7 @@ export async function storeAnalysis(result: PondScoreResult) {
 	await repository.storeAnalysisResult(
 		{
 			pondId,
+			cycleId,
 			finalScore,
 			startTime: startDate,
 			endTime: endDate,
