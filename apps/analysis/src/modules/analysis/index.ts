@@ -36,6 +36,7 @@ export const analysesModule = new Elysia({ prefix: "/analyses" })
 			});
 		},
 		{
+			params: createAnalysisCycleIdParamSchema,
 			body: analysisBodySchema,
 		},
 	)

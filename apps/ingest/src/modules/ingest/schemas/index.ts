@@ -8,5 +8,5 @@ export const ingestManualRouteBodySchema = z.object({
 	parameterCode: z.enum(parameterCodes),
 	value: z.string(),
 	unit: z.enum(unitCodes),
-	source: z.string(),
+	sourceType: z.string(),
 });

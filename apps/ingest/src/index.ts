@@ -1,9 +1,16 @@
 import { Elysia } from "elysia";
+import logixlysia from "logixlysia";
 import { ingestModule } from "./modules/ingest";
 
-const app = new Elysia()
+new Elysia()
+	.use(
+		logixlysia({
+			config: {
+				slowThreshold: 100,
+				verySlowThreshold: 500,
+			},
+		}),
+	)
 	.get("/", () => "OK")
 	.use(ingestModule)
 	.listen(3000);
-
-console.log(`Server running at ${app.server?.hostname}:${app.server?.port}`);
