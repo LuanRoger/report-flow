@@ -2,11 +2,11 @@ import { z } from "zod";
 import { ANALYSIS_TIME_WINDOWS } from "../constants";
 
 export const analysisIdParamSchema = z.object({
-	id: z.number().min(1, { error: "ID is required" }),
+	id: z.coerce.number().min(1, { error: "ID is required" }),
 });
 
 export const createAnalysisCycleIdParamSchema = z.object({
-	id: z.number().min(1, { error: "ID is required" }),
+	id: z.coerce.number().min(1, { error: "ID is required" }),
 });
 
 export const analysisBodySchema = z.object({
