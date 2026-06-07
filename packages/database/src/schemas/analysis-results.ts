@@ -3,6 +3,7 @@ import { index, jsonb, pgTable, real, serial, timestamp } from "drizzle-orm/pg-c
 export const analysisResults = pgTable("analysis_results", {
 	id: serial("id").primaryKey(),
 	pondId: serial("pond_id").notNull(),
+	cycleId: serial("cycle_id"),
 
 	startTime: timestamp("start_time").notNull(),
 	endTime: timestamp("end_time").notNull(),
@@ -22,6 +23,7 @@ export const analysisResults = pgTable("analysis_results", {
 }, (table) => [
 	// Single column indexes
 	index("analysis_results_pond_idx").on(table.pondId),
+	index("analysis_results_cycle_idx").on(table.cycleId),
 	index("analysis_results_start_time_idx").on(table.startTime),
 	index("analysis_results_end_time_idx").on(table.endTime),
 	index("analysis_results_created_at_idx").on(table.createdAt),

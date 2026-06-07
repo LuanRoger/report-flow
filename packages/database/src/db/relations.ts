@@ -36,6 +36,10 @@ export const relations = defineRelations(schemas, (relation) => ({
 			from: relation.analysisResults.pondId,
 			to: relation.ponds.id,
 		}),
+		cycle: relation.one.pondCycles({
+			from: relation.analysisResults.cycleId,
+			to: relation.pondCycles.id,
+		}),
 	},
 	analysisEmbeddings: {
 		analysis: relation.one.analysisResults({

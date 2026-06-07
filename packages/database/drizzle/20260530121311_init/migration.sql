@@ -58,6 +58,7 @@ CREATE TABLE measurements (
 CREATE TABLE analysis_results (
     id SERIAL PRIMARY KEY,
     pond_id INTEGER NOT NULL,
+    cycle_id INTEGER,
     start_time TIMESTAMPTZ NOT NULL,
     end_time TIMESTAMPTZ NOT NULL,
     final_score REAL NOT NULL,
@@ -120,6 +121,7 @@ CREATE INDEX pond_cycles_date_range_idx ON pond_cycles (pond_id, start_date, end
 -- INDEXES FOR ANALYSIS_RESULTS TABLE
 -- ============================================
 CREATE INDEX analysis_results_pond_idx ON analysis_results (pond_id);
+CREATE INDEX analysis_results_cycle_idx ON analysis_results (cycle_id);
 CREATE INDEX analysis_results_start_time_idx ON analysis_results (start_time);
 CREATE INDEX analysis_results_end_time_idx ON analysis_results (end_time);
 CREATE INDEX analysis_results_created_at_idx ON analysis_results (created_at);
@@ -158,6 +160,9 @@ ALTER TABLE pond_cycles ADD CONSTRAINT fk_pond_cycles_pond
 
 ALTER TABLE analysis_results ADD CONSTRAINT fk_analysis_results_pond 
     FOREIGN KEY (pond_id) REFERENCES ponds(id) ON DELETE CASCADE;
+
+ALTER TABLE analysis_results ADD CONSTRAINT fk_analysis_results_cycle 
+    FOREIGN KEY (cycle_id) REFERENCES pond_cycles(id) ON DELETE CASCADE;
 
 ALTER TABLE analysis_embeddings ADD CONSTRAINT fk_analysis_embeddings_analysis 
     FOREIGN KEY (analysis_id) REFERENCES analysis_results(id) ON DELETE CASCADE;
