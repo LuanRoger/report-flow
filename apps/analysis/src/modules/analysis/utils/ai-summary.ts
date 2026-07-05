@@ -49,7 +49,6 @@ function formatAnalysisContext(result: AnalysisResult): string {
 			);
 		}
 	}
-	console.log(typeof timeRange.actualStart);
 
 	return `
 Analysis Context:
