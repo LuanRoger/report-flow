@@ -1,10 +1,8 @@
 {
-  "id": "51ac8629-142e-45b5-b286-650382db1112",
-  "prevIds": [
-    "6990e3f8-f93f-4225-bbff-3dda0a9531e1"
-  ],
-  "version": "8",
-  "dialect": "postgres",
-  "ddl": [],
-  "renames": []
+	"id": "51ac8629-142e-45b5-b286-650382db1112",
+	"prevIds": ["6990e3f8-f93f-4225-bbff-3dda0a9531e1"],
+	"version": "8",
+	"dialect": "postgres",
+	"ddl": [],
+	"renames": []
 }

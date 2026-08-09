@@ -167,7 +167,17 @@ function parseArgs(): {
 	const pondId = Number(get("pond-id") ?? "1");
 	const cycleId = Number(get("cycle-id") ?? "1");
 
-	return { scenario, mode, rate, from, to, stepMinutes, enableLogs, pondId, cycleId };
+	return {
+		scenario,
+		mode,
+		rate,
+		from,
+		to,
+		stepMinutes,
+		enableLogs,
+		pondId,
+		cycleId,
+	};
 }
 
 async function runConstant(
@@ -188,7 +198,9 @@ async function runConstant(
 
 		// Add small random offset (0-100ms) to avoid timestamp collisions
 		const now = new Date();
-		const offsetTime = new Date(now.getTime() + Math.floor(Math.random() * 100));
+		const offsetTime = new Date(
+			now.getTime() + Math.floor(Math.random() * 100),
+		);
 		const payload = buildPayload(param, offsetTime, scenario);
 		await send(payload, enableLogs);
 		await new Promise((r) => setTimeout(r, intervalMs));
@@ -226,8 +238,17 @@ async function runPrecalc(
 }
 
 (async () => {
-	const { scenario, mode, rate, from, to, stepMinutes, enableLogs, pondId, cycleId } =
-		parseArgs();
+	const {
+		scenario,
+		mode,
+		rate,
+		from,
+		to,
+		stepMinutes,
+		enableLogs,
+		pondId,
+		cycleId,
+	} = parseArgs();
 
 	setDefaults(pondId, cycleId);
 

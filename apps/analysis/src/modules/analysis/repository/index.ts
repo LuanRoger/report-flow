@@ -2,8 +2,8 @@ import { analysisEmbeddings, analysisResults, db } from "database";
 import { and, cosineDistance, desc, eq, gt, sql } from "drizzle-orm";
 import { generateEmbedding } from "../utils/rag";
 import {
-	analysisResultsSchema,
 	type AnalysisResult,
+	analysisResultsSchema,
 	type CreateAnalysisEmbedding,
 	type CreateAnalysisResult,
 	type Measurement,

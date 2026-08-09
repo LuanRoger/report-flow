@@ -1,5 +1,5 @@
-import type { PondScoreResult } from "../schemas/types";
 import type { AnalysisResult } from "database";
+import type { PondScoreResult } from "../schemas/types";
 
 export interface ReportOptions {
 	aiSummary?: string;
@@ -99,7 +99,10 @@ function generateProgressBar(score: number, max: number = 100): string {
  * Generate parameter stats table rows
  */
 function generateParameterStatsRows(result: AnalysisResult): string {
-	const metadataContent = typeof result.metadata === 'string' ? JSON.parse(result.metadata) : result.metadata;
+	const metadataContent =
+		typeof result.metadata === "string"
+			? JSON.parse(result.metadata)
+			: result.metadata;
 	const { parameterStats } = metadataContent;
 	const parameterCodes = Object.keys(parameterStats);
 
@@ -164,7 +167,10 @@ function generateParameterScoresRows(result: AnalysisResult): string {
  * Generate temporal metrics table rows
  */
 function generateTemporalMetricsRows(result: AnalysisResult): string {
-	const metadataContent = typeof result.metadata === 'string' ? JSON.parse(result.metadata) : result.metadata;
+	const metadataContent =
+		typeof result.metadata === "string"
+			? JSON.parse(result.metadata)
+			: result.metadata;
 	const { parameterStats } = metadataContent;
 	const parameterCodes = Object.keys(parameterStats);
 
@@ -193,7 +199,10 @@ function generateTemporalMetricsRows(result: AnalysisResult): string {
  * Generate measurements by parameter table rows
  */
 function generateMeasurementsByParameterRows(result: AnalysisResult): string {
-	const metadataContent = typeof result.metadata === 'string' ? JSON.parse(result.metadata) : result.metadata;
+	const metadataContent =
+		typeof result.metadata === "string"
+			? JSON.parse(result.metadata)
+			: result.metadata;
 	const { measurementsByParameter } = metadataContent.executionStats;
 	const parameterCodes = Object.keys(measurementsByParameter);
 
@@ -222,7 +231,8 @@ export function generateHtmlReport(
 	options: ReportOptions = {},
 ): string {
 	const { pondId, finalScore, metadata, startTime, endTime } = result;
-	const metadataContent = typeof metadata === 'string' ? JSON.parse(metadata) : metadata;
+	const metadataContent =
+		typeof metadata === "string" ? JSON.parse(metadata) : metadata;
 	const {
 		executionStats,
 		criticalThreshold,
