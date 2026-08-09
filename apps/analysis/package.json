@@ -5,25 +5,22 @@
 	"scripts": {
 		"dev": "bun run --watch src/index.ts",
 		"start": "bun src/index.js",
+		"build": "bun build src/index.ts --outdir dist --target bun",
 		"env:load": "varlock load"
 	},
 	"dependencies": {
-		"@ai-sdk/mistral": "^3.0.37",
+		"@ai-sdk/mistral": "^4.0.27",
 		"@elysia/cors": "^1.4.2",
 		"@elysiajs/html": "^1.4.2",
-		"ai": "^6.0.193",
+		"ai": "^7.0.58",
 		"database": "workspace:*",
-		"drizzle-orm": "^1.0.0-rc.4",
-		"elysia": "^1.4.28",
-		"pg": "^8.21.0",
-		"varlock": "^1.4.0",
+		"drizzle-orm": "catalog:db",
+		"elysia": "^1.4.29",
+		"varlock": "^1.16.1",
 		"zod": "^4.4.3"
 	},
 	"devDependencies": {
 		"@types/bun": "catalog:",
-		"@types/pg": "^8.20.0",
-		"drizzle-kit": "^1.0.0-rc.4",
-		"tsx": "^4.21.0",
 		"typescript": "catalog:"
 	}
 }
