@@ -97,13 +97,21 @@ export const pondScoreResultSchema = z.object({
 	metadata: metadataSchema,
 });
 
-export const pondScoreResponseSchema = z.object({
-	success: z.boolean(),
-	data: pondScoreResultSchema,
+export const getAnalysisById200ResponseSchema = z.object({
+	id: z.number(),
+	pondId: z.number(),
+	cycleId: z.number(),
+	startTime: z.coerce.date(),
+	endTime: z.coerce.date(),
+	finalScore: z.number().min(0).max(100),
+	temperatureScore: z.number().min(0).max(100),
+	phScore: z.number().min(0).max(100),
+	salinityScore: z.number().min(0).max(100),
+	dissolvedOxygenScore: z.number().min(0).max(100),
+	turbidityScore: z.number().min(0).max(100),
+	metadata: metadataSchema,
+	createdAt: z.coerce.date(),
 });
 
-export const errorResponseSchema = z.object({
-	error: z.string(),
-	message: z.string().optional(),
-	details: z.any().optional(),
-});
+export const performAnalysisByPond200ResponseSchema = pondScoreResultSchema;
+export const performAnalysisByCycle200ResponseSchema = pondScoreResultSchema;
