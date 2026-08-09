@@ -2,13 +2,85 @@ import { cors } from "@elysia/cors";
 import { html } from "@elysiajs/html";
 import { Elysia } from "elysia";
 import { analysesModule } from "./modules/analysis";
+import bearer from "@elysia/bearer";
+import { ENV } from "varlock/env";
+import logixlysia from "logixlysia";
+import serverTiming from "@elysia/server-timing";
+import openapi from "@elysia/openapi";
+import { version } from "../package.json";
+import z from "zod";
+
+const appName = "analysis";
+const port = 3001;
+const localUrl = `http://localhost:${port}`;
 
 const app = new Elysia()
-	.use(cors())
+	.use(
+		logixlysia({
+			config: {
+				service: appName,
+				showStartupMessage: true,
+				startupMessageFormat: "simple",
+				showContextTree: true,
+				contextDepth: 2,
+				slowThreshold: 50,
+				verySlowThreshold: 100,
+				ip: false,
+			},
+		}),
+	)
+	.use(
+		cors({
+			allowedHeaders: ["Content-Type", "Authorization"],
+			methods: ["GET", "POST", "DELETE", "OPTIONS"],
+		}),
+	)
+	.use(serverTiming())
+	.use(
+		openapi({
+			documentation: {
+				info: {
+					title: appName,
+					version,
+					license: {
+						name: "MIT",
+					},
+				},
+				servers: [
+					{
+						url: localUrl,
+						description: "Local server",
+					},
+				],
+				components: {
+					securitySchemes: {
+						bearerAuth: {
+							type: "http",
+							scheme: "bearer",
+						},
+					},
+				},
+				openapi: "3.2.0",
+			},
+			scalar: {
+				theme: "deepSpace",
+				showOperationId: true,
+				customCss: "",
+			},
+			mapJsonSchema: {
+				zod: z.toJSONSchema,
+			},
+		}),
+	)
 	.use(html())
-	.use(analysesModule)
-	.listen(3001);
+	.use(bearer())
+	.onBeforeHandle(({ set, status, bearer }) => {
+		const apiKey = ENV.API_KEY;
 
-console.log(
-	`Analysis service running at ${app.server?.hostname}:${app.server?.port}`,
-);
+		if (bearer !== apiKey) {
+			set.status = 401;
+			return status("Unauthorized");
+		}
+	})
+	.use(analysesModule)
+	.listen(port);

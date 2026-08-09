@@ -10,12 +10,16 @@
 	},
 	"dependencies": {
 		"@ai-sdk/mistral": "^4.0.27",
+		"@elysia/bearer": "^1.4.4",
 		"@elysia/cors": "^1.4.2",
+		"@elysia/openapi": "^1.4.15",
+		"@elysia/server-timing": "^1.4.1",
 		"@elysiajs/html": "^1.4.2",
 		"ai": "^7.0.58",
 		"database": "workspace:*",
 		"drizzle-orm": "catalog:db",
 		"elysia": "^1.4.29",
+		"logixlysia": "^6.6.1",
 		"varlock": "^1.16.1",
 		"zod": "^4.4.3"
 	},
