@@ -15,12 +15,12 @@
 		".": "./src/index.ts"
 	},
 	"dependencies": {
-		"drizzle-orm": "^1.0.0-rc.4-fb12281",
+		"drizzle-orm": "catalog:db",
 		"varlock": "^1.16.1"
 	},
 	"devDependencies": {
 		"@types/bun": "catalog:",
-		"drizzle-kit": "^1.0.0-rc.4",
+		"drizzle-kit": "catalog:db",
 		"typescript": "catalog:"
 	}
 }
