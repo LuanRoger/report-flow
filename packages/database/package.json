@@ -15,14 +15,11 @@
 		".": "./src/index.ts"
 	},
 	"dependencies": {
-		"drizzle-orm": "^1.0.0-rc.4",
-		"pg": "^8.21.0",
-		"pgvector": "^0.1.0",
-		"varlock": "^1.4.0"
+		"drizzle-orm": "^1.0.0-rc.4-fb12281",
+		"varlock": "^1.16.1"
 	},
 	"devDependencies": {
 		"@types/bun": "catalog:",
-		"@types/pg": "^8.20.0",
 		"drizzle-kit": "^1.0.0-rc.4",
 		"typescript": "catalog:"
 	}
