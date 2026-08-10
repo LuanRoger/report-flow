@@ -10,25 +10,24 @@ import {
 export const analysisResults = pgTable(
 	"analysis_results",
 	{
-		id: serial("id").primaryKey(),
-		pondId: serial("pond_id").notNull(),
+		createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
+			.notNull()
+			.defaultNow(),
 		cycleId: serial("cycle_id"),
-
-		startTime: timestamp("start_time").notNull(),
+		dissolvedOxygenScore: real("dissolved_oxygen_score").notNull(),
 		endTime: timestamp("end_time").notNull(),
 
 		finalScore: real("final_score").notNull(),
-		temperatureScore: real("temperature_score").notNull(),
-		phScore: real("ph_score").notNull(),
-		salinityScore: real("salinity_score").notNull(),
-		dissolvedOxygenScore: real("dissolved_oxygen_score").notNull(),
-		turbidityScore: real("turbidity_score").notNull(),
+		id: serial("id").primaryKey(),
 
 		metadata: jsonb("metadata").notNull(),
+		phScore: real("ph_score").notNull(),
+		pondId: serial("pond_id").notNull(),
+		salinityScore: real("salinity_score").notNull(),
 
-		createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
-			.notNull()
-			.defaultNow(),
+		startTime: timestamp("start_time").notNull(),
+		temperatureScore: real("temperature_score").notNull(),
+		turbidityScore: real("turbidity_score").notNull(),
 	},
 	(table) => [
 		// Single column indexes
@@ -45,8 +44,8 @@ export const analysisResults = pgTable(
 		index("analysis_results_pond_time_idx").on(
 			table.pondId,
 			table.startTime,
-			table.endTime,
+			table.endTime
 		),
 		index("analysis_results_time_range_idx").on(table.startTime, table.endTime),
-	],
+	]
 );

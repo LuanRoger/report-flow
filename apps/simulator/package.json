@@ -1,14 +1,14 @@
 {
-	"name": "simulator",
-	"module": "index.ts",
-	"type": "module",
-	"private": true,
-	"scripts": {
-		"start": "bun run ./src/index.ts",
-		"build": "bun build src/index.ts --outdir dist --target bun"
-	},
-	"devDependencies": {
-		"@types/bun": "catalog:",
-		"typescript": "catalog:"
-	}
+  "name": "simulator",
+  "private": true,
+  "type": "module",
+  "module": "index.ts",
+  "scripts": {
+    "build": "bun build src/index.ts --outdir dist --target bun",
+    "start": "bun run ./src/index.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "catalog:",
+    "typescript": "catalog:"
+  }
 }

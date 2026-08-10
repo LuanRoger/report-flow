@@ -4,23 +4,34 @@ import { formatDate } from "@/utils/date";
 import type { PondScoreResult } from "../schemas/types";
 
 function getScoreLabel(score: number): string {
-	if (score >= 90) return "Excellent";
-	if (score >= 80) return "Very Good";
-	if (score >= 70) return "Good";
-	if (score >= 60) return "Fair";
-	if (score >= 40) return "Poor";
-	if (score >= 20) return "Very Poor";
+	if (score >= 90) {
+		return "Excellent";
+	}
+	if (score >= 80) {
+		return "Very Good";
+	}
+	if (score >= 70) {
+		return "Good";
+	}
+	if (score >= 60) {
+		return "Fair";
+	}
+	if (score >= 40) {
+		return "Poor";
+	}
+	if (score >= 20) {
+		return "Very Poor";
+	}
 	return "Critical";
 }
 
 export function formatAnalysisForEmbedding(result: PondScoreResult): string {
-	const { pondId, startDate, endDate, finalScore, parameterScores, metadata } =
-		result;
+	const { pondId, finalScore, parameterScores, metadata } = result;
 	const { executionStats, parameterStats, criticalThreshold } = metadata;
 	const { dataCoverage, timeRange, totalMeasurements } = executionStats;
 
 	// Build parameter descriptions
-	const parameterDescriptions = [];
+	const parameterDescriptions: string[] = [];
 	const parameterCodes = Object.keys(parameterScores) as Array<
 		keyof typeof parameterScores
 	>;
@@ -38,7 +49,7 @@ export function formatAnalysisForEmbedding(result: PondScoreResult): string {
 				`min=${stats.rawValues.min?.toFixed(2) ?? "N/A"}, ` +
 				`max=${stats.rawValues.max?.toFixed(2) ?? "N/A"}, ` +
 				`count=${stats.rawValues.count}, ` +
-				`critical=${(temporal.criticalTimeRatio * 100).toFixed(1)}%`,
+				`critical=${(temporal.criticalTimeRatio * 100).toFixed(1)}%`
 		);
 	}
 

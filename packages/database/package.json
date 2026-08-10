@@ -1,26 +1,26 @@
 {
-	"name": "database",
-	"version": "1.0.0",
-	"module": "src/index.js",
-	"type": "module",
-	"private": true,
-	"scripts": {
-		"env:load": "varlock load",
-		"db:migrate": "varlock run --no-redact-stdout -- drizzle-kit migrate",
-		"db:push": "varlock run --no-redact-stdout -- drizzle-kit push",
-		"db:generate": "varlock run --no-redact-stdout -- drizzle-kit generate",
-		"db:studio": "varlock run --no-redact-stdout -- drizzle-kit studio"
-	},
-	"exports": {
-		".": "./src/index.ts"
-	},
-	"dependencies": {
-		"drizzle-orm": "catalog:db",
-		"varlock": "^1.16.1"
-	},
-	"devDependencies": {
-		"@types/bun": "catalog:",
-		"drizzle-kit": "catalog:db",
-		"typescript": "catalog:"
-	}
+  "name": "database",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "module": "src/index.js",
+  "scripts": {
+    "db:generate": "varlock run --no-redact-stdout -- drizzle-kit generate",
+    "db:migrate": "varlock run --no-redact-stdout -- drizzle-kit migrate",
+    "db:push": "varlock run --no-redact-stdout -- drizzle-kit push",
+    "db:studio": "varlock run --no-redact-stdout -- drizzle-kit studio",
+    "env:load": "varlock load"
+  },
+  "dependencies": {
+    "drizzle-orm": "catalog:db",
+    "varlock": "^1.16.1"
+  },
+  "devDependencies": {
+    "@types/bun": "catalog:",
+    "drizzle-kit": "catalog:db",
+    "typescript": "catalog:"
+  }
 }

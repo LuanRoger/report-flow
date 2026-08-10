@@ -10,14 +10,14 @@ function formatAnalysisContext(result: AnalysisResult): string {
 	const { dataCoverage, timeRange, totalMeasurements } = executionStats;
 
 	const parameterScores = {
-		temperature: result.temperatureScore,
+		dissolvedOxygen: result.dissolvedOxygenScore,
 		ph: result.phScore,
 		salinity: result.salinityScore,
-		dissolvedOxygen: result.dissolvedOxygenScore,
+		temperature: result.temperatureScore,
 		turbidity: result.turbidityScore,
 	};
 
-	const parameterAnalysis = [];
+	const parameterAnalysis: string[] = [];
 	const parameterCodes = Object.keys(parameterScores) as Array<
 		keyof typeof parameterScores
 	>;
@@ -34,18 +34,18 @@ function formatAnalysisContext(result: AnalysisResult): string {
 				: "";
 
 		parameterAnalysis.push(
-			`${paramCode}: ${score.toFixed(0)}/100 (${scoreDescription}${criticalInfo})`,
+			`${paramCode}: ${score.toFixed(0)}/100 (${scoreDescription}${criticalInfo})`
 		);
 	}
 
-	const temporalSummary = [];
+	const temporalSummary: string[] = [];
 	for (const paramCode of parameterCodes) {
 		const stats = parameterStats[paramCode];
 		const temporal = stats.temporalMetrics;
 
 		if (temporal.criticalCount > 0) {
 			temporalSummary.push(
-				`${paramCode} had ${temporal.criticalCount} critical readings`,
+				`${paramCode} had ${temporal.criticalCount} critical readings`
 			);
 		}
 	}
@@ -72,26 +72,38 @@ Configuration:
 }
 
 function getScoreDescription(score: number): string {
-	if (score >= 90) return "Excellent";
-	if (score >= 80) return "Very Good";
-	if (score >= 70) return "Good";
-	if (score >= 60) return "Fair";
-	if (score >= 40) return "Poor";
-	if (score >= 20) return "Very Poor";
+	if (score >= 90) {
+		return "Excellent";
+	}
+	if (score >= 80) {
+		return "Very Good";
+	}
+	if (score >= 70) {
+		return "Good";
+	}
+	if (score >= 60) {
+		return "Fair";
+	}
+	if (score >= 40) {
+		return "Poor";
+	}
+	if (score >= 20) {
+		return "Very Poor";
+	}
 	return "Critical";
 }
 
 export async function generateAiSummary(
-	result: AnalysisResult,
+	result: AnalysisResult
 ): Promise<string> {
 	const context = formatAnalysisContext(result);
 
 	const { text } = await generateText({
-		model: mistral("ministral-3b-latest"),
-		system: AI_ANALYSIS_SUMMARY_SYSTEM_PROMPT,
-		prompt: `\n\n${context}\n\nPlease provide your professional analysis and advice for this pond.`,
-		temperature: 0.4,
 		maxOutputTokens: 400,
+		model: mistral("ministral-3b-latest"),
+		prompt: `\n\n${context}\n\nPlease provide your professional analysis and advice for this pond.`,
+		system: AI_ANALYSIS_SUMMARY_SYSTEM_PROMPT,
+		temperature: 0.4,
 	});
 
 	return text;

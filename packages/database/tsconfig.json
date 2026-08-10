@@ -1,21 +1,21 @@
 {
-	"compilerOptions": {
-		/* Language and Environment */
-		"target": "ES2021",
+  "compilerOptions": {
+    /* Language and Environment */
+    "target": "ES2021",
 
-		/* Modules */
-		"module": "ESNext",
-		"moduleResolution": "bundler",
-		"types": ["bun"],
+    /* Modules */
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "types": ["bun"],
 
-		/* Interop Constraints */
-		"esModuleInterop": true,
-		"forceConsistentCasingInFileNames": true,
+    /* Interop Constraints */
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
 
-		/* Type Checking */
-		"strict": true,
+    /* Type Checking */
+    "strict": true,
 
-		/* Completeness */
-		"skipLibCheck": true
-	}
+    /* Completeness */
+    "skipLibCheck": true
+  }
 }

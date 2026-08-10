@@ -1,6 +1,13 @@
 import html from "@elysiajs/html";
 import Elysia from "elysia";
-import { analysisBodySchema, idParamSchema } from "./schemas";
+import z from "zod";
+import {
+	analysisBodySchema,
+	getAnalysisById200ResponseSchema,
+	idParamSchema,
+	performAnalysisByCycle200ResponseSchema,
+	performAnalysisByPond200ResponseSchema,
+} from "./schemas";
 import {
 	deleteAnalysisById,
 	generateReportForAnalysis,
@@ -20,8 +27,17 @@ export const analysesReportModule = new Elysia({ prefix: "/report" })
 			return report;
 		},
 		{
+			detail: {
+				description:
+					"Generate a report for the given analysis ID in HTML format",
+				operationId: "getAnalysisReport",
+			},
 			params: idParamSchema,
-		},
+			response: {
+				200: z.string(),
+				500: z.string(),
+			},
+		}
 	);
 
 export const analysesModule = new Elysia({ prefix: "/analyses" })
@@ -31,11 +47,21 @@ export const analysesModule = new Elysia({ prefix: "/analyses" })
 		async ({ status, params: { id } }) => {
 			const result = await getAnalysisById(id);
 
-			return status("OK", result);
+			const response = getAnalysisById200ResponseSchema.parse(result);
+			return status("OK", response);
 		},
 		{
+			detail: {
+				description: "Get an analysis by its ID",
+				operationId: "getAnalysisById",
+			},
 			params: idParamSchema,
-		},
+			response: {
+				200: getAnalysisById200ResponseSchema,
+				404: z.string(),
+				500: z.string(),
+			},
+		}
 	)
 	.post(
 		"/ponds/:id",
@@ -43,15 +69,21 @@ export const analysesModule = new Elysia({ prefix: "/analyses" })
 			const result = await performAnalysisByPond(id, body);
 			await storeAnalysis(result);
 
-			return status("OK", {
-				success: true,
-				data: result,
-			});
+			return status("OK", result);
 		},
 		{
-			params: idParamSchema,
 			body: analysisBodySchema,
-		},
+			detail: {
+				description: "Perform analysis by pond",
+				operationId: "performAnalysisByPond",
+			},
+			params: idParamSchema,
+			response: {
+				200: performAnalysisByPond200ResponseSchema,
+				404: z.string(),
+				500: z.string(),
+			},
+		}
 	)
 	.post(
 		"/cycles/:id",
@@ -59,23 +91,38 @@ export const analysesModule = new Elysia({ prefix: "/analyses" })
 			const result = await performAnalysisByCycle(id);
 			await storeAnalysis(result, id);
 
-			return status("OK", {
-				success: true,
-				data: result,
-			});
-		},
-		{
-			params: idParamSchema,
-		},
-	)
-	.delete(
-		"/:id",
-		async ({ status, params: { id } }) => {
-			const result = await deleteAnalysisById(id);
-
 			return status("OK", result);
 		},
 		{
+			detail: {
+				description: "Perform analysis by cycle",
+				operationId: "performAnalysisByCycle",
+			},
 			params: idParamSchema,
+			response: {
+				200: performAnalysisByCycle200ResponseSchema,
+				404: z.string(),
+				500: z.string(),
+			},
+		}
+	)
+	.delete(
+		"/:id",
+		async ({ set, params: { id } }) => {
+			await deleteAnalysisById(id);
+
+			set.status = "No Content";
 		},
+		{
+			detail: {
+				description: "Delete an analysis by its ID",
+				operationId: "deleteAnalysisById",
+			},
+			params: idParamSchema,
+			response: {
+				204: z.string(),
+				404: z.string(),
+				500: z.string(),
+			},
+		}
 	);

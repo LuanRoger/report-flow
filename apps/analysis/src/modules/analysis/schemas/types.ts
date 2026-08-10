@@ -3,7 +3,6 @@ import type {
 	aggregationWeightsSchema,
 	analysisBodySchema,
 	dataCoverageSchema,
-	errorResponseSchema,
 	executionStatsSchema,
 	metadataSchema,
 	normalizedScoresSchema,
@@ -19,7 +18,6 @@ import type {
 export type AnalysisQuery = z.infer<typeof analysisBodySchema>;
 export type ParametersScores = z.infer<typeof parametersScores>;
 export type PondScoreResult = z.infer<typeof pondScoreResultSchema>;
-export type ErrorResponse = z.infer<typeof errorResponseSchema>;
 export type AggregationWeights = z.infer<typeof aggregationWeightsSchema>;
 export type ParameterWeights = z.infer<typeof parameterWeightsSchema>;
 export type DataCoverage = z.infer<typeof dataCoverageSchema>;

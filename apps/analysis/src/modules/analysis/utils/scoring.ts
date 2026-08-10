@@ -21,7 +21,7 @@ export function checkDataCoverage(
 		"salinity",
 		"dissolvedOxygen",
 		"turbidity",
-	],
+	]
 ): {
 	hasSufficientCoverage: boolean;
 	coveragePercentage: number;
@@ -33,8 +33,8 @@ export function checkDataCoverage(
 	const hasSufficientCoverage = coverage >= 0.7; // At least 70% coverage
 
 	return {
-		hasSufficientCoverage,
 		coveragePercentage,
+		hasSufficientCoverage,
 		presentParameters: Array.from(presentParameters) as ParameterCode[],
 	};
 }
@@ -46,14 +46,14 @@ export function calculateRawValueStats(values: number[]): {
 	count: number;
 } {
 	if (values.length === 0) {
-		return { min: null, max: null, mean: null, count: 0 };
+		return { count: 0, max: null, mean: null, min: null };
 	}
 
 	return {
-		min: Math.min(...values),
+		count: values.length,
 		max: Math.max(...values),
 		mean: values.reduce((sum, val) => sum + val, 0) / values.length,
-		count: values.length,
+		min: Math.min(...values),
 	};
 }
 
@@ -64,14 +64,14 @@ export function calculateNormalizedScoreStats(scores: number[]): {
 	count: number;
 } {
 	if (scores.length === 0) {
-		return { min: null, max: null, mean: null, count: 0 };
+		return { count: 0, max: null, mean: null, min: null };
 	}
 
 	return {
-		min: Math.min(...scores),
+		count: scores.length,
 		max: Math.max(...scores),
 		mean: scores.reduce((sum, val) => sum + val, 0) / scores.length,
-		count: scores.length,
+		min: Math.min(...scores),
 	};
 }
 
@@ -86,15 +86,15 @@ export function calculateTemporalMetrics(scores: number[]): ParameterMetrics {
 	const minScore = Math.min(...scores);
 
 	const criticalCount = scores.filter(
-		(score) => score < CRITICAL_THRESHOLD,
+		(score) => score < CRITICAL_THRESHOLD
 	).length;
 	const criticalTimeRatio = criticalCount / scores.length;
 
 	return {
+		criticalCount,
+		criticalTimeRatio,
 		meanScore,
 		minScore,
-		criticalTimeRatio,
-		criticalCount,
 	};
 }
 
@@ -119,7 +119,7 @@ export function calculateTemporalScore(metrics: ParameterMetrics): number {
  * Calculate the final pond score from parameter temporal scores
  */
 export function calculatePondScore(
-	parameterScores: Record<ParameterCode, number>,
+	parameterScores: Record<ParameterCode, number>
 ): number {
 	let finalScore = 0;
 
@@ -137,7 +137,7 @@ export function calculatePondScore(
  */
 export function calculateParameterStats(
 	measurements: Array<{ parameterCode: ParameterCode; value: number }>,
-	normalizedByParameter: Record<ParameterCode, NormalizedScore[]>,
+	normalizedByParameter: Record<ParameterCode, NormalizedScore[]>
 ): Record<string, ParameterStats> {
 	const parameterStats: Record<ParameterCode, ParameterStats> = {} as Record<
 		ParameterCode,
@@ -145,7 +145,7 @@ export function calculateParameterStats(
 	>;
 
 	for (const parameterCode of Object.keys(
-		normalizedByParameter,
+		normalizedByParameter
 	) as ParameterCode[]) {
 		// Get raw values for this parameter
 		const rawValues = measurements
@@ -154,7 +154,7 @@ export function calculateParameterStats(
 
 		// Get normalized scores for this parameter
 		const normalizedScores = normalizedByParameter[parameterCode].map(
-			(n) => n.score,
+			(n) => n.score
 		);
 
 		// Calculate raw value stats
@@ -167,11 +167,11 @@ export function calculateParameterStats(
 		const temporalMetrics =
 			normalizedScores.length > 0
 				? calculateTemporalMetrics(normalizedScores)
-				: { meanScore: 1, minScore: 1, criticalTimeRatio: 0, criticalCount: 0 };
+				: { criticalCount: 0, criticalTimeRatio: 0, meanScore: 1, minScore: 1 };
 
 		parameterStats[parameterCode] = {
-			rawValues: rawStats,
 			normalizedScores: normalizedStats,
+			rawValues: rawStats,
 			temporalMetrics,
 		};
 	}
@@ -183,7 +183,7 @@ export function calculateParameterStats(
  * Calculate parameter temporal scores from normalized measurements
  */
 export function calculateParameterTemporalScores(
-	normalizedByParameter: Record<ParameterCode, NormalizedScore[]>,
+	normalizedByParameter: Record<ParameterCode, NormalizedScore[]>
 ): Record<ParameterCode, ParameterTemporalScore> {
 	const temporalScores: Record<ParameterCode, ParameterTemporalScore> =
 		{} as Record<ParameterCode, ParameterTemporalScore>;
@@ -221,23 +221,23 @@ export function buildPondScoreResult(
 	normalizedByParameter: Record<ParameterCode, NormalizedScore[]>,
 	hasSufficientCoverage: boolean,
 	coveragePercentage: number,
-	presentParameters: ParameterCode[],
+	presentParameters: ParameterCode[]
 ): PondScoreResult {
 	const parameterStats = calculateParameterStats(
 		measurements,
-		normalizedByParameter,
+		normalizedByParameter
 	);
 
 	const parameterScores: Record<ParameterCode, number> = {
-		temperature: 1,
+		dissolvedOxygen: 1,
 		ph: 1,
 		salinity: 1,
-		dissolvedOxygen: 1,
+		temperature: 1,
 		turbidity: 1,
 	};
 
 	for (const [parameterCode, temporalScore] of Object.entries(
-		parameterTemporalScores,
+		parameterTemporalScores
 	)) {
 		parameterScores[parameterCode as ParameterCode] =
 			temporalScore.temporalScore;
@@ -254,31 +254,31 @@ export function buildPondScoreResult(
 	}
 
 	return {
-		pondId,
-		startDate: requestedStartDate,
 		endDate: requestedEndDate,
 		finalScore,
-		parameterScores,
 		metadata: {
-			criticalThreshold: CRITICAL_THRESHOLD,
 			aggregationWeights: { ...AGGREGATION_WEIGHTS },
-			parameterWeights: { ...PARAMETER_WEIGHTS },
+			criticalThreshold: CRITICAL_THRESHOLD,
 			executionStats: {
-				totalMeasurements: measurements.length,
-				measurementsByParameter,
 				dataCoverage: {
-					presentParameters: presentParameters.map((p) => p),
 					coveragePercentage,
 					hasSufficientCoverage,
+					presentParameters: presentParameters.map((p) => p),
 				},
+				measurementsByParameter,
 				timeRange: {
-					requestedStart: requestedStartDate,
-					requestedEnd: requestedEndDate,
-					actualStart: actualStartDate || null,
 					actualEnd: actualEndDate || null,
+					actualStart: actualStartDate || null,
+					requestedEnd: requestedEndDate,
+					requestedStart: requestedStartDate,
 				},
+				totalMeasurements: measurements.length,
 			},
 			parameterStats,
+			parameterWeights: { ...PARAMETER_WEIGHTS },
 		},
+		parameterScores,
+		pondId,
+		startDate: requestedStartDate,
 	};
 }

@@ -1,17 +1,24 @@
 import Elysia from "elysia";
+import z from "zod";
 import { ingestManualRouteBodySchema } from "./schemas";
 import { ingestData } from "./use-cases";
 
-export const ingestModule = new Elysia().group("/ingest", (app) =>
-	app.post(
-		"/manual",
-		async ({ status, body }) => {
-			const result = ingestData(body);
+export const ingestModule = new Elysia({ prefix: "/ingest" }).post(
+	"/manual",
+	async ({ set, body }) => {
+		await ingestData(body);
 
-			return status("Created", { data: result });
+		set.status = "Created";
+	},
+	{
+		body: ingestManualRouteBodySchema,
+		detail: {
+			description: "Ingest data",
+			operationId: "ingestManual",
 		},
-		{
-			body: ingestManualRouteBodySchema,
+		response: {
+			201: z.null(),
+			500: z.string(),
 		},
-	),
+	}
 );
