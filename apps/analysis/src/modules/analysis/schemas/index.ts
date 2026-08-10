@@ -6,16 +6,16 @@ export const idParamSchema = z.object({
 });
 
 export const analysisBodySchema = z.object({
-	startDate: z.coerce.date().optional(),
 	endDate: z.coerce.date().optional(),
+	startDate: z.coerce.date().optional(),
 	window: z.enum(ANALYSIS_TIME_WINDOWS).optional().default("7d"),
 });
 
 export const parametersScores = z.object({
-	temperature: z.number().min(1).max(100),
+	dissolvedOxygen: z.number().min(1).max(100),
 	ph: z.number().min(1).max(100),
 	salinity: z.number().min(1).max(100),
-	dissolvedOxygen: z.number().min(1).max(100),
+	temperature: z.number().min(1).max(100),
 	turbidity: z.number().min(1).max(100),
 });
 
@@ -26,91 +26,91 @@ export const aggregationWeightsSchema = z.object({
 });
 
 export const parameterWeightsSchema = z.object({
-	temperature: z.number(),
+	dissolvedOxygen: z.number(),
 	ph: z.number(),
 	salinity: z.number(),
-	dissolvedOxygen: z.number(),
+	temperature: z.number(),
 	turbidity: z.number(),
 });
 
 export const dataCoverageSchema = z.object({
-	presentParameters: z.array(z.string()),
 	coveragePercentage: z.number().min(0).max(100),
 	hasSufficientCoverage: z.boolean(),
+	presentParameters: z.array(z.string()),
 });
 
 export const timeRangeSchema = z.object({
-	requestedStart: z.coerce.date(),
-	requestedEnd: z.coerce.date(),
-	actualStart: z.coerce.date().nullable(),
 	actualEnd: z.coerce.date().nullable(),
+	actualStart: z.coerce.date().nullable(),
+	requestedEnd: z.coerce.date(),
+	requestedStart: z.coerce.date(),
 });
 
 export const executionStatsSchema = z.object({
-	totalMeasurements: z.number(),
-	measurementsByParameter: z.record(z.string(), z.number()),
 	dataCoverage: dataCoverageSchema,
+	measurementsByParameter: z.record(z.string(), z.number()),
 	timeRange: timeRangeSchema,
+	totalMeasurements: z.number(),
 });
 
 export const rawValuesSchema = z.object({
-	min: z.number().nullable(),
+	count: z.number(),
 	max: z.number().nullable(),
 	mean: z.number().nullable(),
-	count: z.number(),
+	min: z.number().nullable(),
 });
 
 export const normalizedScoresSchema = z.object({
-	min: z.number().nullable(),
+	count: z.number(),
 	max: z.number().nullable(),
 	mean: z.number().nullable(),
-	count: z.number(),
+	min: z.number().nullable(),
 });
 
 export const temporalMetricsSchema = z.object({
+	criticalCount: z.number(),
+	criticalTimeRatio: z.number(),
 	meanScore: z.number(),
 	minScore: z.number(),
-	criticalTimeRatio: z.number(),
-	criticalCount: z.number(),
 });
 
 export const parameterStatsSchema = z.object({
-	rawValues: rawValuesSchema,
 	normalizedScores: normalizedScoresSchema,
+	rawValues: rawValuesSchema,
 	temporalMetrics: temporalMetricsSchema,
 });
 
 export const metadataSchema = z.object({
-	criticalThreshold: z.number(),
 	aggregationWeights: aggregationWeightsSchema,
-	parameterWeights: parameterWeightsSchema,
+	criticalThreshold: z.number(),
 	executionStats: executionStatsSchema,
 	parameterStats: z.record(z.string(), parameterStatsSchema),
+	parameterWeights: parameterWeightsSchema,
 });
 
 export const pondScoreResultSchema = z.object({
-	pondId: z.number(),
-	startDate: z.coerce.date(),
 	endDate: z.coerce.date(),
 	finalScore: z.number().min(1).max(100),
-	parameterScores: parametersScores,
 	metadata: metadataSchema,
+	parameterScores: parametersScores,
+	pondId: z.number(),
+	startDate: z.coerce.date(),
 });
 
 export const getAnalysisById200ResponseSchema = z.object({
-	id: z.number(),
-	pondId: z.number(),
+	createdAt: z.coerce.date(),
 	cycleId: z.number(),
-	startTime: z.coerce.date(),
+	dissolvedOxygenScore: z.number().min(0).max(100),
 	endTime: z.coerce.date(),
 	finalScore: z.number().min(0).max(100),
-	temperatureScore: z.number().min(0).max(100),
-	phScore: z.number().min(0).max(100),
-	salinityScore: z.number().min(0).max(100),
-	dissolvedOxygenScore: z.number().min(0).max(100),
-	turbidityScore: z.number().min(0).max(100),
+	id: z.number(),
 	metadata: metadataSchema,
-	createdAt: z.coerce.date(),
+	phScore: z.number().min(0).max(100),
+	pondId: z.number(),
+	salinityScore: z.number().min(0).max(100),
+	startTime: z.coerce.date(),
+	temperatureScore: z.number().min(0).max(100),
+	turbidityScore: z.number().min(0).max(100),
 });
 
 export const performAnalysisByPond200ResponseSchema = pondScoreResultSchema;

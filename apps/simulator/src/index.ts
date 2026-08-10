@@ -12,70 +12,70 @@ const PARAMS = [
 type ParamCode = (typeof PARAMS)[number];
 
 interface Payload {
-	pondId: number;
 	cycleId: number;
-	recordedAt: string;
 	parameterCode: ParamCode;
-	value: string;
-	unit: string;
+	pondId: number;
+	recordedAt: string;
 	sourceType: string;
+	unit: string;
+	value: string;
 }
 
 let DEFAULTS = {
-	pondId: 1,
 	cycleId: 1,
+	pondId: 1,
 	sourceType: "simulator",
 };
 
 function setDefaults(pondId: number, cycleId: number) {
 	DEFAULTS = {
-		pondId,
 		cycleId,
+		pondId,
 		sourceType: "simulator",
 	};
 }
 
 const UNITS: Record<ParamCode, string> = {
-	temperature: "°C",
+	dissolvedOxygen: "mg/L",
 	ph: "pH",
 	salinity: "ppt",
+	temperature: "°C",
 	turbidity: "NTU",
-	dissolvedOxygen: "mg/L",
 };
 
 const RANGES: Record<
 	Scenario | "ideal" | "normal" | "alerta" | "critico",
 	Record<ParamCode, [number, number]>
 > = {
-	ideal: {
-		temperature: [27, 30],
-		ph: [7.5, 8.3],
-		salinity: [15, 25],
-		turbidity: [5, 20],
-		dissolvedOxygen: [6, 9],
-	},
-	normal: {
-		temperature: [26, 31],
-		ph: [7.2, 8.6],
-		salinity: [10, 30],
-		turbidity: [10, 40],
-		dissolvedOxygen: [5, 7],
-	},
 	alerta: {
-		temperature: [24, 33],
+		dissolvedOxygen: [3.5, 5],
 		ph: [6.8, 9.0],
 		salinity: [5, 35],
+		temperature: [24, 33],
 		turbidity: [30, 80],
-		dissolvedOxygen: [3.5, 5],
 	},
 	critico: {
-		temperature: [20, 36],
+		dissolvedOxygen: [1, 3.5],
 		ph: [6.2, 9.5],
 		salinity: [0, 40],
+		temperature: [20, 36],
 		turbidity: [60, 200],
-		dissolvedOxygen: [1, 3.5],
+	},
+	ideal: {
+		dissolvedOxygen: [6, 9],
+		ph: [7.5, 8.3],
+		salinity: [15, 25],
+		temperature: [27, 30],
+		turbidity: [5, 20],
 	},
 	misto: {} as Record<ParamCode, [number, number]>,
+	normal: {
+		dissolvedOxygen: [5, 7],
+		ph: [7.2, 8.6],
+		salinity: [10, 30],
+		temperature: [26, 31],
+		turbidity: [10, 40],
+	},
 };
 
 function pickScenario(s: Scenario): Scenario {
@@ -101,24 +101,26 @@ function rand(min: number, max: number): number {
 function buildPayload(
 	param: ParamCode,
 	recordedAt: Date,
-	scenario: Scenario,
+	scenario: Scenario
 ): Payload {
 	const sc = pickScenario(scenario);
 	const [min, max] = RANGES[sc][param];
 	return {
-		pondId: DEFAULTS.pondId,
 		cycleId: DEFAULTS.cycleId,
-		recordedAt: recordedAt.toISOString(),
 		parameterCode: param,
-		value: rand(min, max).toString(),
-		unit: UNITS[param],
+		pondId: DEFAULTS.pondId,
+		recordedAt: recordedAt.toISOString(),
 		sourceType: DEFAULTS.sourceType,
+		unit: UNITS[param],
+		value: rand(min, max).toString(),
 	};
 }
 
 async function send(payload: Payload, enableLogs: boolean) {
 	const url = process.env.INGEST_URL;
-	if (!url) throw new Error("INGEST_URL não definido.");
+	if (!url) {
+		throw new Error("INGEST_URL não definido.");
+	}
 
 	const headers: Record<string, string> = {
 		"Content-Type": "application/json",
@@ -129,9 +131,9 @@ async function send(payload: Payload, enableLogs: boolean) {
 	}
 
 	const res = await fetch(url, {
-		method: "POST",
-		headers,
 		body: JSON.stringify(payload),
+		headers,
+		method: "POST",
 	});
 
 	if (!res.ok) {
@@ -168,24 +170,24 @@ function parseArgs(): {
 	const cycleId = Number(get("cycle-id") ?? "1");
 
 	return {
-		scenario,
-		mode,
-		rate,
-		from,
-		to,
-		stepMinutes,
-		enableLogs,
-		pondId,
 		cycleId,
+		enableLogs,
+		from,
+		mode,
+		pondId,
+		rate,
+		scenario,
+		stepMinutes,
+		to,
 	};
 }
 
 async function runConstant(
 	scenario: Scenario,
 	rate: number,
-	enableLogs: boolean,
+	enableLogs: boolean
 ) {
-	const intervalMs = Math.floor(60000 / rate);
+	const intervalMs = Math.floor(60_000 / rate);
 	if (enableLogs) {
 		console.log(`Modo constante: ${rate}/min, intervalo ${intervalMs}ms`);
 	}
@@ -199,7 +201,7 @@ async function runConstant(
 		// Add small random offset (0-100ms) to avoid timestamp collisions
 		const now = new Date();
 		const offsetTime = new Date(
-			now.getTime() + Math.floor(Math.random() * 100),
+			now.getTime() + Math.floor(Math.random() * 100)
 		);
 		const payload = buildPayload(param, offsetTime, scenario);
 		await send(payload, enableLogs);
@@ -212,7 +214,7 @@ async function runPrecalc(
 	fromIso: string,
 	toIso: string,
 	stepMinutes: number,
-	enableLogs: boolean,
+	enableLogs: boolean
 ) {
 	const start = new Date(fromIso);
 	const end = new Date(toIso);
@@ -222,11 +224,11 @@ async function runPrecalc(
 
 	if (enableLogs) {
 		console.log(
-			`Modo pre-calculado: ${start.toISOString()} -> ${end.toISOString()} | step ${stepMinutes} min`,
+			`Modo pre-calculado: ${start.toISOString()} -> ${end.toISOString()} | step ${stepMinutes} min`
 		);
 	}
 
-	for (let t = start.getTime(); t <= end.getTime(); t += stepMinutes * 60000) {
+	for (let t = start.getTime(); t <= end.getTime(); t += stepMinutes * 60_000) {
 		for (let i = 0; i < PARAMS.length; i++) {
 			const param = PARAMS[i];
 			// Add small offset (1-5 seconds) for each parameter to avoid unique constraint violations
@@ -259,7 +261,7 @@ async function runPrecalc(
 	if (mode === "constant") {
 		await runConstant(scenario, rate, enableLogs);
 	} else {
-		if (!from || !to) {
+		if (!(from && to)) {
 			throw new Error("No modo precalc, informe --from e --to");
 		}
 		await runPrecalc(scenario, from, to, stepMinutes, enableLogs);

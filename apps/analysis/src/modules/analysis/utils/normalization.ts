@@ -6,49 +6,49 @@ const PARAMETER_CONFIGS: Record<
 	ParameterCode,
 	{ normalization: NormalizationConfig }
 > = {
-	temperature: {
+	dissolvedOxygen: {
 		normalization: {
-			type: "gaussian",
-			mu: 30, // optimal temperature in °C
-			sigma: 2, // tolerance
+			type: "triangular",
+			w: 2, // tolerance width
+			xopt: 5, // optimal dissolved oxygen in mg/L
 		},
 	},
 	ph: {
 		normalization: {
-			type: "gaussian",
 			mu: 8.0, // optimal pH
 			sigma: 0.5, // tolerance
+			type: "gaussian",
 		},
 	},
 	salinity: {
 		normalization: {
-			type: "gaussian",
 			mu: 20, // optimal salinity in ppt
 			sigma: 5, // tolerance
+			type: "gaussian",
 		},
 	},
-	dissolvedOxygen: {
+	temperature: {
 		normalization: {
-			type: "triangular",
-			xopt: 5, // optimal dissolved oxygen in mg/L
-			w: 2, // tolerance width
+			mu: 30, // optimal temperature in °C
+			sigma: 2, // tolerance
+			type: "gaussian",
 		},
 	},
 	turbidity: {
 		normalization: {
 			type: "triangular",
-			xopt: 50, // optimal turbidity in NTU
 			w: 30, // tolerance width
+			xopt: 50, // optimal turbidity in NTU
 		},
 	},
 };
 
 // Parameter weights for final score calculation
 export const PARAMETER_WEIGHTS: Record<ParameterCode, number> = {
-	temperature: 0.25,
+	dissolvedOxygen: 0.3,
 	ph: 0.2,
 	salinity: 0.15,
-	dissolvedOxygen: 0.3,
+	temperature: 0.25,
 	turbidity: 0.1,
 };
 
@@ -67,21 +67,21 @@ export function normalizeMeasurements(
 		parameterCode: ParameterCode;
 		value: number;
 		recordedAt: Date;
-	}>,
+	}>
 ): Record<ParameterCode, NormalizedScore[]> {
 	const normalizedByParameter: Record<ParameterCode, NormalizedScore[]> = {
-		temperature: [],
+		dissolvedOxygen: [],
 		ph: [],
 		salinity: [],
-		dissolvedOxygen: [],
+		temperature: [],
 		turbidity: [],
 	};
 
 	for (const measurement of measurements) {
 		const normalizedScore: NormalizedScore = {
 			parameterCode: measurement.parameterCode,
-			score: normalizeParameter(measurement.parameterCode, measurement.value),
 			recordedAt: measurement.recordedAt,
+			score: normalizeParameter(measurement.parameterCode, measurement.value),
 		};
 		normalizedByParameter[measurement.parameterCode].push(normalizedScore);
 	}
@@ -96,7 +96,7 @@ export function normalizeMeasurements(
 export function gaussianNormalize(
 	x: number,
 	mu: number,
-	sigma: number,
+	sigma: number
 ): number {
 	const exponent = -((x - mu) ** 2) / (2 * sigma ** 2);
 	const score = 1 + 99 * Math.exp(exponent);
@@ -111,7 +111,7 @@ export function gaussianNormalize(
 export function triangularNormalize(
 	x: number,
 	xopt: number,
-	w: number,
+	w: number
 ): number {
 	const distance = Math.abs(x - xopt);
 	const ratio = Math.max(0, 1 - distance / w);
@@ -125,7 +125,7 @@ export function triangularNormalize(
  */
 export function normalizeParameter(
 	parameterCode: ParameterCode,
-	value: number,
+	value: number
 ): number {
 	const config = PARAMETER_CONFIGS[parameterCode];
 
@@ -137,7 +137,8 @@ export function normalizeParameter(
 
 	if (normalization.type === "gaussian") {
 		return gaussianNormalize(value, normalization.mu, normalization.sigma);
-	} else if (normalization.type === "triangular") {
+	}
+	if (normalization.type === "triangular") {
 		return triangularNormalize(value, normalization.xopt, normalization.w);
 	}
 
@@ -148,7 +149,7 @@ export function normalizeParameter(
  * Get the normalization configuration for a parameter
  */
 export function getNormalizationConfig(
-	parameterCode: ParameterCode,
+	parameterCode: ParameterCode
 ): NormalizationConfig {
 	const config = PARAMETER_CONFIGS[parameterCode];
 	if (!config) {

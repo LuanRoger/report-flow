@@ -10,14 +10,14 @@ import {
 } from "./types";
 
 export async function getMeasurementsForCycle(
-	cycleId: number,
+	cycleId: number
 ): Promise<Measurement[]> {
 	return await db.query.measurements.findMany({
-		where: {
-			cycleId,
-		},
 		orderBy: {
 			recordedAt: "desc",
+		},
+		where: {
+			cycleId,
 		},
 	});
 }
@@ -25,9 +25,12 @@ export async function getMeasurementsForCycle(
 export async function getMeasurementsForPond(
 	pondId: number,
 	startDate: Date,
-	endDate: Date,
+	endDate: Date
 ): Promise<Measurement[]> {
-	return db.query.measurements.findMany({
+	return await db.query.measurements.findMany({
+		orderBy: {
+			recordedAt: "desc",
+		},
 		where: {
 			AND: [
 				{
@@ -41,9 +44,6 @@ export async function getMeasurementsForPond(
 				},
 			],
 		},
-		orderBy: {
-			recordedAt: "desc",
-		},
 	});
 }
 
@@ -56,7 +56,7 @@ export async function getPondById(id: number) {
 }
 
 export async function getAnalysisById(
-	id: number,
+	id: number
 ): Promise<AnalysisResult | undefined> {
 	const result = await db.query.analysisResults.findFirst({
 		where: {
@@ -64,7 +64,7 @@ export async function getAnalysisById(
 		},
 	});
 	if (!result) {
-		return undefined;
+		return;
 	}
 
 	return await analysisResultsSchema.parseAsync(result);
@@ -82,27 +82,27 @@ export async function getAnalysesForPond(pondId: number) {
 export async function findRelevantAnalyses(
 	query: string,
 	analysisId?: number,
-	limit: number = 4,
-	minSimilarity: number = 0.5,
+	limit = 4,
+	minSimilarity = 0.5
 ) {
 	const queryEmbedding = await generateEmbedding(query);
 
 	const similarity = sql<number>`1 - (${cosineDistance(
 		analysisEmbeddings.embedding,
-		queryEmbedding,
+		queryEmbedding
 	)})`;
 
 	const whereClause = analysisId
 		? and(
 				gt(similarity, minSimilarity),
-				eq(analysisEmbeddings.analysisId, analysisId),
+				eq(analysisEmbeddings.analysisId, analysisId)
 			)
 		: gt(similarity, minSimilarity);
 	const dbQuery = db
 		.select({
-			id: analysisEmbeddings.id,
 			analysisId: analysisEmbeddings.analysisId,
 			content: analysisEmbeddings.content,
+			id: analysisEmbeddings.id,
 			similarity,
 		})
 		.from(analysisEmbeddings)
@@ -116,7 +116,7 @@ export async function findRelevantAnalyses(
 
 export async function storeAnalysisResult(
 	result: CreateAnalysisResult,
-	embeddingData: CreateAnalysisEmbedding,
+	embeddingData: CreateAnalysisEmbedding
 ) {
 	await db.transaction(async (tx) => {
 		const newAnalysis = await tx
@@ -141,7 +141,7 @@ export async function createAnalysisResult(data: CreateAnalysisResult) {
 
 export async function storeAnalysisEmbedding(
 	analysisId: number,
-	content: string,
+	content: string
 ): Promise<void> {
 	const embedding = await generateEmbedding(content);
 

@@ -1,5 +1,4 @@
 import type { AnalysisResult } from "database";
-import type { PondScoreResult } from "../schemas/types";
 
 export interface ReportOptions {
 	aiSummary?: string;
@@ -9,10 +8,10 @@ export interface ReportOptions {
  * Parameter display names for the report
  */
 const PARAMETER_DISPLAY_NAMES: Record<string, string> = {
-	temperature: "Temperature",
+	dissolvedOxygen: "Dissolved Oxygen",
 	ph: "pH",
 	salinity: "Salinity",
-	dissolvedOxygen: "Dissolved Oxygen",
+	temperature: "Temperature",
 	turbidity: "Turbidity",
 };
 
@@ -20,10 +19,10 @@ const PARAMETER_DISPLAY_NAMES: Record<string, string> = {
  * Parameter units for the report
  */
 const PARAMETER_UNITS: Record<string, string> = {
-	temperature: "°C",
+	dissolvedOxygen: "mg/L",
 	ph: "",
 	salinity: "ppt",
-	dissolvedOxygen: "mg/L",
+	temperature: "°C",
 	turbidity: "NTU",
 };
 
@@ -31,10 +30,18 @@ const PARAMETER_UNITS: Record<string, string> = {
  * Get score color based on the score value
  */
 function getScoreColor(score: number): string {
-	if (score >= 80) return "#22c55e"; // Green - Excellent
-	if (score >= 60) return "#84cc16"; // Light Green - Good
-	if (score >= 40) return "#eab308"; // Yellow - Fair
-	if (score >= 20) return "#f97316"; // Orange - Poor
+	if (score >= 80) {
+		return "#22c55e"; // Green - Excellent
+	}
+	if (score >= 60) {
+		return "#84cc16"; // Light Green - Good
+	}
+	if (score >= 40) {
+		return "#eab308"; // Yellow - Fair
+	}
+	if (score >= 20) {
+		return "#f97316"; // Orange - Poor
+	}
 	return "#ef4444"; // Red - Critical
 }
 
@@ -42,9 +49,15 @@ function getScoreColor(score: number): string {
  * Get coverage color based on the coverage percentage
  */
 function getCoverageColor(coveragePercentage: number): string {
-	if (coveragePercentage >= 90) return "#22c55e";
-	if (coveragePercentage >= 70) return "#84cc16";
-	if (coveragePercentage >= 50) return "#eab308";
+	if (coveragePercentage >= 90) {
+		return "#22c55e";
+	}
+	if (coveragePercentage >= 70) {
+		return "#84cc16";
+	}
+	if (coveragePercentage >= 50) {
+		return "#eab308";
+	}
 	return "#ef4444";
 }
 
@@ -52,13 +65,15 @@ function getCoverageColor(coveragePercentage: number): string {
  * Format date for display
  */
 function formatDate(date: Date | null): string {
-	if (!date) return "N/A";
+	if (!date) {
+		return "N/A";
+	}
 	return date.toLocaleDateString("en-US", {
-		year: "numeric",
-		month: "long",
 		day: "numeric",
 		hour: "2-digit",
 		minute: "2-digit",
+		month: "long",
+		year: "numeric",
 	});
 }
 
@@ -78,14 +93,16 @@ function escapeHtml(text: string): string {
  * Format a number with 2 decimal places
  */
 function formatNumber(value: number | null): string {
-	if (value === null) return "N/A";
+	if (value === null) {
+		return "N/A";
+	}
 	return value.toFixed(2);
 }
 
 /**
  * Generate a progress bar HTML for a score
  */
-function generateProgressBar(score: number, max: number = 100): string {
+function generateProgressBar(score: number, max = 100): string {
 	const percentage = (score / max) * 100;
 	const color = getScoreColor(score);
 	return `
@@ -132,10 +149,10 @@ function generateParameterStatsRows(result: AnalysisResult): string {
  */
 function generateParameterScoresRows(result: AnalysisResult): string {
 	const parameterScores = {
-		temperature: result.temperatureScore,
+		dissolvedOxygen: result.dissolvedOxygenScore,
 		ph: result.phScore,
 		salinity: result.salinityScore,
-		dissolvedOxygen: result.dissolvedOxygenScore,
+		temperature: result.temperatureScore,
 		turbidity: result.turbidityScore,
 	};
 	const parameterCodes = Object.keys(parameterScores);
@@ -228,7 +245,7 @@ function generateMeasurementsByParameterRows(result: AnalysisResult): string {
  */
 export function generateHtmlReport(
 	result: AnalysisResult,
-	options: ReportOptions = {},
+	options: ReportOptions = {}
 ): string {
 	const { pondId, finalScore, metadata, startTime, endTime } = result;
 	const metadataContent =

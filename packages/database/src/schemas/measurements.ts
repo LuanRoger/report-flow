@@ -1,6 +1,5 @@
 import {
 	index,
-	numeric,
 	pgEnum,
 	pgTable,
 	real,
@@ -20,32 +19,31 @@ export const unitCodes = pgEnum("unit_code", unitCodesArray);
 export const measurements = pgTable(
 	"measurements",
 	{
-		id: serial("id").primaryKey(),
-		pondId: serial("pond_id").notNull(),
-		cycleId: serial("cycle_id").notNull(),
-
-		recordedAt: timestamp("recorded_at", {
-			withTimezone: true,
-			mode: "date",
-		}).notNull(),
-
-		parameterCode: parameterCodes("parameter_code").notNull(),
-		value: real("value").notNull(),
-		unit: unitCodes("unit").notNull(),
-
-		sourceType: text("source_type").notNull(),
-		sourceFile: text("source_file"),
-
-		createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
+		createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
 			.notNull()
 			.defaultNow(),
+		cycleId: serial("cycle_id").notNull(),
+		id: serial("id").primaryKey(),
+
+		parameterCode: parameterCodes("parameter_code").notNull(),
+		pondId: serial("pond_id").notNull(),
+
+		recordedAt: timestamp("recorded_at", {
+			mode: "date",
+			withTimezone: true,
+		}).notNull(),
+		sourceFile: text("source_file"),
+
+		sourceType: text("source_type").notNull(),
+		unit: unitCodes("unit").notNull(),
+		value: real("value").notNull(),
 	},
 	(table) => [
 		// Unique constraints
 		unique("measurements_pond_time_idx").on(table.pondId, table.recordedAt),
 		unique("measurements_param_time_idx").on(
 			table.parameterCode,
-			table.recordedAt,
+			table.recordedAt
 		),
 
 		// Indexes for performance
@@ -57,15 +55,15 @@ export const measurements = pgTable(
 		// Composite indexes for common query patterns
 		index("measurements_pond_parameter_idx").on(
 			table.pondId,
-			table.parameterCode,
+			table.parameterCode
 		),
 		index("measurements_pond_recorded_at_idx").on(
 			table.pondId,
-			table.recordedAt,
+			table.recordedAt
 		),
 		index("measurements_parameter_recorded_at_idx").on(
 			table.parameterCode,
-			table.recordedAt,
+			table.recordedAt
 		),
-	],
+	]
 );

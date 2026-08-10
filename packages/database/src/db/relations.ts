@@ -14,37 +14,37 @@ export const schemas = {
 };
 
 export const relations = defineRelations(schemas, (relation) => ({
-	measurements: {
-		pond: relation.one.ponds({
-			from: relation.measurements.pondId,
-			to: relation.ponds.id,
-		}),
-		cycle: relation.one.pondCycles({
-			from: relation.measurements.cycleId,
-			to: relation.pondCycles.id,
-		}),
-	},
-	pondCycles: {
-		pond: relation.one.ponds({
-			from: relation.pondCycles.pondId,
-			to: relation.ponds.id,
-		}),
-		measurements: relation.many.measurements(),
-	},
-	analysisResults: {
-		pond: relation.one.ponds({
-			from: relation.analysisResults.pondId,
-			to: relation.ponds.id,
-		}),
-		cycle: relation.one.pondCycles({
-			from: relation.analysisResults.cycleId,
-			to: relation.pondCycles.id,
-		}),
-	},
 	analysisEmbeddings: {
 		analysis: relation.one.analysisResults({
 			from: relation.analysisEmbeddings.analysisId,
 			to: relation.analysisResults.id,
+		}),
+	},
+	analysisResults: {
+		cycle: relation.one.pondCycles({
+			from: relation.analysisResults.cycleId,
+			to: relation.pondCycles.id,
+		}),
+		pond: relation.one.ponds({
+			from: relation.analysisResults.pondId,
+			to: relation.ponds.id,
+		}),
+	},
+	measurements: {
+		cycle: relation.one.pondCycles({
+			from: relation.measurements.cycleId,
+			to: relation.pondCycles.id,
+		}),
+		pond: relation.one.ponds({
+			from: relation.measurements.pondId,
+			to: relation.ponds.id,
+		}),
+	},
+	pondCycles: {
+		measurements: relation.many.measurements(),
+		pond: relation.one.ponds({
+			from: relation.pondCycles.pondId,
+			to: relation.ponds.id,
 		}),
 	},
 }));

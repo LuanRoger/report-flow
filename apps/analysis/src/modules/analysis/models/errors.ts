@@ -20,7 +20,7 @@ export class InsufficientDataError extends Error {
 	status = 400;
 
 	constructor() {
-		super(`Insufficient data`);
+		super("Insufficient data");
 		this.name = "InsufficientDataError";
 	}
 }

@@ -30,27 +30,27 @@ async function performCoreAnalysis(
 	pondId: number,
 	measurements: Measurement[],
 	requestedStartDate: Date,
-	requestedEndDate: Date,
+	requestedEndDate: Date
 ): Promise<PondScoreResult> {
 	const coverageResult = checkDataCoverage(measurements);
 
 	const recordedAtDates = measurements.map((m) => m.recordedAt);
 	const actualStartDate = new Date(
-		Math.min(...recordedAtDates.map((d) => d.getTime())),
+		Math.min(...recordedAtDates.map((d) => d.getTime()))
 	);
 	const actualEndDate = new Date(
-		Math.max(...recordedAtDates.map((d) => d.getTime())),
+		Math.max(...recordedAtDates.map((d) => d.getTime()))
 	);
 	const minimalMeasurements = measurements.map((measurement) => ({
 		parameterCode: measurement.parameterCode,
-		value: measurement.value,
 		recordedAt: measurement.recordedAt,
+		value: measurement.value,
 	}));
 
 	const normalizedByParameter = normalizeMeasurements(minimalMeasurements);
 
 	const parameterTemporalScores = calculateParameterTemporalScores(
-		normalizedByParameter,
+		normalizedByParameter
 	);
 
 	const result = buildPondScoreResult(
@@ -64,7 +64,7 @@ async function performCoreAnalysis(
 		normalizedByParameter,
 		coverageResult.hasSufficientCoverage,
 		coverageResult.coveragePercentage,
-		coverageResult.presentParameters,
+		coverageResult.presentParameters
 	);
 
 	return result;
@@ -72,14 +72,14 @@ async function performCoreAnalysis(
 
 export async function performAnalysisByPond(
 	pondId: number,
-	query: AnalysisQuery,
+	query: AnalysisQuery
 ): Promise<PondScoreResult> {
 	const { startDate: startDateQuery, endDate: endDateQuery, window } = query;
 
 	const { startDate, endDate } = calculateTimeWindow(
 		window,
 		startDateQuery,
-		endDateQuery,
+		endDateQuery
 	);
 
 	const pond = await repository.getPondById(pondId);
@@ -90,7 +90,7 @@ export async function performAnalysisByPond(
 	const measurements = await repository.getMeasurementsForPond(
 		pondId,
 		startDate,
-		endDate,
+		endDate
 	);
 
 	if (measurements.length === 0) {
@@ -101,7 +101,7 @@ export async function performAnalysisByPond(
 }
 
 export async function performAnalysisByCycle(
-	cycleId: number,
+	cycleId: number
 ): Promise<PondScoreResult> {
 	const measurements = await repository.getMeasurementsForCycle(cycleId);
 
@@ -112,17 +112,17 @@ export async function performAnalysisByCycle(
 	const pondId = measurements[0].pondId;
 
 	const actualStartDate = new Date(
-		Math.min(...measurements.map((m) => m.recordedAt.getTime())),
+		Math.min(...measurements.map((m) => m.recordedAt.getTime()))
 	);
 	const actualEndDate = new Date(
-		Math.max(...measurements.map((m) => m.recordedAt.getTime())),
+		Math.max(...measurements.map((m) => m.recordedAt.getTime()))
 	);
 
 	return performCoreAnalysis(
 		pondId,
 		measurements,
 		actualStartDate,
-		actualEndDate,
+		actualEndDate
 	);
 }
 
@@ -135,22 +135,22 @@ export async function storeAnalysis(result: PondScoreResult, cycleId?: number) {
 
 	await repository.storeAnalysisResult(
 		{
-			pondId,
 			cycleId,
-			finalScore,
-			startTime: startDate,
-			endTime: endDate,
-			metadata: JSON.stringify(metadata),
-			temperatureScore: parameterScores.temperature,
-			phScore: parameterScores.ph,
 			dissolvedOxygenScore: parameterScores.dissolvedOxygen,
+			endTime: endDate,
+			finalScore,
+			metadata: JSON.stringify(metadata),
+			phScore: parameterScores.ph,
+			pondId,
 			salinityScore: parameterScores.salinity,
+			startTime: startDate,
+			temperatureScore: parameterScores.temperature,
 			turbidityScore: parameterScores.turbidity,
 		},
 		{
 			content: embeddingContent,
 			embedding,
-		},
+		}
 	);
 }
 

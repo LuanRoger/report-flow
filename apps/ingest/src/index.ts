@@ -1,13 +1,13 @@
+import { bearer as bearerPlugin } from "@elysia/bearer";
+import { cors } from "@elysia/cors";
+import openapi from "@elysia/openapi";
+import serverTiming from "@elysia/server-timing";
 import { Elysia } from "elysia";
 import logixlysia from "logixlysia";
-import { cors } from "@elysia/cors";
-import bearer from "@elysia/bearer";
-import { ingestModule } from "./modules/ingest";
-import serverTiming from "@elysia/server-timing";
-import openapi from "@elysia/openapi";
-import { version } from "../package.json";
-import z from "zod";
 import { ENV } from "varlock/env";
+import z from "zod";
+import { version } from "../package.json";
+import { ingestModule } from "./modules/ingest";
 
 const appName = "analysis";
 const port = 3000;
@@ -17,61 +17,61 @@ new Elysia()
 	.use(
 		logixlysia({
 			config: {
-				service: appName,
-				showStartupMessage: true,
-				startupMessageFormat: "simple",
-				showContextTree: true,
 				contextDepth: 2,
-				slowThreshold: 50,
-				verySlowThreshold: 100,
 				ip: false,
+				service: appName,
+				showContextTree: true,
+				showStartupMessage: true,
+				slowThreshold: 50,
+				startupMessageFormat: "simple",
+				verySlowThreshold: 100,
 			},
-		}),
+		})
 	)
 	.use(
 		cors({
 			allowedHeaders: ["Content-Type", "Authorization"],
 			methods: ["GET", "POST", "DELETE", "OPTIONS"],
-		}),
+		})
 	)
 	.use(serverTiming())
 	.use(
 		openapi({
 			documentation: {
-				info: {
-					title: appName,
-					version,
-					license: {
-						name: "MIT",
-					},
-				},
-				servers: [
-					{
-						url: localUrl,
-						description: "Local server",
-					},
-				],
 				components: {
 					securitySchemes: {
 						bearerAuth: {
-							type: "http",
 							scheme: "bearer",
+							type: "http",
 						},
 					},
 				},
+				info: {
+					license: {
+						name: "MIT",
+					},
+					title: appName,
+					version,
+				},
 				openapi: "3.2.0",
-			},
-			scalar: {
-				theme: "deepSpace",
-				showOperationId: true,
-				customCss: "",
+				servers: [
+					{
+						description: "Local server",
+						url: localUrl,
+					},
+				],
 			},
 			mapJsonSchema: {
 				zod: z.toJSONSchema,
 			},
-		}),
+			scalar: {
+				customCss: "",
+				showOperationId: true,
+				theme: "deepSpace",
+			},
+		})
 	)
-	.use(bearer())
+	.use(bearerPlugin())
 	.onBeforeHandle(({ set, status, bearer }) => {
 		const apiKey = ENV.API_KEY;
 

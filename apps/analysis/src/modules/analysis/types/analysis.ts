@@ -2,70 +2,70 @@ import type { ParameterCode } from "database";
 
 export type AnalysisTimeWindow = "7d" | "30d" | "90d" | "custom";
 
-export type AnalysisQueryParams = {
+export interface AnalysisQueryParams {
+	endDate?: string;
 	pondId: string;
 	startDate?: string;
-	endDate?: string;
 	window?: string;
-};
+}
 
-export type MeasurementData = {
+export interface MeasurementData {
+	parameterCode: ParameterCode;
 	pondId: string;
-	parameterCode: ParameterCode;
+	recordedAt: Date;
 	value: number;
-	recordedAt: Date;
-};
+}
 
-export type NormalizedScore = {
+export interface NormalizedScore {
 	parameterCode: ParameterCode;
-	score: number;
 	recordedAt: Date;
-};
+	score: number;
+}
 
-export type ParameterStats = {
-	rawValues: {
-		min: number | null;
-		max: number | null;
-		mean: number | null;
-		count: number;
-	};
+export interface ParameterStats {
 	normalizedScores: {
 		min: number | null;
 		max: number | null;
 		mean: number | null;
 		count: number;
 	};
+	rawValues: {
+		min: number | null;
+		max: number | null;
+		mean: number | null;
+		count: number;
+	};
 	temporalMetrics: ParameterMetrics;
-};
+}
 
-export type ParameterMetrics = {
+export interface ParameterMetrics {
+	criticalCount: number;
+	criticalTimeRatio: number;
 	meanScore: number;
 	minScore: number;
-	criticalTimeRatio: number;
-	criticalCount: number;
-};
+}
 
-export type ParameterTemporalScore = {
+export interface ParameterTemporalScore {
 	parameterCode: ParameterCode;
 	temporalScore: number;
-};
+}
 
 // Normalization configuration types
-export type GaussianConfig = {
-	type: "gaussian";
+export interface GaussianConfig {
 	mu: number;
 	sigma: number;
-};
+	type: "gaussian";
+}
 
-export type TriangularConfig = {
+export interface TriangularConfig {
 	type: "triangular";
-	xopt: number;
 	w: number;
-};
+	xopt: number;
+}
 
 export type NormalizationConfig = GaussianConfig | TriangularConfig;
 
-export type ParameterConfig = {
+export interface ParameterConfig {
 	normalization: NormalizationConfig;
 	weight: number;
-};
+}

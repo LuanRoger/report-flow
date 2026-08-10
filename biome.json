@@ -7,17 +7,11 @@
   },
   "files": {
     "ignoreUnknown": true,
-    "includes": ["**", "!**/*.d.ts"]
+    "includes": ["!**/*.d.ts"]
   },
   "formatter": {
     "enabled": true,
     "indentStyle": "tab"
-  },
-  "linter": {
-    "enabled": true,
-    "rules": {
-      "recommended": true
-    }
   },
   "javascript": {
     "formatter": {

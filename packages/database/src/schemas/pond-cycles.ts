@@ -3,13 +3,13 @@ import { date, index, pgTable, serial } from "drizzle-orm/pg-core";
 export const pondCycles = pgTable(
 	"pond_cycles",
 	{
+		endDate: date("end_date"),
+
+		harvestDate: date("harvest_date"),
 		id: serial("id").primaryKey(),
 		pondId: serial("pond_id").notNull(),
 
 		startDate: date("start_date").notNull(),
-		endDate: date("end_date"),
-
-		harvestDate: date("harvest_date"),
 	},
 	(table) => [
 		// Single column indexes
@@ -22,7 +22,7 @@ export const pondCycles = pgTable(
 		index("pond_cycles_date_range_idx").on(
 			table.pondId,
 			table.startDate,
-			table.endDate,
+			table.endDate
 		),
-	],
+	]
 );

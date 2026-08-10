@@ -1,7 +1,7 @@
 import Elysia from "elysia";
+import z from "zod";
 import { ingestManualRouteBodySchema } from "./schemas";
 import { ingestData } from "./use-cases";
-import z from "zod";
 
 export const ingestModule = new Elysia({ prefix: "/ingest" }).post(
 	"/manual",
@@ -20,5 +20,5 @@ export const ingestModule = new Elysia({ prefix: "/ingest" }).post(
 			201: z.null(),
 			500: z.string(),
 		},
-	},
+	}
 );

@@ -1,12 +1,12 @@
 import type { ParameterCode } from "@/db";
 
-export type ManualIngestData = {
-	farmId: string;
-	pondId: string;
+export interface ManualIngestData {
 	cycleId: string;
-	recordedAt: Date;
+	farmId: string;
 	parameterCode: ParameterCode;
-	value: number;
-	unit?: string;
+	pondId: string;
+	recordedAt: Date;
 	source: string;
-};
+	unit?: string;
+	value: number;
+}
