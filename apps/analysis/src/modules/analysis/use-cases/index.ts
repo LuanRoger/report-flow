@@ -3,7 +3,14 @@ import {
 	InsufficientDataError,
 	PondNotFoundError,
 } from "../models/errors";
-import * as repository from "../repository";
+import {
+	deleteAnalysisById as deleteAnalysisByIdRepository,
+	getAnalysisById as getAnalysisByIdRepository,
+	getMeasurementsForCycle as getMeasurementsForCycleRepository,
+	getMeasurementsForPond as getMeasurementsForPondRepository,
+	getPondById as getPondByIdRepository,
+	storeAnalysisResult as storeAnalysisResultRepository,
+} from "../repository";
 import type { Measurement } from "../repository/types";
 import type { AnalysisQuery, PondScoreResult } from "../schemas/types";
 import { generateAiSummary } from "../utils/ai-summary";
@@ -18,7 +25,7 @@ import {
 } from "../utils/scoring";
 
 export async function getAnalysisById(id: number) {
-	const analysis = await repository.getAnalysisById(id);
+	const analysis = await getAnalysisByIdRepository(id);
 	if (!analysis) {
 		throw new AnalysisNotFound(id);
 	}
@@ -26,12 +33,12 @@ export async function getAnalysisById(id: number) {
 	return analysis;
 }
 
-async function performCoreAnalysis(
+function performCoreAnalysis(
 	pondId: number,
 	measurements: Measurement[],
 	requestedStartDate: Date,
 	requestedEndDate: Date
-): Promise<PondScoreResult> {
+): PondScoreResult {
 	const coverageResult = checkDataCoverage(measurements);
 
 	const recordedAtDates = measurements.map((m) => m.recordedAt);
@@ -53,7 +60,7 @@ async function performCoreAnalysis(
 		normalizedByParameter
 	);
 
-	const result = buildPondScoreResult(
+	return buildPondScoreResult(
 		pondId,
 		requestedStartDate,
 		requestedEndDate,
@@ -66,8 +73,6 @@ async function performCoreAnalysis(
 		coverageResult.coveragePercentage,
 		coverageResult.presentParameters
 	);
-
-	return result;
 }
 
 export async function performAnalysisByPond(
@@ -82,12 +87,12 @@ export async function performAnalysisByPond(
 		endDateQuery
 	);
 
-	const pond = await repository.getPondById(pondId);
+	const pond = await getPondByIdRepository(pondId);
 	if (!pond) {
 		throw new PondNotFoundError(pondId);
 	}
 
-	const measurements = await repository.getMeasurementsForPond(
+	const measurements = await getMeasurementsForPondRepository(
 		pondId,
 		startDate,
 		endDate
@@ -103,13 +108,13 @@ export async function performAnalysisByPond(
 export async function performAnalysisByCycle(
 	cycleId: number
 ): Promise<PondScoreResult> {
-	const measurements = await repository.getMeasurementsForCycle(cycleId);
+	const measurements = await getMeasurementsForCycleRepository(cycleId);
 
 	if (measurements.length === 0) {
 		throw new InsufficientDataError();
 	}
 
-	const pondId = measurements[0].pondId;
+	const { pondId } = measurements[0];
 
 	const actualStartDate = new Date(
 		Math.min(...measurements.map((m) => m.recordedAt.getTime()))
@@ -133,7 +138,7 @@ export async function storeAnalysis(result: PondScoreResult, cycleId?: number) {
 	const embeddingContent = formatAnalysisForEmbedding(result);
 	const embedding = await generateEmbedding(embeddingContent);
 
-	await repository.storeAnalysisResult(
+	await storeAnalysisResultRepository(
 		{
 			cycleId,
 			dissolvedOxygenScore: parameterScores.dissolvedOxygen,
@@ -156,16 +161,13 @@ export async function storeAnalysis(result: PondScoreResult, cycleId?: number) {
 
 export async function deleteAnalysisById(id: number) {
 	const analysis = getAnalysisById(id);
-	if (!analysis) {
-		throw new AnalysisNotFound(id);
-	}
 
-	await repository.deleteAnalysisById(id);
+	await deleteAnalysisByIdRepository(id);
 	return analysis;
 }
 
 export async function generateReportForAnalysis(analysisId: number) {
-	const analysis = await repository.getAnalysisById(analysisId);
+	const analysis = await getAnalysisByIdRepository(analysisId);
 	if (!analysis) {
 		throw new AnalysisNotFound(analysisId);
 	}

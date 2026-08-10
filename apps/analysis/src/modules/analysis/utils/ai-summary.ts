@@ -17,7 +17,7 @@ function formatAnalysisContext(result: AnalysisResult): string {
 		turbidity: result.turbidityScore,
 	};
 
-	const parameterAnalysis = [];
+	const parameterAnalysis: string[] = [];
 	const parameterCodes = Object.keys(parameterScores) as Array<
 		keyof typeof parameterScores
 	>;
@@ -38,7 +38,7 @@ function formatAnalysisContext(result: AnalysisResult): string {
 		);
 	}
 
-	const temporalSummary = [];
+	const temporalSummary: string[] = [];
 	for (const paramCode of parameterCodes) {
 		const stats = parameterStats[paramCode];
 		const temporal = stats.temporalMetrics;

@@ -26,13 +26,12 @@ function getScoreLabel(score: number): string {
 }
 
 export function formatAnalysisForEmbedding(result: PondScoreResult): string {
-	const { pondId, startDate, endDate, finalScore, parameterScores, metadata } =
-		result;
+	const { pondId, finalScore, parameterScores, metadata } = result;
 	const { executionStats, parameterStats, criticalThreshold } = metadata;
 	const { dataCoverage, timeRange, totalMeasurements } = executionStats;
 
 	// Build parameter descriptions
-	const parameterDescriptions = [];
+	const parameterDescriptions: string[] = [];
 	const parameterCodes = Object.keys(parameterScores) as Array<
 		keyof typeof parameterScores
 	>;

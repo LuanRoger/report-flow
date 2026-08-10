@@ -133,7 +133,7 @@ export function normalizeParameter(
 		throw new Error(`Unknown parameter code: ${parameterCode}`);
 	}
 
-	const normalization = config.normalization;
+	const { normalization } = config;
 
 	if (normalization.type === "gaussian") {
 		return gaussianNormalize(value, normalization.mu, normalization.sigma);

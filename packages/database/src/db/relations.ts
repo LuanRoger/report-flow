@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/performance/noNamespaceImport: Need to import all schemas to define relations */
 import { defineRelations } from "drizzle-orm";
 import * as analysisEmbeddings from "../schemas/analysis-embeddings";
 import * as analysisResults from "../schemas/analysis-results";

@@ -192,6 +192,7 @@ async function runConstant(
 		console.log(`Modo constante: ${rate}/min, intervalo ${intervalMs}ms`);
 	}
 
+	// biome-ignore lint/suspicious/noUnnecessaryConditions: Nescessary in a infinite loop
 	while (true) {
 		const param = PARAMS[Math.floor(Math.random() * PARAMS.length)];
 		if (!param) {
@@ -204,6 +205,7 @@ async function runConstant(
 			now.getTime() + Math.floor(Math.random() * 100)
 		);
 		const payload = buildPayload(param, offsetTime, scenario);
+		// biome-ignore lint/performance/noAwaitInLoops: Will send requests sequentially after a timer. This operation is not to be made concurrently
 		await send(payload, enableLogs);
 		await new Promise((r) => setTimeout(r, intervalMs));
 	}
@@ -229,11 +231,16 @@ async function runPrecalc(
 	}
 
 	for (let t = start.getTime(); t <= end.getTime(); t += stepMinutes * 60_000) {
-		for (let i = 0; i < PARAMS.length; i++) {
+		for (let i = 0; i < PARAMS.length; i += 1) {
 			const param = PARAMS[i];
-			// Add small offset (1-5 seconds) for each parameter to avoid unique constraint violations
+			if (!param) {
+				continue;
+			}
+
 			const paramTime = new Date(t + i * 1000);
 			const payload = buildPayload(param, paramTime, scenario);
+
+			// biome-ignore lint/performance/noAwaitInLoops: Will send requests sequentially after a timer. This operation is not to be made concurrently
 			await send(payload, enableLogs);
 		}
 	}
