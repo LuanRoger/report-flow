@@ -14,7 +14,7 @@ const appName = "analysis";
 const port = 3001;
 const localUrl = `http://localhost:${port}`;
 
-const app = new Elysia()
+new Elysia()
 	.use(
 		logixlysia({
 			config: {

@@ -6,7 +6,7 @@ export const ingestManualRouteBodySchema = z.object({
 	cycleId: z.number(),
 	recordedAt: z.coerce.date(),
 	parameterCode: z.enum(parameterCodes),
-	value: z.string(),
+	value: z.number(),
 	unit: z.enum(unitCodes),
 	sourceType: z.string(),
 });
