@@ -10,23 +10,23 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.46",
-    "@elysia/bearer": "^1.4.4",
-    "@elysia/cors": "^1.4.2",
-    "@elysia/openapi": "^1.4.15",
-    "@elysia/server-timing": "^1.4.1",
-    "@elysiajs/html": "^1.4.2",
-    "ai": "^7.0.58",
+    "@elysia/bearer": "catalog:web",
+    "@elysia/cors": "catalog:web",
+    "@elysia/openapi": "catalog:web",
+    "@elysia/server-timing": "catalog:web",
+    "@elysiajs/html": "catalog:web",
+    "ai": "^7.0.77",
     "database": "workspace:*",
     "drizzle-orm": "catalog:db",
-    "elysia": "^1.4.29",
-    "logixlysia": "^6.6.1",
-    "luxon": "^3.7.2",
-    "varlock": "^1.16.1",
-    "zod": "^4.4.3"
+    "elysia": "catalog:web",
+    "logixlysia": "catalog:utils",
+    "luxon": "catalog:utils",
+    "varlock": "catalog:utils",
+    "zod": "catalog:utils"
   },
   "devDependencies": {
     "@types/bun": "catalog:",
-    "@types/luxon": "^3.7.5",
+    "@types/luxon": "catalog:utils",
     "typescript": "catalog:"
   }
 }

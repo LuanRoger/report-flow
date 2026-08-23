@@ -5,45 +5,45 @@ import { AI_ANALYSIS_SUMMARY_SYSTEM_PROMPT } from "../constants";
 import type { ScoreResult } from "../schemas/types";
 
 function formatAnalysisContext(result: ScoreResult): string {
-	const { pondId, finalScore, metadata, startDate, endDate, parameterScores } =
-		result;
-	const { executionStats, parameterStats, criticalThreshold } = metadata;
-	const { dataCoverage, timeRange, totalMeasurements } = executionStats;
+  const { pondId, finalScore, metadata, startDate, endDate, parameterScores } =
+    result;
+  const { executionStats, parameterStats, criticalThreshold } = metadata;
+  const { dataCoverage, timeRange, totalMeasurements } = executionStats;
 
-	const parameterAnalysis: string[] = [];
-	const parameterCodes = Object.keys(parameterScores) as Array<
-		keyof typeof parameterScores
-	>;
+  const parameterAnalysis: string[] = [];
+  const parameterCodes = Object.keys(parameterScores) as Array<
+    keyof typeof parameterScores
+  >;
 
-	for (const paramCode of parameterCodes) {
-		const score = parameterScores[paramCode];
-		const stats = parameterStats[paramCode];
-		const temporal = stats.temporalMetrics;
+  for (const paramCode of parameterCodes) {
+    const score = parameterScores[paramCode];
+    const stats = parameterStats[paramCode];
+    const temporal = stats.temporalMetrics;
 
-		const scoreDescription = getScoreDescription(score);
-		const criticalInfo =
-			temporal.criticalTimeRatio > 0.1
-				? `, with ${(temporal.criticalTimeRatio * 100).toFixed(0)}% of readings in critical range`
-				: "";
+    const scoreDescription = getScoreDescription(score);
+    const criticalInfo =
+      temporal.criticalTimeRatio > 0.1
+        ? `, with ${(temporal.criticalTimeRatio * 100).toFixed(0)}% of readings in critical range`
+        : "";
 
-		parameterAnalysis.push(
-			`${paramCode}: ${score.toFixed(0)}/100 (${scoreDescription}${criticalInfo})`
-		);
-	}
+    parameterAnalysis.push(
+      `${paramCode}: ${score.toFixed(0)}/100 (${scoreDescription}${criticalInfo})`
+    );
+  }
 
-	const temporalSummary: string[] = [];
-	for (const paramCode of parameterCodes) {
-		const stats = parameterStats[paramCode];
-		const temporal = stats.temporalMetrics;
+  const temporalSummary: string[] = [];
+  for (const paramCode of parameterCodes) {
+    const stats = parameterStats[paramCode];
+    const temporal = stats.temporalMetrics;
 
-		if (temporal.criticalCount > 0) {
-			temporalSummary.push(
-				`${paramCode} had ${temporal.criticalCount} critical readings`
-			);
-		}
-	}
+    if (temporal.criticalCount > 0) {
+      temporalSummary.push(
+        `${paramCode} had ${temporal.criticalCount} critical readings`
+      );
+    }
+  }
 
-	return `
+  return `
 Analysis Context:
 - Pond: ${pondId}
 - Period: ${formatDate(startDate)} to ${formatDate(endDate)}
@@ -65,36 +65,36 @@ Configuration:
 }
 
 function getScoreDescription(score: number): string {
-	if (score >= 90) {
-		return "Excellent";
-	}
-	if (score >= 80) {
-		return "Very Good";
-	}
-	if (score >= 70) {
-		return "Good";
-	}
-	if (score >= 60) {
-		return "Fair";
-	}
-	if (score >= 40) {
-		return "Poor";
-	}
-	if (score >= 20) {
-		return "Very Poor";
-	}
-	return "Critical";
+  if (score >= 90) {
+    return "Excellent";
+  }
+  if (score >= 80) {
+    return "Very Good";
+  }
+  if (score >= 70) {
+    return "Good";
+  }
+  if (score >= 60) {
+    return "Fair";
+  }
+  if (score >= 40) {
+    return "Poor";
+  }
+  if (score >= 20) {
+    return "Very Poor";
+  }
+  return "Critical";
 }
 
 export async function generateAiSummary(result: ScoreResult): Promise<string> {
-	const context = formatAnalysisContext(result);
+  const context = formatAnalysisContext(result);
 
-	const { text } = await generateText({
-		maxOutputTokens: 400,
-		model: openai("gpt-4o-mini-2024-07-18"),
-		prompt: `Please provide your professional analysis and advice for this pond:\n\n${context}\n\n`,
-		system: AI_ANALYSIS_SUMMARY_SYSTEM_PROMPT,
-	});
+  const { text } = await generateText({
+    maxOutputTokens: 400,
+    model: openai("gpt-4o-mini-2024-07-18"),
+    prompt: `Please provide your professional analysis and advice for this pond:\n\n${context}\n\n`,
+    system: AI_ANALYSIS_SUMMARY_SYSTEM_PROMPT,
+  });
 
-	return text;
+  return text;
 }

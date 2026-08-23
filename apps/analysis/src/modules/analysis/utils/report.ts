@@ -1,111 +1,111 @@
 import type { AnalysisResult } from "database";
 
 export interface ReportOptions {
-	aiSummary?: string;
+  aiSummary?: string;
 }
 
 /**
  * Parameter display names for the report
  */
 const PARAMETER_DISPLAY_NAMES: Record<string, string> = {
-	dissolvedOxygen: "Dissolved Oxygen",
-	ph: "pH",
-	salinity: "Salinity",
-	temperature: "Temperature",
-	turbidity: "Turbidity",
+  dissolvedOxygen: "Dissolved Oxygen",
+  ph: "pH",
+  salinity: "Salinity",
+  temperature: "Temperature",
+  turbidity: "Turbidity",
 };
 
 /**
  * Parameter units for the report
  */
 const PARAMETER_UNITS: Record<string, string> = {
-	dissolvedOxygen: "mg/L",
-	ph: "",
-	salinity: "ppt",
-	temperature: "°C",
-	turbidity: "NTU",
+  dissolvedOxygen: "mg/L",
+  ph: "",
+  salinity: "ppt",
+  temperature: "°C",
+  turbidity: "NTU",
 };
 
 /**
  * Get score color based on the score value
  */
 function getScoreColor(score: number): string {
-	if (score >= 80) {
-		return "#22c55e"; // Green - Excellent
-	}
-	if (score >= 60) {
-		return "#84cc16"; // Light Green - Good
-	}
-	if (score >= 40) {
-		return "#eab308"; // Yellow - Fair
-	}
-	if (score >= 20) {
-		return "#f97316"; // Orange - Poor
-	}
-	return "#ef4444"; // Red - Critical
+  if (score >= 80) {
+    return "#22c55e"; // Green - Excellent
+  }
+  if (score >= 60) {
+    return "#84cc16"; // Light Green - Good
+  }
+  if (score >= 40) {
+    return "#eab308"; // Yellow - Fair
+  }
+  if (score >= 20) {
+    return "#f97316"; // Orange - Poor
+  }
+  return "#ef4444"; // Red - Critical
 }
 
 /**
  * Get coverage color based on the coverage percentage
  */
 function getCoverageColor(coveragePercentage: number): string {
-	if (coveragePercentage >= 90) {
-		return "#22c55e";
-	}
-	if (coveragePercentage >= 70) {
-		return "#84cc16";
-	}
-	if (coveragePercentage >= 50) {
-		return "#eab308";
-	}
-	return "#ef4444";
+  if (coveragePercentage >= 90) {
+    return "#22c55e";
+  }
+  if (coveragePercentage >= 70) {
+    return "#84cc16";
+  }
+  if (coveragePercentage >= 50) {
+    return "#eab308";
+  }
+  return "#ef4444";
 }
 
 /**
  * Format date for display
  */
 function formatDate(date: Date | null): string {
-	if (!date) {
-		return "N/A";
-	}
-	return date.toLocaleDateString("en-US", {
-		day: "numeric",
-		hour: "2-digit",
-		minute: "2-digit",
-		month: "long",
-		year: "numeric",
-	});
+  if (!date) {
+    return "N/A";
+  }
+  return date.toLocaleDateString("en-US", {
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
 }
 
 /**
  * Escape HTML special characters to prevent XSS
  */
 function escapeHtml(text: string): string {
-	return text
-		.replace(/&/g, "&amp;")
-		.replace(/</g, "&lt;")
-		.replace(/>/g, "&gt;")
-		.replace(/"/g, "&quot;")
-		.replace(/'/g, "&#039;");
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 /**
  * Format a number with 2 decimal places
  */
 function formatNumber(value: number | null): string {
-	if (value === null) {
-		return "N/A";
-	}
-	return value.toFixed(2);
+  if (value === null) {
+    return "N/A";
+  }
+  return value.toFixed(2);
 }
 
 /**
  * Generate a progress bar HTML for a score
  */
 function generateProgressBar(score: number, max = 100): string {
-	const percentage = (score / max) * 100;
-	const color = getScoreColor(score);
-	return `
+  const percentage = (score / max) * 100;
+  const color = getScoreColor(score);
+  return `
 		<div class="progress-bar" style="width: 100%; height: 20px; background-color: #e5e7eb; border-radius: 10px; overflow: hidden;">
 			<div style="width: ${percentage}%; height: 100%; background-color: ${color}; border-radius: 10px; transition: width 0.3s ease;"></div>
 		</div>
@@ -116,21 +116,21 @@ function generateProgressBar(score: number, max = 100): string {
  * Generate parameter stats table rows
  */
 function generateParameterStatsRows(result: AnalysisResult): string {
-	const metadataContent =
-		typeof result.metadata === "string"
-			? JSON.parse(result.metadata)
-			: result.metadata;
-	const { parameterStats } = metadataContent;
-	const parameterCodes = Object.keys(parameterStats);
+  const metadataContent =
+    typeof result.metadata === "string"
+      ? JSON.parse(result.metadata)
+      : result.metadata;
+  const { parameterStats } = metadataContent;
+  const parameterCodes = Object.keys(parameterStats);
 
-	let rows = "";
+  let rows = "";
 
-	for (const paramCode of parameterCodes) {
-		const stats = parameterStats[paramCode];
-		const displayName = PARAMETER_DISPLAY_NAMES[paramCode] || paramCode;
-		const unit = PARAMETER_UNITS[paramCode] || "";
+  for (const paramCode of parameterCodes) {
+    const stats = parameterStats[paramCode];
+    const displayName = PARAMETER_DISPLAY_NAMES[paramCode] || paramCode;
+    const unit = PARAMETER_UNITS[paramCode] || "";
 
-		rows += `
+    rows += `
 		<tr>
 			<td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: left; font-weight: 600;">${displayName}</td>
 			<td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center;">${formatNumber(stats.rawValues.min)}${unit}</td>
@@ -139,32 +139,32 @@ function generateParameterStatsRows(result: AnalysisResult): string {
 			<td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center;">${stats.rawValues.count}</td>
 		</tr>
 		`;
-	}
+  }
 
-	return rows;
+  return rows;
 }
 
 /**
  * Generate parameter scores table rows
  */
 function generateParameterScoresRows(result: AnalysisResult): string {
-	const parameterScores = {
-		dissolvedOxygen: result.dissolvedOxygenScore,
-		ph: result.phScore,
-		salinity: result.salinityScore,
-		temperature: result.temperatureScore,
-		turbidity: result.turbidityScore,
-	};
-	const parameterCodes = Object.keys(parameterScores);
+  const parameterScores = {
+    dissolvedOxygen: result.dissolvedOxygenScore,
+    ph: result.phScore,
+    salinity: result.salinityScore,
+    temperature: result.temperatureScore,
+    turbidity: result.turbidityScore,
+  };
+  const parameterCodes = Object.keys(parameterScores);
 
-	let rows = "";
+  let rows = "";
 
-	for (const paramCode of parameterCodes) {
-		const score = parameterScores[paramCode as keyof typeof parameterScores];
-		const displayName = PARAMETER_DISPLAY_NAMES[paramCode] || paramCode;
-		const color = getScoreColor(score);
+  for (const paramCode of parameterCodes) {
+    const score = parameterScores[paramCode as keyof typeof parameterScores];
+    const displayName = PARAMETER_DISPLAY_NAMES[paramCode] || paramCode;
+    const color = getScoreColor(score);
 
-		rows += `
+    rows += `
 		<tr>
 			<td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: left; font-weight: 600;">${displayName}</td>
 			<td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center;">
@@ -175,30 +175,30 @@ function generateParameterScoresRows(result: AnalysisResult): string {
 			</td>
 		</tr>
 		`;
-	}
+  }
 
-	return rows;
+  return rows;
 }
 
 /**
  * Generate temporal metrics table rows
  */
 function generateTemporalMetricsRows(result: AnalysisResult): string {
-	const metadataContent =
-		typeof result.metadata === "string"
-			? JSON.parse(result.metadata)
-			: result.metadata;
-	const { parameterStats } = metadataContent;
-	const parameterCodes = Object.keys(parameterStats);
+  const metadataContent =
+    typeof result.metadata === "string"
+      ? JSON.parse(result.metadata)
+      : result.metadata;
+  const { parameterStats } = metadataContent;
+  const parameterCodes = Object.keys(parameterStats);
 
-	let rows = "";
+  let rows = "";
 
-	for (const paramCode of parameterCodes) {
-		const stats = parameterStats[paramCode];
-		const displayName = PARAMETER_DISPLAY_NAMES[paramCode] || paramCode;
-		const temporal = stats.temporalMetrics;
+  for (const paramCode of parameterCodes) {
+    const stats = parameterStats[paramCode];
+    const displayName = PARAMETER_DISPLAY_NAMES[paramCode] || paramCode;
+    const temporal = stats.temporalMetrics;
 
-		rows += `
+    rows += `
 		<tr>
 			<td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: left; font-weight: 600;">${displayName}</td>
 			<td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center;">${formatNumber(temporal.meanScore)}</td>
@@ -207,62 +207,62 @@ function generateTemporalMetricsRows(result: AnalysisResult): string {
 			<td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center;">${temporal.criticalCount}</td>
 		</tr>
 		`;
-	}
+  }
 
-	return rows;
+  return rows;
 }
 
 /**
  * Generate measurements by parameter table rows
  */
 function generateMeasurementsByParameterRows(result: AnalysisResult): string {
-	const metadataContent =
-		typeof result.metadata === "string"
-			? JSON.parse(result.metadata)
-			: result.metadata;
-	const { measurementsByParameter } = metadataContent.executionStats;
-	const parameterCodes = Object.keys(measurementsByParameter);
+  const metadataContent =
+    typeof result.metadata === "string"
+      ? JSON.parse(result.metadata)
+      : result.metadata;
+  const { measurementsByParameter } = metadataContent.executionStats;
+  const parameterCodes = Object.keys(measurementsByParameter);
 
-	let rows = "";
+  let rows = "";
 
-	for (const paramCode of parameterCodes) {
-		const count = measurementsByParameter[paramCode];
-		const displayName = PARAMETER_DISPLAY_NAMES[paramCode] || paramCode;
+  for (const paramCode of parameterCodes) {
+    const count = measurementsByParameter[paramCode];
+    const displayName = PARAMETER_DISPLAY_NAMES[paramCode] || paramCode;
 
-		rows += `
+    rows += `
 		<tr>
 			<td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: left; font-weight: 600;">${displayName}</td>
 			<td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center;">${count}</td>
 		</tr>
 		`;
-	}
+  }
 
-	return rows;
+  return rows;
 }
 
 /**
  * Generate the complete HTML report
  */
 export function generateHtmlReport(
-	result: AnalysisResult,
-	options: ReportOptions = {}
+  result: AnalysisResult,
+  options: ReportOptions = {}
 ): string {
-	const { pondId, finalScore, metadata, startTime, endTime } = result;
-	const metadataContent =
-		typeof metadata === "string" ? JSON.parse(metadata) : metadata;
-	const {
-		executionStats,
-		criticalThreshold,
-		aggregationWeights,
-		parameterWeights,
-	} = metadataContent;
-	const { totalMeasurements, dataCoverage, timeRange } = executionStats;
-	const { aiSummary } = options;
+  const { pondId, finalScore, metadata, startTime, endTime } = result;
+  const metadataContent =
+    typeof metadata === "string" ? JSON.parse(metadata) : metadata;
+  const {
+    executionStats,
+    criticalThreshold,
+    aggregationWeights,
+    parameterWeights,
+  } = metadataContent;
+  const { totalMeasurements, dataCoverage, timeRange } = executionStats;
+  const { aiSummary } = options;
 
-	const finalScoreColor = getScoreColor(finalScore);
-	const coverageColor = getCoverageColor(dataCoverage.coveragePercentage);
+  const finalScoreColor = getScoreColor(finalScore);
+  const coverageColor = getCoverageColor(dataCoverage.coveragePercentage);
 
-	return `
+  return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -605,8 +605,8 @@ export function generateHtmlReport(
 					</div>
 				</div>
 				${
-					aiSummary
-						? `
+          aiSummary
+            ? `
 				<div class="ai-summary-card">
 					<div class="ai-summary-header">
 						<span class="ai-icon">🤖</span>
@@ -615,8 +615,8 @@ export function generateHtmlReport(
 					<div class="ai-summary-content">${escapeHtml(aiSummary)}</div>
 				</div>
 				`
-						: ""
-				}
+            : ""
+        }
 			</div>
 
 			<!-- Time Range Section -->

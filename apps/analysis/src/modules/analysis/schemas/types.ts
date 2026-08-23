@@ -1,18 +1,18 @@
 import type z from "zod";
 import type {
-	aggregationWeightsSchema,
-	analysisBodySchema,
-	dataCoverageSchema,
-	executionStatsSchema,
-	metadataSchema,
-	normalizedScoresSchema,
-	parameterStatsSchema,
-	parametersScores,
-	parameterWeightsSchema,
-	rawValuesSchema,
-	scoreResultSchema,
-	temporalMetricsSchema,
-	timeRangeSchema,
+  aggregationWeightsSchema,
+  analysisBodySchema,
+  dataCoverageSchema,
+  executionStatsSchema,
+  metadataSchema,
+  normalizedScoresSchema,
+  parameterStatsSchema,
+  parametersScores,
+  parameterWeightsSchema,
+  rawValuesSchema,
+  scoreResultSchema,
+  temporalMetricsSchema,
+  timeRangeSchema,
 } from ".";
 
 export type AnalysisQuery = z.infer<typeof analysisBodySchema>;

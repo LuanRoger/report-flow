@@ -3,12 +3,12 @@ import type { AnalysisTimeWindow } from "../types/analysis";
 export const ANALYSIS_TIME_WINDOWS = ["7d", "30d", "90d", "custom"] as const;
 
 export const ANALYSIS_TIME_WINDOWS_NUMBERS: Record<AnalysisTimeWindow, number> =
-	{
-		"7d": 7,
-		"30d": 30,
-		"90d": 90,
-		custom: 0,
-	};
+  {
+    "7d": 7,
+    "30d": 30,
+    "90d": 90,
+    custom: 0,
+  };
 
 export const ANALYSIS_EMBEDDING_DIMENSIONS = 1024;
 
