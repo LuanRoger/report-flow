@@ -1,4 +1,4 @@
-import { CycleIsNotFromPondError } from "../models/error";
+import { CycleIsNotFromPondError } from "@/modules/cycles/models/errors";
 import { getPondCycle, registerMesurement } from "../repository";
 import type { IngestManualRouteBody } from "../schemas/types";
 

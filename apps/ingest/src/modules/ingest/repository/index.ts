@@ -13,11 +13,3 @@ export async function registerMesurement(data: CreateMeasurement) {
 	const result = await db.insert(measurements).values(data).returning();
 	return result[0];
 }
-
-export async function getPond(pondId: number) {
-	return await db.query.ponds.findFirst({
-		where: {
-			id: pondId,
-		},
-	});
-}
