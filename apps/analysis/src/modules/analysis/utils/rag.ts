@@ -1,6 +1,7 @@
-import { mistral } from "@ai-sdk/mistral";
+import { openai } from "@ai-sdk/openai";
 import { embed } from "ai";
 import { formatDate } from "@/utils/date";
+import { ANALYSIS_EMBEDDING_DIMENSIONS } from "../constants";
 import type { PondScoreResult } from "../schemas/types";
 
 function getScoreLabel(score: number): string {
@@ -74,7 +75,12 @@ Parameter Weights: Temperature=${metadata.parameterWeights.temperature}, pH=${me
 
 export async function generateEmbedding(text: string): Promise<number[]> {
 	const { embedding } = await embed({
-		model: mistral.embeddingModel("mistral-embed"),
+		model: openai.embeddingModel("text-embedding-3-small"),
+		providerOptions: {
+			openai: {
+				dimensions: ANALYSIS_EMBEDDING_DIMENSIONS,
+			},
+		},
 		value: text,
 	});
 

@@ -98,8 +98,6 @@ export async function generateAiSummary(
 ): Promise<string> {
 	const context = formatAnalysisContext(result);
 
-	console.log(context);
-
 	const { text } = await generateText({
 		maxOutputTokens: 400,
 		model: openai("gpt-4o-mini-2024-07-18"),
