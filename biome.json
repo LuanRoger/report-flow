@@ -9,13 +9,11 @@
     "ignoreUnknown": true,
     "includes": ["!**/*.d.ts"]
   },
-  "formatter": {
-    "enabled": true,
-    "indentStyle": "tab"
-  },
-  "javascript": {
-    "formatter": {
-      "quoteStyle": "double"
+  "linter": {
+    "rules": {
+      "a11y": {
+        "noSvgWithoutTitle": "off"
+      }
     }
   },
   "assist": {

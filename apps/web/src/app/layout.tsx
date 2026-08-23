@@ -6,42 +6,42 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { cn } from "@/lib/utils";
 
 const geistSans = Geist({
-	subsets: ["latin"],
-	variable: "--font-sans",
+  subsets: ["latin"],
+  variable: "--font-sans",
 });
 
 const geistMono = Geist_Mono({
-	subsets: ["latin"],
-	variable: "--font-mono",
+  subsets: ["latin"],
+  variable: "--font-mono",
 });
 
 export const metadata: Metadata = {
-	title: "Report Flow",
+  title: "Report Flow",
 };
 
 export default function RootLayout({
-	children,
+  children,
 }: Readonly<{
-	children: React.ReactNode;
+  children: React.ReactNode;
 }>) {
-	return (
-		<html
-			className={cn(
-				"antialiased",
-				"font-sans",
-				geistSans.variable,
-				geistMono.variable
-			)}
-			lang="en"
-			suppressHydrationWarning
-		>
-			<body>
-				<NuqsAdapter>
-					<ThemeProvider>
-						<main>{children}</main>
-					</ThemeProvider>
-				</NuqsAdapter>
-			</body>
-		</html>
-	);
+  return (
+    <html
+      className={cn(
+        "antialiased",
+        "font-sans",
+        geistSans.variable,
+        geistMono.variable
+      )}
+      lang="en"
+      suppressHydrationWarning
+    >
+      <body>
+        <NuqsAdapter>
+          <ThemeProvider>
+            <main>{children}</main>
+          </ThemeProvider>
+        </NuqsAdapter>
+      </body>
+    </html>
+  );
 }

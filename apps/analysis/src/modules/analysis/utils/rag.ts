@@ -5,56 +5,56 @@ import { ANALYSIS_EMBEDDING_DIMENSIONS } from "../constants";
 import type { ScoreResult } from "../schemas/types";
 
 function getScoreLabel(score: number): string {
-	if (score >= 90) {
-		return "Excellent";
-	}
-	if (score >= 80) {
-		return "Very Good";
-	}
-	if (score >= 70) {
-		return "Good";
-	}
-	if (score >= 60) {
-		return "Fair";
-	}
-	if (score >= 40) {
-		return "Poor";
-	}
-	if (score >= 20) {
-		return "Very Poor";
-	}
-	return "Critical";
+  if (score >= 90) {
+    return "Excellent";
+  }
+  if (score >= 80) {
+    return "Very Good";
+  }
+  if (score >= 70) {
+    return "Good";
+  }
+  if (score >= 60) {
+    return "Fair";
+  }
+  if (score >= 40) {
+    return "Poor";
+  }
+  if (score >= 20) {
+    return "Very Poor";
+  }
+  return "Critical";
 }
 
 export function formatAnalysisForEmbedding(result: ScoreResult): string {
-	const { pondId, finalScore, parameterScores, metadata } = result;
-	const { executionStats, parameterStats, criticalThreshold } = metadata;
-	const { dataCoverage, timeRange, totalMeasurements } = executionStats;
+  const { pondId, finalScore, parameterScores, metadata } = result;
+  const { executionStats, parameterStats, criticalThreshold } = metadata;
+  const { dataCoverage, timeRange, totalMeasurements } = executionStats;
 
-	// Build parameter descriptions
-	const parameterDescriptions: string[] = [];
-	const parameterCodes = Object.keys(parameterScores) as Array<
-		keyof typeof parameterScores
-	>;
+  // Build parameter descriptions
+  const parameterDescriptions: string[] = [];
+  const parameterCodes = Object.keys(parameterScores) as Array<
+    keyof typeof parameterScores
+  >;
 
-	for (const paramCode of parameterCodes) {
-		const score = parameterScores[paramCode];
-		const stats = parameterStats[paramCode];
-		const temporal = stats.temporalMetrics;
+  for (const paramCode of parameterCodes) {
+    const score = parameterScores[paramCode];
+    const stats = parameterStats[paramCode];
+    const temporal = stats.temporalMetrics;
 
-		const scoreLabel = getScoreLabel(score);
+    const scoreLabel = getScoreLabel(score);
 
-		parameterDescriptions.push(
-			`${paramCode}: score=${score.toFixed(0)}/${scoreLabel}, ` +
-				`mean=${stats.rawValues.mean?.toFixed(2) ?? "N/A"}, ` +
-				`min=${stats.rawValues.min?.toFixed(2) ?? "N/A"}, ` +
-				`max=${stats.rawValues.max?.toFixed(2) ?? "N/A"}, ` +
-				`count=${stats.rawValues.count}, ` +
-				`critical=${(temporal.criticalTimeRatio * 100).toFixed(1)}%`
-		);
-	}
+    parameterDescriptions.push(
+      `${paramCode}: score=${score.toFixed(0)}/${scoreLabel}, ` +
+        `mean=${stats.rawValues.mean?.toFixed(2) ?? "N/A"}, ` +
+        `min=${stats.rawValues.min?.toFixed(2) ?? "N/A"}, ` +
+        `max=${stats.rawValues.max?.toFixed(2) ?? "N/A"}, ` +
+        `count=${stats.rawValues.count}, ` +
+        `critical=${(temporal.criticalTimeRatio * 100).toFixed(1)}%`
+    );
+  }
 
-	return `
+  return `
 Pond Analysis: ${pondId}
 Period: ${formatDate(timeRange.requestedStart)} to ${formatDate(timeRange.requestedEnd)}
 Actual Data: ${formatDate(timeRange.actualStart)} to ${formatDate(timeRange.actualEnd)}
@@ -74,15 +74,15 @@ Parameter Weights: Temperature=${metadata.parameterWeights.temperature}, pH=${me
 }
 
 export async function generateEmbedding(text: string): Promise<number[]> {
-	const { embedding } = await embed({
-		model: openai.embeddingModel("text-embedding-3-small"),
-		providerOptions: {
-			openai: {
-				dimensions: ANALYSIS_EMBEDDING_DIMENSIONS,
-			},
-		},
-		value: text,
-	});
+  const { embedding } = await embed({
+    model: openai.embeddingModel("text-embedding-3-small"),
+    providerOptions: {
+      openai: {
+        dimensions: ANALYSIS_EMBEDDING_DIMENSIONS,
+      },
+    },
+    value: text,
+  });
 
-	return embedding;
+  return embedding;
 }

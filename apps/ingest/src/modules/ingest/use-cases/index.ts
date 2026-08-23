@@ -3,12 +3,12 @@ import { getPondCycle, registerMesurement } from "../repository";
 import type { IngestManualRouteBody } from "../schemas/types";
 
 export async function ingestData(data: IngestManualRouteBody) {
-	const { pondId } = data;
+  const { pondId } = data;
 
-	const cycle = await getPondCycle(pondId);
-	if (cycle && cycle.pondId !== pondId) {
-		throw new CycleIsNotFromPondError(pondId);
-	}
+  const cycle = await getPondCycle(pondId);
+  if (cycle && cycle.pondId !== pondId) {
+    throw new CycleIsNotFromPondError(pondId);
+  }
 
-	return await registerMesurement(data);
+  return await registerMesurement(data);
 }
