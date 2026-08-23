@@ -4,12 +4,14 @@ import {
 	pgTable,
 	real,
 	serial,
+	text,
 	timestamp,
 } from "drizzle-orm/pg-core";
 
 export const analysisResults = pgTable(
 	"analysis_results",
 	{
+		aiSummary: text("ai_summary"),
 		createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
 			.notNull()
 			.defaultNow(),
@@ -30,17 +32,14 @@ export const analysisResults = pgTable(
 		turbidityScore: real("turbidity_score").notNull(),
 	},
 	(table) => [
-		// Single column indexes
 		index("analysis_results_pond_idx").on(table.pondId),
 		index("analysis_results_cycle_idx").on(table.cycleId),
 		index("analysis_results_start_time_idx").on(table.startTime),
 		index("analysis_results_end_time_idx").on(table.endTime),
 		index("analysis_results_created_at_idx").on(table.createdAt),
 
-		// Score indexes for filtering and sorting
 		index("analysis_results_final_score_idx").on(table.finalScore),
 
-		// Composite indexes for common query patterns
 		index("analysis_results_pond_time_idx").on(
 			table.pondId,
 			table.startTime,

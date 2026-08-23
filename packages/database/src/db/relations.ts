@@ -2,9 +2,12 @@
 import { defineRelations } from "drizzle-orm";
 import * as analysisEmbeddings from "../schemas/analysis-embeddings";
 import * as analysisResults from "../schemas/analysis-results";
+import * as chats from "../schemas/chats";
 import * as measurements from "../schemas/measurements";
+import * as messages from "../schemas/messages";
 import * as pondCycles from "../schemas/pond-cycles";
 import * as ponds from "../schemas/ponds";
+import * as streams from "../schemas/streams";
 
 export const schemas = {
 	...ponds,
@@ -12,6 +15,9 @@ export const schemas = {
 	...measurements,
 	...analysisResults,
 	...analysisEmbeddings,
+	...streams,
+	...messages,
+	...chats,
 };
 
 export const relations = defineRelations(schemas, (relation) => ({
@@ -31,6 +37,10 @@ export const relations = defineRelations(schemas, (relation) => ({
 			to: relation.ponds.id,
 		}),
 	},
+	chats: {
+		messages: relation.many.messages(),
+		streams: relation.many.streams(),
+	},
 	measurements: {
 		cycle: relation.one.pondCycles({
 			from: relation.measurements.cycleId,
@@ -41,11 +51,23 @@ export const relations = defineRelations(schemas, (relation) => ({
 			to: relation.ponds.id,
 		}),
 	},
+	messages: {
+		chat: relation.one.chats({
+			from: relation.messages.chatId,
+			to: relation.chats.id,
+		}),
+	},
 	pondCycles: {
 		measurements: relation.many.measurements(),
 		pond: relation.one.ponds({
 			from: relation.pondCycles.pondId,
 			to: relation.ponds.id,
+		}),
+	},
+	streams: {
+		chat: relation.one.chats({
+			from: relation.streams.chatId,
+			to: relation.chats.id,
 		}),
 	},
 }));
