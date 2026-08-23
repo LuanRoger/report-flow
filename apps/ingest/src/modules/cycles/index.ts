@@ -3,8 +3,8 @@ import z from "zod";
 import {
 	createCycleBodySchema,
 	createCycleResponseSchema,
-} from "./cycles/schemas";
-import { createCycle } from "./cycles/use-cases";
+} from "./schemas";
+import { createCycle } from "./use-cases";
 
 export const cyclesModule = new Elysia({ prefix: "/cycles" }).post(
 	"/",
