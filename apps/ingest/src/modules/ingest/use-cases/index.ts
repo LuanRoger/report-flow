@@ -6,7 +6,7 @@ export async function ingestData(data: IngestManualRouteBody) {
 	const { pondId } = data;
 
 	const cycle = await getPondCycle(pondId);
-	if (!cycle) {
+	if (cycle && cycle.pondId !== pondId) {
 		throw new CycleIsNotFromPondError(pondId);
 	}
 

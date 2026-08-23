@@ -18,7 +18,7 @@ interface Payload {
 	recordedAt: string;
 	sourceType: string;
 	unit: string;
-	value: string;
+	value: number;
 }
 
 let DEFAULTS = {
@@ -112,7 +112,7 @@ function buildPayload(
 		recordedAt: recordedAt.toISOString(),
 		sourceType: DEFAULTS.sourceType,
 		unit: UNITS[param],
-		value: rand(min, max).toString(),
+		value: rand(min, max),
 	};
 }
 
@@ -123,6 +123,7 @@ async function send(payload: Payload, enableLogs: boolean) {
 	}
 
 	const headers: Record<string, string> = {
+		Authorization: `Bearer ${process.env.INGEST_API_KEY}`,
 		"Content-Type": "application/json",
 	};
 
