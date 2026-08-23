@@ -1,4 +1,4 @@
-import { mistral } from "@ai-sdk/mistral";
+import { openai } from "@ai-sdk/openai";
 import { generateText } from "ai";
 import { formatDate } from "@/utils/date";
 import { AI_ANALYSIS_SUMMARY_SYSTEM_PROMPT } from "../constants";
@@ -98,12 +98,13 @@ export async function generateAiSummary(
 ): Promise<string> {
 	const context = formatAnalysisContext(result);
 
+	console.log(context);
+
 	const { text } = await generateText({
 		maxOutputTokens: 400,
-		model: mistral("ministral-3b-latest"),
-		prompt: `\n\n${context}\n\nPlease provide your professional analysis and advice for this pond.`,
+		model: openai("gpt-4o-mini-2024-07-18"),
+		prompt: `Please provide your professional analysis and advice for this pond:\n\n${context}\n\n`,
 		system: AI_ANALYSIS_SUMMARY_SYSTEM_PROMPT,
-		temperature: 0.4,
 	});
 
 	return text;
