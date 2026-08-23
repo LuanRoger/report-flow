@@ -134,9 +134,19 @@ export async function performAnalysisByCycle(
 	);
 }
 
-export async function storeAnalysisScoreResult(result: ScoreResult, cycleId?: number) {
-	const { pondId, finalScore, parameterScores, startDate, endDate, metadata, aiSummary } =
-		result;
+export async function storeAnalysisScoreResult(
+	result: ScoreResult,
+	cycleId?: number
+) {
+	const {
+		pondId,
+		finalScore,
+		parameterScores,
+		startDate,
+		endDate,
+		metadata,
+		aiSummary,
+	} = result;
 
 	const embeddingContent = formatAnalysisForEmbedding(result);
 	const embedding = await generateEmbedding(embeddingContent);

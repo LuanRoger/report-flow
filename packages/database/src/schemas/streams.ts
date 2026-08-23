@@ -1,4 +1,10 @@
-import { index, integer, pgTable, serial, timestamp } from "drizzle-orm/pg-core";
+import {
+	index,
+	integer,
+	pgTable,
+	serial,
+	timestamp,
+} from "drizzle-orm/pg-core";
 
 export const streams = pgTable(
 	"streams",

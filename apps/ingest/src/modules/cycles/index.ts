@@ -1,9 +1,6 @@
 import Elysia from "elysia";
 import z from "zod";
-import {
-	createCycleBodySchema,
-	createCycleResponseSchema,
-} from "./schemas";
+import { createCycleBodySchema, createCycleResponseSchema } from "./schemas";
 import { createCycle } from "./use-cases";
 
 export const cyclesModule = new Elysia({ prefix: "/cycles" }).post(

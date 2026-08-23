@@ -5,7 +5,8 @@ import { AI_ANALYSIS_SUMMARY_SYSTEM_PROMPT } from "../constants";
 import type { ScoreResult } from "../schemas/types";
 
 function formatAnalysisContext(result: ScoreResult): string {
-	const { pondId, finalScore, metadata, startDate, endDate, parameterScores } = result;
+	const { pondId, finalScore, metadata, startDate, endDate, parameterScores } =
+		result;
 	const { executionStats, parameterStats, criticalThreshold } = metadata;
 	const { dataCoverage, timeRange, totalMeasurements } = executionStats;
 
@@ -85,9 +86,7 @@ function getScoreDescription(score: number): string {
 	return "Critical";
 }
 
-export async function generateAiSummary(
-	result: ScoreResult
-): Promise<string> {
+export async function generateAiSummary(result: ScoreResult): Promise<string> {
 	const context = formatAnalysisContext(result);
 
 	const { text } = await generateText({

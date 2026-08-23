@@ -10,7 +10,6 @@ export const ANALYSIS_TIME_WINDOWS_NUMBERS: Record<AnalysisTimeWindow, number> =
 		custom: 0,
 	};
 
-
 export const ANALYSIS_EMBEDDING_DIMENSIONS = 1024;
 
 export const AI_ANALYSIS_SUMMARY_SYSTEM_PROMPT = `

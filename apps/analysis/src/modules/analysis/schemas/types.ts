@@ -9,8 +9,8 @@ import type {
 	parameterStatsSchema,
 	parametersScores,
 	parameterWeightsSchema,
-	scoreResultSchema,
 	rawValuesSchema,
+	scoreResultSchema,
 	temporalMetricsSchema,
 	timeRangeSchema,
 } from ".";
