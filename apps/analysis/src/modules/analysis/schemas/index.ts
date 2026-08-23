@@ -99,6 +99,7 @@ export const scoreResultSchema = z.object({
 });
 
 export const getAnalysisById200ResponseSchema = z.object({
+	aiSummary: z.string().optional(),
 	createdAt: z.coerce.date(),
 	cycleId: z.number(),
 	dissolvedOxygenScore: z.number().min(0).max(100),
