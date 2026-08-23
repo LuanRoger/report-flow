@@ -16,8 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-	description: "A better developer experience for Next.js",
-	title: "Next.js DX",
+	title: "Report Flow",
 };
 
 export default function RootLayout({
