@@ -10,7 +10,6 @@ export const ANALYSIS_TIME_WINDOWS_NUMBERS: Record<AnalysisTimeWindow, number> =
 		custom: 0,
 	};
 
-export const DAY_MS = 24 * 60 * 60 * 1000;
 
 export const ANALYSIS_EMBEDDING_DIMENSIONS = 1024;
 

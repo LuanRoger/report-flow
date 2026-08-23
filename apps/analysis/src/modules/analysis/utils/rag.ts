@@ -2,7 +2,7 @@ import { openai } from "@ai-sdk/openai";
 import { embed } from "ai";
 import { formatDate } from "@/utils/date";
 import { ANALYSIS_EMBEDDING_DIMENSIONS } from "../constants";
-import type { PondScoreResult } from "../schemas/types";
+import type { ScoreResult } from "../schemas/types";
 
 function getScoreLabel(score: number): string {
 	if (score >= 90) {
@@ -26,7 +26,7 @@ function getScoreLabel(score: number): string {
 	return "Critical";
 }
 
-export function formatAnalysisForEmbedding(result: PondScoreResult): string {
+export function formatAnalysisForEmbedding(result: ScoreResult): string {
 	const { pondId, finalScore, parameterScores, metadata } = result;
 	const { executionStats, parameterStats, criticalThreshold } = metadata;
 	const { dataCoverage, timeRange, totalMeasurements } = executionStats;

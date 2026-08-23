@@ -40,8 +40,8 @@ export const dataCoverageSchema = z.object({
 });
 
 export const timeRangeSchema = z.object({
-	actualEnd: z.coerce.date().nullable(),
-	actualStart: z.coerce.date().nullable(),
+	actualEnd: z.coerce.date(),
+	actualStart: z.coerce.date(),
 	requestedEnd: z.coerce.date(),
 	requestedStart: z.coerce.date(),
 });
@@ -88,7 +88,8 @@ export const metadataSchema = z.object({
 	parameterWeights: parameterWeightsSchema,
 });
 
-export const pondScoreResultSchema = z.object({
+export const scoreResultSchema = z.object({
+	aiSummary: z.string().optional(),
 	endDate: z.coerce.date(),
 	finalScore: z.number().min(1).max(100),
 	metadata: metadataSchema,
@@ -113,5 +114,5 @@ export const getAnalysisById200ResponseSchema = z.object({
 	turbidityScore: z.number().min(0).max(100),
 });
 
-export const performAnalysisByPond200ResponseSchema = pondScoreResultSchema;
-export const performAnalysisByCycle200ResponseSchema = pondScoreResultSchema;
+export const performAnalysisByPond200ResponseSchema = scoreResultSchema;
+export const performAnalysisByCycle200ResponseSchema = scoreResultSchema;

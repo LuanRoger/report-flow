@@ -1,5 +1,5 @@
 import type { ParameterCode } from "database";
-import type { PondScoreResult } from "../schemas/types";
+import type { ScoreResult } from "../schemas/types";
 import type {
 	NormalizedScore,
 	ParameterMetrics,
@@ -210,19 +210,19 @@ export function calculateParameterTemporalScores(
 	return temporalScores;
 }
 
-export function buildPondScoreResult(
+export function buildScoreResult(
 	pondId: number,
 	requestedStartDate: Date,
 	requestedEndDate: Date,
-	actualStartDate: Date | null,
-	actualEndDate: Date | null,
+	actualStartDate: Date,
+	actualEndDate: Date,
 	measurements: Array<{ parameterCode: ParameterCode; value: number }>,
 	parameterTemporalScores: Record<ParameterCode, ParameterTemporalScore>,
 	normalizedByParameter: Record<ParameterCode, NormalizedScore[]>,
 	hasSufficientCoverage: boolean,
 	coveragePercentage: number,
 	presentParameters: ParameterCode[]
-): PondScoreResult {
+): ScoreResult {
 	const parameterStats = calculateParameterStats(
 		measurements,
 		normalizedByParameter
