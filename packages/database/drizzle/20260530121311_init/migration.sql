@@ -36,7 +36,8 @@ CREATE TABLE pond_cycles (
     harvest_date DATE
 );
 
--- Create measurements table as a hypertable for TimescaleDB
+-- Create measurements as a TimescaleDB hypertable.
+-- All unique indexes include recorded_at because it is the partition column.
 CREATE TABLE measurements (
     id SERIAL,
     pond_id INTEGER NOT NULL,
@@ -50,8 +51,10 @@ CREATE TABLE measurements (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     PRIMARY KEY (id, recorded_at)
 ) WITH (
-    timescaledb.hypertable,
-    timescaledb.partition_column = 'recorded_at'
+    tsdb.hypertable,
+    tsdb.partition_column = 'recorded_at',
+    tsdb.segmentby = 'pond_id',
+    tsdb.orderby = 'recorded_at DESC'
 );
 
 -- Create analysis_results table
@@ -68,6 +71,7 @@ CREATE TABLE analysis_results (
     dissolved_oxygen_score REAL NOT NULL,
     turbidity_score REAL NOT NULL,
     metadata JSONB NOT NULL,
+    ai_summary TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -77,6 +81,29 @@ CREATE TABLE analysis_embeddings (
     analysis_id INTEGER NOT NULL,
     content TEXT NOT NULL,
     embedding vector(1024) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Create chat persistence tables. These remain regular PostgreSQL tables:
+-- their access patterns are relational rather than time-series analytics.
+CREATE TABLE chats (
+    id SERIAL PRIMARY KEY,
+    title TEXT NOT NULL,
+    user_id INTEGER NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE messages (
+    id SERIAL PRIMARY KEY,
+    chat_id INTEGER NOT NULL,
+    content TEXT NOT NULL,
+    parts JSON NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE streams (
+    id SERIAL PRIMARY KEY,
+    chat_id INTEGER NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -145,6 +172,19 @@ CREATE INDEX analysis_embeddings_analysis_idx ON analysis_embeddings (analysis_i
 CREATE INDEX analysis_embeddings_created_at_idx ON analysis_embeddings (created_at);
 
 -- ============================================
+-- INDEXES FOR CHAT TABLES
+-- ============================================
+-- Index names are table-qualified because PostgreSQL index names must be unique
+-- within a schema.
+CREATE INDEX chats_user_id_idx ON chats (user_id);
+CREATE INDEX chats_created_at_idx ON chats (created_at);
+
+CREATE INDEX messages_chat_id_idx ON messages (chat_id);
+CREATE INDEX messages_created_at_idx ON messages (created_at);
+
+CREATE INDEX streams_chat_id_idx ON streams (chat_id);
+
+-- ============================================
 -- FOREIGN KEY CONSTRAINTS
 -- ============================================
 
@@ -166,3 +206,9 @@ ALTER TABLE analysis_results ADD CONSTRAINT fk_analysis_results_cycle
 
 ALTER TABLE analysis_embeddings ADD CONSTRAINT fk_analysis_embeddings_analysis
     FOREIGN KEY (analysis_id) REFERENCES analysis_results(id) ON DELETE CASCADE;
+
+ALTER TABLE messages ADD CONSTRAINT fk_messages_chat
+    FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE;
+
+ALTER TABLE streams ADD CONSTRAINT fk_streams_chat
+    FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE;
