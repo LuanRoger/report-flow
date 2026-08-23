@@ -2,20 +2,13 @@ import { openai } from "@ai-sdk/openai";
 import { generateText } from "ai";
 import { formatDate } from "@/utils/date";
 import { AI_ANALYSIS_SUMMARY_SYSTEM_PROMPT } from "../constants";
-import type { AnalysisResult } from "../repository/types";
+import type { ScoreResult } from "../schemas/types";
 
-function formatAnalysisContext(result: AnalysisResult): string {
-	const { pondId, finalScore, metadata, startTime, endTime } = result;
+function formatAnalysisContext(result: ScoreResult): string {
+	const { pondId, finalScore, metadata, startDate, endDate, parameterScores } =
+		result;
 	const { executionStats, parameterStats, criticalThreshold } = metadata;
 	const { dataCoverage, timeRange, totalMeasurements } = executionStats;
-
-	const parameterScores = {
-		dissolvedOxygen: result.dissolvedOxygenScore,
-		ph: result.phScore,
-		salinity: result.salinityScore,
-		temperature: result.temperatureScore,
-		turbidity: result.turbidityScore,
-	};
 
 	const parameterAnalysis: string[] = [];
 	const parameterCodes = Object.keys(parameterScores) as Array<
@@ -53,7 +46,7 @@ function formatAnalysisContext(result: AnalysisResult): string {
 	return `
 Analysis Context:
 - Pond: ${pondId}
-- Period: ${formatDate(startTime)} to ${formatDate(endTime)}
+- Period: ${formatDate(startDate)} to ${formatDate(endDate)}
 - Analysis Date Range: ${formatDate(timeRange.actualStart)} to ${formatDate(timeRange.actualEnd)}
 - Total Measurements: ${totalMeasurements}
 - Data Coverage: ${dataCoverage.coveragePercentage}% (${dataCoverage.presentParameters.length} parameters monitored)
@@ -93,12 +86,8 @@ function getScoreDescription(score: number): string {
 	return "Critical";
 }
 
-export async function generateAiSummary(
-	result: AnalysisResult
-): Promise<string> {
+export async function generateAiSummary(result: ScoreResult): Promise<string> {
 	const context = formatAnalysisContext(result);
-
-	console.log(context);
 
 	const { text } = await generateText({
 		maxOutputTokens: 400,

@@ -10,7 +10,7 @@ export const ANALYSIS_TIME_WINDOWS_NUMBERS: Record<AnalysisTimeWindow, number> =
 		custom: 0,
 	};
 
-export const DAY_MS = 24 * 60 * 60 * 1000;
+export const ANALYSIS_EMBEDDING_DIMENSIONS = 1024;
 
 export const AI_ANALYSIS_SUMMARY_SYSTEM_PROMPT = `
 You are a senior shrimp aquaculture and water quality advisor. Analyze the supplied water quality results and return a concise, practical assessment for the farm operator.

@@ -12,33 +12,24 @@ import {
 	storeAnalysisResult as storeAnalysisResultRepository,
 } from "../repository";
 import type { Measurement } from "../repository/types";
-import type { AnalysisQuery, PondScoreResult } from "../schemas/types";
+import type { AnalysisQuery, ScoreResult } from "../schemas/types";
 import { generateAiSummary } from "../utils/ai-summary";
 import { calculateTimeWindow } from "../utils/date";
 import { normalizeMeasurements } from "../utils/normalization";
 import { formatAnalysisForEmbedding, generateEmbedding } from "../utils/rag";
 import { generateHtmlReport } from "../utils/report";
 import {
-	buildPondScoreResult,
+	buildScoreResult,
 	calculateParameterTemporalScores,
 	checkDataCoverage,
 } from "../utils/scoring";
 
-export async function getAnalysisById(id: number) {
-	const analysis = await getAnalysisByIdRepository(id);
-	if (!analysis) {
-		throw new AnalysisNotFound(id);
-	}
-
-	return analysis;
-}
-
-function performCoreAnalysis(
+async function performCoreAnalysis(
 	pondId: number,
 	measurements: Measurement[],
 	requestedStartDate: Date,
 	requestedEndDate: Date
-): PondScoreResult {
+): Promise<ScoreResult> {
 	const coverageResult = checkDataCoverage(measurements);
 
 	const recordedAtDates = measurements.map((m) => m.recordedAt);
@@ -60,7 +51,7 @@ function performCoreAnalysis(
 		normalizedByParameter
 	);
 
-	return buildPondScoreResult(
+	const scoreResult = buildScoreResult(
 		pondId,
 		requestedStartDate,
 		requestedEndDate,
@@ -73,12 +64,24 @@ function performCoreAnalysis(
 		coverageResult.coveragePercentage,
 		coverageResult.presentParameters
 	);
+
+	const aiSummary = await generateAiSummary(scoreResult);
+	return { ...scoreResult, aiSummary };
+}
+
+export async function getAnalysisById(id: number) {
+	const analysis = await getAnalysisByIdRepository(id);
+	if (!analysis) {
+		throw new AnalysisNotFound(id);
+	}
+
+	return analysis;
 }
 
 export async function performAnalysisByPond(
 	pondId: number,
 	query: AnalysisQuery
-): Promise<PondScoreResult> {
+): Promise<ScoreResult> {
 	const { startDate: startDateQuery, endDate: endDateQuery, window } = query;
 
 	const { startDate, endDate } = calculateTimeWindow(
@@ -107,7 +110,7 @@ export async function performAnalysisByPond(
 
 export async function performAnalysisByCycle(
 	cycleId: number
-): Promise<PondScoreResult> {
+): Promise<ScoreResult> {
 	const measurements = await getMeasurementsForCycleRepository(cycleId);
 
 	if (measurements.length === 0) {
@@ -131,15 +134,26 @@ export async function performAnalysisByCycle(
 	);
 }
 
-export async function storeAnalysis(result: PondScoreResult, cycleId?: number) {
-	const { pondId, finalScore, parameterScores, startDate, endDate, metadata } =
-		result;
+export async function storeAnalysisScoreResult(
+	result: ScoreResult,
+	cycleId?: number
+) {
+	const {
+		pondId,
+		finalScore,
+		parameterScores,
+		startDate,
+		endDate,
+		metadata,
+		aiSummary,
+	} = result;
 
 	const embeddingContent = formatAnalysisForEmbedding(result);
 	const embedding = await generateEmbedding(embeddingContent);
 
 	await storeAnalysisResultRepository(
 		{
+			aiSummary,
 			cycleId,
 			dissolvedOxygenScore: parameterScores.dissolvedOxygen,
 			endTime: endDate,
@@ -172,10 +186,7 @@ export async function generateReportForAnalysis(analysisId: number) {
 		throw new AnalysisNotFound(analysisId);
 	}
 
-	const aiSummary = await generateAiSummary(analysis);
-	const report = generateHtmlReport(analysis, {
-		aiSummary,
-	});
+	const report = generateHtmlReport(analysis);
 
 	return report;
 }

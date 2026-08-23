@@ -6,3 +6,12 @@ export class CycleIsNotFromPondError extends Error {
 		this.name = "CycleIsNotFromPondError";
 	}
 }
+
+export class InvalidDateError extends Error {
+	status = 422;
+
+	constructor() {
+		super("Invalid date");
+		this.name = "InvalidDateError";
+	}
+}

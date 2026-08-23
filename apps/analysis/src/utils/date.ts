@@ -1,7 +1,6 @@
-export function formatDate(date: Date | null): string {
-	if (!date) {
-		return "N/A";
-	}
+import { DateTime } from "luxon";
 
-	return date.toISOString().split("T")[0];
+export function formatDate(date: Date): string {
+	const parsedDate = DateTime.fromJSDate(date);
+	return parsedDate.toFormat("yyyy-MM-dd");
 }

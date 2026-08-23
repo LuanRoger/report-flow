@@ -9,15 +9,15 @@ import type {
 	parameterStatsSchema,
 	parametersScores,
 	parameterWeightsSchema,
-	pondScoreResultSchema,
 	rawValuesSchema,
+	scoreResultSchema,
 	temporalMetricsSchema,
 	timeRangeSchema,
 } from ".";
 
 export type AnalysisQuery = z.infer<typeof analysisBodySchema>;
 export type ParametersScores = z.infer<typeof parametersScores>;
-export type PondScoreResult = z.infer<typeof pondScoreResultSchema>;
+export type ScoreResult = z.infer<typeof scoreResultSchema>;
 export type AggregationWeights = z.infer<typeof aggregationWeightsSchema>;
 export type ParameterWeights = z.infer<typeof parameterWeightsSchema>;
 export type DataCoverage = z.infer<typeof dataCoverageSchema>;

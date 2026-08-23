@@ -1,4 +1,5 @@
-import { ANALYSIS_TIME_WINDOWS_NUMBERS, DAY_MS } from "../constants";
+import { DateTime } from "luxon";
+import { ANALYSIS_TIME_WINDOWS_NUMBERS } from "../constants";
 import type { AnalysisTimeWindow } from "../types/analysis";
 
 export function calculateTimeWindow(
@@ -6,23 +7,23 @@ export function calculateTimeWindow(
 	startDate?: Date,
 	endDate?: Date
 ): { startDate: Date; endDate: Date } {
-	const now = new Date();
+	const now = DateTime.now();
 
 	if (startDate && endDate) {
 		return { endDate, startDate };
 	}
 
 	if (startDate && !endDate) {
-		return { endDate: now, startDate };
+		return { endDate: now.toJSDate(), startDate };
 	}
 
 	if (!startDate && endDate) {
 		const days = ANALYSIS_TIME_WINDOWS_NUMBERS[window] || 7;
-		const start = new Date(endDate.getTime() - days * DAY_MS);
+		const start = DateTime.fromJSDate(endDate).minus({ days }).toJSDate();
 		return { endDate, startDate: start };
 	}
 
 	const days = ANALYSIS_TIME_WINDOWS_NUMBERS[window] || 7;
-	const start = new Date(now.getTime() - days * DAY_MS);
-	return { endDate: now, startDate: start };
+	const start = now.minus({ days }).toJSDate();
+	return { endDate: now.toJSDate(), startDate: start };
 }

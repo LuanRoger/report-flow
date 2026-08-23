@@ -14,7 +14,7 @@ import {
 	getAnalysisById,
 	performAnalysisByCycle,
 	performAnalysisByPond,
-	storeAnalysis,
+	storeAnalysisScoreResult,
 } from "./use-cases";
 
 export const analysesReportModule = new Elysia({ prefix: "/report" })
@@ -67,7 +67,7 @@ export const analysesModule = new Elysia({ prefix: "/analyses" })
 		"/ponds/:id",
 		async ({ body, params: { id }, status }) => {
 			const result = await performAnalysisByPond(id, body);
-			await storeAnalysis(result);
+			await storeAnalysisScoreResult(result);
 
 			return status("OK", result);
 		},
@@ -89,7 +89,7 @@ export const analysesModule = new Elysia({ prefix: "/analyses" })
 		"/cycles/:id",
 		async ({ params: { id }, status }) => {
 			const result = await performAnalysisByCycle(id);
-			await storeAnalysis(result, id);
+			await storeAnalysisScoreResult(result, id);
 
 			return status("OK", result);
 		},
