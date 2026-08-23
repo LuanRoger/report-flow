@@ -7,6 +7,7 @@ import logixlysia from "logixlysia";
 import { ENV } from "varlock/env";
 import z from "zod";
 import { version } from "../package.json";
+import { cyclesModule } from "./modules";
 import { ingestModule } from "./modules/ingest";
 
 const appName = "analysis";
@@ -80,5 +81,6 @@ new Elysia()
 			return status("Unauthorized");
 		}
 	})
+	.use(cyclesModule)
 	.use(ingestModule)
 	.listen(port);

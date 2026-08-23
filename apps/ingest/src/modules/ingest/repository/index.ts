@@ -1,5 +1,5 @@
-import { db, measurements, pondCycles } from "@/db";
-import type { CreateCycle, CreateMeasurement } from "./types";
+import { db, measurements } from "@/db";
+import type { CreateMeasurement } from "./types";
 
 export async function getPondCycle(pondId: number) {
 	return await db.query.pondCycles.findFirst({
@@ -20,13 +20,4 @@ export async function getPond(pondId: number) {
 			id: pondId,
 		},
 	});
-}
-
-export async function createCycle(data: CreateCycle) {
-	const result = await db.insert(pondCycles).values(data).returning();
-	if (result.length === 0) {
-		throw new Error("Failed to create cycle");
-	}
-
-	return result[0];
 }
