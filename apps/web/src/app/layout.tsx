@@ -41,9 +41,7 @@ export default function RootLayout({
         <NuqsAdapter>
           <ThemeProvider>
             <TooltipProvider>
-              <SidebarProvider>
-                {children}
-              </SidebarProvider>
+              <SidebarProvider>{children}</SidebarProvider>
             </TooltipProvider>
           </ThemeProvider>
         </NuqsAdapter>
