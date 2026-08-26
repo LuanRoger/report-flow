@@ -53,13 +53,20 @@ export const measurements = pgTable(
     index("measurements_created_at_idx").on(table.createdAt),
 
     // Composite indexes for common query patterns
-    index("measurements_pond_parameter_idx").on(
+    index("measurements_pond_parameter_recorded_at_idx").on(
       table.pondId,
-      table.parameterCode
+      table.parameterCode,
+      table.recordedAt.desc()
     ),
-    index("measurements_pond_recorded_at_idx").on(
+    index("measurements_pond_recorded_at_id_idx").on(
       table.pondId,
-      table.recordedAt
+      table.recordedAt.desc(),
+      table.id.desc()
+    ),
+    index("measurements_cycle_recorded_at_id_idx").on(
+      table.cycleId,
+      table.recordedAt.desc(),
+      table.id.desc()
     ),
     index("measurements_parameter_recorded_at_idx").on(
       table.parameterCode,

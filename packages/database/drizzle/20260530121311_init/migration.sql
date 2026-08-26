@@ -124,8 +124,9 @@ CREATE INDEX measurements_created_at_idx ON measurements (created_at);
 
 -- Composite indexes for common query patterns
 CREATE INDEX measurements_pond_cycle_idx ON measurements (pond_id, cycle_id);
-CREATE INDEX measurements_pond_parameter_idx ON measurements (pond_id, parameter_code);
-CREATE INDEX measurements_pond_recorded_at_idx ON measurements (pond_id, recorded_at);
+CREATE INDEX measurements_pond_parameter_recorded_at_idx ON measurements (pond_id, parameter_code, recorded_at DESC);
+CREATE INDEX measurements_pond_recorded_at_id_idx ON measurements (pond_id, recorded_at DESC, id DESC);
+CREATE INDEX measurements_cycle_recorded_at_id_idx ON measurements (cycle_id, recorded_at DESC, id DESC);
 CREATE INDEX measurements_parameter_recorded_at_idx ON measurements (parameter_code, recorded_at);
 
 -- ============================================
