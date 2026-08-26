@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next";
 import { ThemeProvider } from "@/components/theme-provider";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 const geistSans = Geist({
@@ -38,7 +40,11 @@ export default function RootLayout({
       <body>
         <NuqsAdapter>
           <ThemeProvider>
-            <main>{children}</main>
+            <TooltipProvider>
+              <SidebarProvider>
+                {children}
+              </SidebarProvider>
+            </TooltipProvider>
           </ThemeProvider>
         </NuqsAdapter>
       </body>
