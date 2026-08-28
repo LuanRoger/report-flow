@@ -105,7 +105,10 @@ export async function getRealtimeMeasurementsForPond(
   const bucketStart = sql<Date>`time_bucket(
     ${options.bucketInterval}::interval,
     ${measurements.recordedAt}
-  )`.mapWith(measurements.recordedAt);
+  )`
+    .mapWith(measurements.recordedAt)
+    .as("bucket_start");
+  const bucketStartColumn = sql`${sql.identifier("bucket_start")}`;
 
   return await db
     .select({
@@ -130,6 +133,6 @@ export async function getRealtimeMeasurementsForPond(
         lte(measurements.recordedAt, options.endDate)
       )
     )
-    .groupBy(bucketStart, measurements.parameterCode, measurements.unit)
-    .orderBy(asc(bucketStart), asc(measurements.parameterCode));
+    .groupBy(bucketStartColumn, measurements.parameterCode, measurements.unit)
+    .orderBy(asc(bucketStartColumn), asc(measurements.parameterCode));
 }

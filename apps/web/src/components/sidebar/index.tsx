@@ -20,6 +20,11 @@ export default function Sidebar() {
               <Link href="/measurements">
                 <SidebarMenuButton>Medidas</SidebarMenuButton>
               </Link>
+						</SidebarMenuItem>
+						<SidebarMenuItem>
+              <Link href="/live">
+                <SidebarMenuButton>Ao vivo</SidebarMenuButton>
+              </Link>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
