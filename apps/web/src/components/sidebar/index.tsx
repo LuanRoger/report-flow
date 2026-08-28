@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   SidebarContent,
   SidebarGroup,
@@ -16,7 +17,9 @@ export default function Sidebar() {
           <SidebarGroupLabel>Observer</SidebarGroupLabel>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton>Medidas</SidebarMenuButton>
+              <Link href="/measurements">
+                <SidebarMenuButton>Medidas</SidebarMenuButton>
+              </Link>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>

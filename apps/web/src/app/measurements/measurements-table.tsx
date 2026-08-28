@@ -9,7 +9,7 @@ import {
   useQueryStates,
 } from "nuqs";
 import { type MouseEvent, useCallback, useEffect } from "react";
-import { getMeasurementsAction } from "@/app/actions/measurements";
+import { getMeasurementsAction } from "@/app/measurements/actions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Pagination,
