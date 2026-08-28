@@ -1,13 +1,6 @@
 import z from "zod";
 import { unitCodes } from "@/app/constants/measurements";
-
-export const liveParameterCodes = [
-  "temperature",
-  "turbidity",
-  "dissolvedOxygen",
-] as const;
-export const liveBuckets = ["15s", "1m", "5m", "15m"] as const;
-export const liveWindows = ["15m", "1h", "6h", "24h"] as const;
+import { liveBuckets, liveParameterCodes, liveWindows } from "@/app/constants/live";
 
 export const liveMeasurementsInputSchema = z.object({
   bucket: z.enum(liveBuckets).default("1m"),

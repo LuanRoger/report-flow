@@ -16,7 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatDateTime } from "@/lib/utils/date";
+import { formatDateTimeMed } from "@/lib/utils/date";
 import type { Measurement } from "../../actions/types";
 
 const parameterLabels: Record<string, string> = {
@@ -62,7 +62,7 @@ export default function MeasurementsTable({
             {data.map((measurement) => (
               <TableRow key={`${measurement.id}-${measurement.recordedAt}`}>
                 <TableCell className="font-medium">
-                  {formatDateTime(measurement.recordedAt)}
+                  {formatDateTimeMed(measurement.recordedAt)}
                 </TableCell>
                 <TableCell>
                   {parameterLabels[measurement.parameterCode] ??

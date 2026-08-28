@@ -1,24 +1,32 @@
+import { Badge } from "@/components/ui/badge";
 import { getLiveMeasurementsAction } from "./actions";
 import InvalidPondAlert from "./components/invalid-pond-alert";
 import LiveDashboard from "./components/live-dashboard";
 import { loadLiveSearchParams } from "./query";
+import { RadioIcon } from "lucide-react";
+import { formatDateTimeMed } from "@/lib/utils/date";
 
 export default async function LivePage({ searchParams }: PageProps<"/live">) {
   const { pondId } = await loadLiveSearchParams(searchParams);
 
   if (pondId === null || pondId < 1) {
     return <InvalidPondAlert />;
-  }
+	}
+
+	const bucket = "15s" as const;
+	const window = "15m" as const;
 
   const { data, serverError } = await getLiveMeasurementsAction({
-    bucket: "15s",
+    bucket,
     pondId,
-    window: "15m",
+    window,
   });
 
   if (serverError || !data) {
     return <h1>Error: {serverError}</h1>;
   }
 
-  return <LiveDashboard initialData={data} key={pondId} pondId={pondId} />;
+	return (
+			<LiveDashboard initialData={data} key={pondId} pondId={pondId} />
+  );
 }
