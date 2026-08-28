@@ -22,7 +22,9 @@ export const getMeasurementsAction = actionClient
     }
 
     const response = await analysisApi
-      .get(`/measurements/${resource}?${searchParams.toString()}`)
+      .get(`/measurements/${resource}?${searchParams.toString()}`, {
+        cache: "no-store",
+      })
       .json(measurementsPageSchema);
 
     return response;

@@ -1,5 +1,6 @@
 "use client";
 
+import type { MouseEventHandler } from "react";
 import {
   Pagination,
   PaginationContent,
@@ -31,8 +32,8 @@ interface MeasurementsTableProps {
   data: Measurement[];
   isNextDisabled: boolean;
   isPreviousDisabled: boolean;
-  onNextPage: () => void;
-  onPreviousPage: () => void;
+  onNextPage: MouseEventHandler<HTMLAnchorElement>;
+  onPreviousPage: MouseEventHandler<HTMLAnchorElement>;
 }
 
 export default function MeasurementsTable({
