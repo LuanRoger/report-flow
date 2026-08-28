@@ -11,7 +11,7 @@ export default async function LivePage({ searchParams }: PageProps<"/live">) {
   }
 
   const { data, serverError } = await getLiveMeasurementsAction({
-    bucket: "1m",
+    bucket: "15s",
     pondId,
     window: "15m",
   });

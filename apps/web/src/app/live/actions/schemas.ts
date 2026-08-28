@@ -6,7 +6,7 @@ export const liveParameterCodes = [
   "turbidity",
   "dissolvedOxygen",
 ] as const;
-export const liveBuckets = ["1m", "5m", "15m"] as const;
+export const liveBuckets = ["15s", "1m", "5m", "15m"] as const;
 export const liveWindows = ["15m", "1h", "6h", "24h"] as const;
 
 export const liveMeasurementsInputSchema = z.object({
