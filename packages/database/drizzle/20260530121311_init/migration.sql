@@ -21,6 +21,18 @@ CREATE TYPE unit_code AS ENUM (
     'mg/L'
 );
 
+CREATE TYPE message_role AS ENUM (
+    'user',
+    'assistant'
+);
+
+CREATE TYPE message_status AS ENUM (
+    'streaming',
+    'completed',
+    'failed',
+    'aborted'
+);
+
 -- Create ponds table
 CREATE TABLE ponds (
     id SERIAL PRIMARY KEY,
@@ -88,22 +100,35 @@ CREATE TABLE analysis_embeddings (
 -- their access patterns are relational rather than time-series analytics.
 CREATE TABLE chats (
     id SERIAL PRIMARY KEY,
+    pond_id INTEGER NOT NULL,
     title TEXT NOT NULL,
-    user_id INTEGER NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE messages (
     id SERIAL PRIMARY KEY,
     chat_id INTEGER NOT NULL,
+    message_id TEXT NOT NULL,
+    role message_role NOT NULL,
     content TEXT NOT NULL,
-    parts JSON NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    parts JSONB NOT NULL,
+    status message_status NOT NULL DEFAULT 'completed',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE streams (
+CREATE TABLE message_sources (
     id SERIAL PRIMARY KEY,
-    chat_id INTEGER NOT NULL,
+    message_id INTEGER NOT NULL,
+    analysis_id INTEGER,
+    source_key TEXT NOT NULL,
+    rank INTEGER NOT NULL,
+    similarity REAL,
+    analysis_created_at TIMESTAMPTZ NOT NULL,
+    analysis_cycle_id INTEGER,
+    period_start TIMESTAMPTZ NOT NULL,
+    period_end TIMESTAMPTZ NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -177,13 +202,17 @@ CREATE INDEX analysis_embeddings_created_at_idx ON analysis_embeddings (created_
 -- ============================================
 -- Index names are table-qualified because PostgreSQL index names must be unique
 -- within a schema.
-CREATE INDEX chats_user_id_idx ON chats (user_id);
+CREATE UNIQUE INDEX chats_pond_id_unique ON chats (pond_id);
 CREATE INDEX chats_created_at_idx ON chats (created_at);
+CREATE INDEX chats_updated_at_idx ON chats (updated_at);
 
-CREATE INDEX messages_chat_id_idx ON messages (chat_id);
+CREATE UNIQUE INDEX messages_chat_message_id_unique ON messages (chat_id, message_id);
+CREATE INDEX messages_chat_history_idx ON messages (chat_id, created_at, id);
 CREATE INDEX messages_created_at_idx ON messages (created_at);
 
-CREATE INDEX streams_chat_id_idx ON streams (chat_id);
+CREATE UNIQUE INDEX message_sources_message_key_unique ON message_sources (message_id, source_key);
+CREATE INDEX message_sources_message_idx ON message_sources (message_id);
+CREATE INDEX message_sources_analysis_idx ON message_sources (analysis_id);
 
 -- ============================================
 -- FOREIGN KEY CONSTRAINTS
@@ -208,8 +237,14 @@ ALTER TABLE analysis_results ADD CONSTRAINT fk_analysis_results_cycle
 ALTER TABLE analysis_embeddings ADD CONSTRAINT fk_analysis_embeddings_analysis
     FOREIGN KEY (analysis_id) REFERENCES analysis_results(id) ON DELETE CASCADE;
 
+ALTER TABLE chats ADD CONSTRAINT fk_chats_pond
+    FOREIGN KEY (pond_id) REFERENCES ponds(id) ON DELETE CASCADE;
+
 ALTER TABLE messages ADD CONSTRAINT fk_messages_chat
     FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE;
 
-ALTER TABLE streams ADD CONSTRAINT fk_streams_chat
-    FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE;
+ALTER TABLE message_sources ADD CONSTRAINT fk_message_sources_message
+    FOREIGN KEY (message_id) REFERENCES messages(id) ON DELETE CASCADE;
+
+ALTER TABLE message_sources ADD CONSTRAINT fk_message_sources_analysis
+    FOREIGN KEY (analysis_id) REFERENCES analysis_results(id) ON DELETE SET NULL;
