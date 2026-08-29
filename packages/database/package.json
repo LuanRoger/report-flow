@@ -8,10 +8,10 @@
   },
   "module": "src/index.js",
   "scripts": {
-    "db:generate": "varlock run --no-redact-stdout -- drizzle-kit generate",
-    "db:migrate": "varlock run --no-redact-stdout -- drizzle-kit migrate",
-    "db:push": "varlock run --no-redact-stdout -- drizzle-kit push",
-    "db:studio": "varlock run --no-redact-stdout -- drizzle-kit studio",
+    "db:generate": "varlock run --no-redact-stdout -- bun --bun drizzle-kit generate",
+    "db:migrate": "varlock run --no-redact-stdout -- bun --bun drizzle-kit migrate",
+    "db:push": "varlock run --no-redact-stdout -- bun --bun drizzle-kit push",
+    "db:studio": "varlock run --no-redact-stdout -- bun --bun drizzle-kit studio",
     "env:load": "varlock load"
   },
   "dependencies": {

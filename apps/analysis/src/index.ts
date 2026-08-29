@@ -9,6 +9,7 @@ import { ENV } from "varlock/env";
 import z from "zod";
 import { version } from "../package.json";
 import { analysesModule } from "./modules/analysis";
+import { measurementsModule } from "./modules/measurements";
 
 const appName = "analysis";
 const port = 3001;
@@ -83,4 +84,5 @@ new Elysia()
     }
   })
   .use(analysesModule)
+  .use(measurementsModule)
   .listen(port);

@@ -7,7 +7,11 @@
   },
   "files": {
     "ignoreUnknown": true,
-    "includes": ["!**/*.d.ts"]
+    "includes": [
+      "!**/*.d.ts",
+      "!apps/web/src/components/ui",
+      "!apps/web/src/components/charts"
+    ]
   },
   "linter": {
     "rules": {
