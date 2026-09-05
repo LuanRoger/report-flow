@@ -11,8 +11,11 @@ import {
   createAnalysisCitationPlugin,
   createAnalysisSourceMap,
   getCitationSourceIdFromHref,
-} from "../utils/citations";
-import { AnalysisCitation, AnalysisSources } from "./analysis-citation";
+} from "../../../../../../utils/citations";
+import {
+  AnalysisCitation,
+  AnalysisSources,
+} from "../../../../../analysis-citation";
 
 interface ChatMessageProps {
   isStreaming: boolean;
@@ -46,7 +49,10 @@ const createCitationAnchor = (sources: ReadonlyMap<string, AnalysisSource>) => {
   return CitationAnchor;
 };
 
-export const ChatMessage = ({ isStreaming, message }: ChatMessageProps) => {
+export default function ChatMessage({
+  isStreaming,
+  message,
+}: ChatMessageProps) {
   if (message.role === "system") {
     return null;
   }
@@ -95,4 +101,4 @@ export const ChatMessage = ({ isStreaming, message }: ChatMessageProps) => {
       </MessageContent>
     </Message>
   );
-};
+}

@@ -1,5 +1,6 @@
 import type { UIMessage } from "ai";
 import { BotIcon, LoaderCircleIcon } from "lucide-react";
+import { INITIAL_CHAT_SUGGESTED_QUESTIONS } from "@/app/chat/constants";
 import {
   Conversation,
   ConversationContent,
@@ -7,8 +8,7 @@ import {
   ConversationScrollButton,
 } from "@/components/ai-elements/conversation";
 import { Message, MessageContent } from "@/components/ai-elements/message";
-import { INITIAL_CHAT_SUGGESTED_QUESTIONS } from "../../constants";
-import { ChatMessage } from "../chat-message";
+import ChatMessage from "./components/chat-message";
 import Suggestions from "./components/suggestions";
 
 interface ChatConversationProps {
