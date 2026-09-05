@@ -147,14 +147,6 @@ async function createPondChatMessageStream(
       for (const source of sources) {
         writer.write({
           mediaType: "application/vnd.report-flow.analysis",
-          providerMetadata: {
-            reportFlow: {
-              analysisCreatedAt: source.analysisCreatedAt.toISOString(),
-              cycle: source.cycleId,
-              periodEnd: source.periodEnd.toISOString(),
-              periodStart: source.periodStart.toISOString(),
-            },
-          },
           sourceId: source.sourceKey,
           title: formatAdvisorSourceTitle(source),
           type: "source-document",

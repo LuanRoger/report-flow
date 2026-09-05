@@ -13,7 +13,7 @@ export default function ChatHeader({
   trailing,
 }: ChatHeaderProps) {
   return (
-    <header className="flex shrink-0 items-center gap-3 border-b px-4 py-3 sm:px-6">
+    <header className="flex items-center gap-3 border-b px-4 py-3 sm:px-6">
       <SidebarTrigger />
       <div className="min-w-0 flex-1">
         <h1 className="truncate font-semibold text-base">{title}</h1>

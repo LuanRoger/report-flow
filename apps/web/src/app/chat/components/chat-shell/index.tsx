@@ -8,7 +8,7 @@ import {
 } from "@/components/ai-elements/prompt-input";
 import { useAiChat } from "@/hooks/use-ai-chat";
 import { ADVISOR_MESSAGE_CHARACTER_LIMIT } from "../../constants";
-import ChatConversation from "./components/";
+import ChatConversation from "./components/chat-conversation";
 import ClearHistoryButton from "./components/clear-history-button";
 import ChatHeader from "./components/hearder";
 

@@ -1,5 +1,5 @@
-import { chatSubmitRequestSchema } from "@/app/chat/schemas";
 import { getAnalysisApi } from "@/lib/http";
+import { chatSubmitRequestSchema } from "./schemas";
 
 const STREAM_RESPONSE_HEADERS = [
   "content-type",
