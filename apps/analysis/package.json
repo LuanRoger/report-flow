@@ -9,13 +9,13 @@
     "start": "bun src/index.js"
   },
   "dependencies": {
-    "@ai-sdk/openai": "^4.0.46",
+    "@ai-sdk/openai": "^4.0.60",
     "@elysia/bearer": "catalog:web",
     "@elysia/cors": "catalog:web",
     "@elysia/openapi": "catalog:web",
     "@elysia/server-timing": "catalog:web",
     "@elysiajs/html": "catalog:web",
-    "ai": "^7.0.77",
+    "ai": "^7.0.93",
     "database": "workspace:*",
     "drizzle-orm": "catalog:db",
     "elysia": "catalog:web",
