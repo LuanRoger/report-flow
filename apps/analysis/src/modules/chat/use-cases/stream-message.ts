@@ -10,10 +10,13 @@ import {
   toUIMessageStream,
   type UIMessage,
 } from "ai";
+
 import {
   ADVISOR_CHAT_MODEL,
   ADVISOR_HISTORY_MESSAGE_LIMIT,
   ADVISOR_MAX_OUTPUT_TOKENS,
+  ADVISOR_REASONING_EFFORT,
+  ADVISOR_STREAM_RETRY_LIMIT,
 } from "../constants";
 import {
   ChatMessageAlreadySubmittedError,
@@ -39,6 +42,33 @@ import { getOrCreatePondChat } from ".";
 
 const SAFE_STREAM_ERROR =
   "Não foi possível concluir a resposta. Tente novamente em instantes.";
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function getErrorLogContext(error: unknown): Record<string, unknown> {
+  const errorRecord = isRecord(error) ? error : undefined;
+  const lastError = isRecord(errorRecord?.lastError)
+    ? errorRecord.lastError
+    : undefined;
+  const underlyingError = lastError ?? errorRecord;
+  let message = String(error);
+
+  if (error instanceof Error) {
+    ({ message } = error);
+  } else if (typeof underlyingError?.message === "string") {
+    ({ message } = underlyingError);
+  }
+
+  return {
+    code: underlyingError?.code,
+    errorName: error instanceof Error ? error.name : "UnknownError",
+    isRetryable: underlyingError?.isRetryable,
+    message,
+    statusCode: underlyingError?.statusCode,
+  };
+}
 
 function getTextContent(message: UIMessage): string {
   return message.parts
@@ -77,13 +107,31 @@ async function getValidatedModelHistory(chatId: number): Promise<UIMessage[]> {
   return validation.data.slice(-ADVISOR_HISTORY_MESSAGE_LIMIT);
 }
 
+function getPlainTextParts(message: UIMessage): UIMessage["parts"] {
+  return message.parts.filter(isTextUIPart).map(({ text }) => ({
+    text,
+    type: "text" as const,
+  }));
+}
+
 function getModelHistory(messages: UIMessage[]): UIMessage[] {
   return messages
     .map((message) => ({
       ...message,
-      parts: message.parts.filter(isTextUIPart),
+      parts: getPlainTextParts(message),
     }))
     .filter((message) => message.parts.length > 0);
+}
+
+function getPersistableResponseParts(message: UIMessage): UIMessage["parts"] {
+  return message.parts.map((part) =>
+    isTextUIPart(part)
+      ? {
+          text: part.text,
+          type: "text" as const,
+        }
+      : part
+  );
 }
 
 async function createPondChatMessageStream(
@@ -162,15 +210,31 @@ async function createPondChatMessageStream(
           onAbort: async () => {
             await markIncomplete("aborted");
           },
-          onError: async () => {
-            await markIncomplete("failed");
+          onError: ({ error }) => {
+            console.warn(
+              "Advisor model stream attempt failed",
+              getErrorLogContext(error)
+            );
           },
+          providerOptions: {
+            openai: {
+              reasoningEffort: ADVISOR_REASONING_EFFORT,
+            },
+          },
+          streamRetries: ADVISOR_STREAM_RETRY_LIMIT,
           system,
         });
 
         writer.merge(
           toUIMessageStream({
-            onError: () => SAFE_STREAM_ERROR,
+            onError: (error) => {
+              writer.setOutcome({ error, status: "failed" });
+              console.error(
+                "Advisor model stream failed",
+                getErrorLogContext(error)
+              );
+              return SAFE_STREAM_ERROR;
+            },
             sendReasoning: false,
             sendSources: false,
             sendStart: false,
@@ -182,17 +246,23 @@ async function createPondChatMessageStream(
         throw error;
       }
     },
-    onEnd: async ({ isAborted, responseMessage }) => {
+    onEnd: async ({ isAborted, outcome, responseMessage }) => {
       try {
         if (finalStatus) {
           return;
         }
-        if (isAborted) {
+        if (isAborted || outcome.status === "aborted") {
           await markIncomplete("aborted");
           return;
         }
+        if (outcome.status === "failed") {
+          await markIncomplete("failed");
+          return;
+        }
 
-        const parts = persistedMessagePartsSchema.parse(responseMessage.parts);
+        const parts = persistedMessagePartsSchema.parse(
+          getPersistableResponseParts(responseMessage)
+        );
 
         try {
           await completeAssistantMessage({
@@ -211,7 +281,11 @@ async function createPondChatMessageStream(
         releaseOperation();
       }
     },
-    onError: () => {
+    onError: (error) => {
+      console.error(
+        "Advisor chat stream processing failed",
+        getErrorLogContext(error)
+      );
       releaseOperation();
       return SAFE_STREAM_ERROR;
     },

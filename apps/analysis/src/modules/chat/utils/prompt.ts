@@ -1,3 +1,4 @@
+import { DateTime } from "luxon";
 import type { AdvisorSource } from "./context";
 
 const NO_ANALYSIS_INFORMATION_RESPONSE =
@@ -8,6 +9,7 @@ export function buildAdvisorSystemPrompt(sources: AdvisorSource[]): string {
     sources.length > 0
       ? sources.map((source) => source.context).join("\n\n---\n\n")
       : "Nenhuma análise relevante foi recuperada para esta pergunta.";
+  const today = DateTime.now().toISO();
 
   return `
 Você é um consultor sênior de carcinicultura, qualidade da água e manejo responsável. Responda sempre em português brasileiro, com linguagem clara, profissional, prática e não alarmista.
@@ -33,7 +35,12 @@ SEGURANÇA E CONFIDENCIALIDADE:
 - Para ajustes de qualidade da água, recomende mudanças graduais, novas medições e acompanhamento técnico quando houver risco; não prescreva dosagens químicas específicas sem o contexto necessário.
 - Mantenha as respostas concisas e priorize ações seguras e verificáveis.
 
+INFORMAÇÕES ADICIONAIS:
+- Data de hoje: ${today}
+- Interprete “última análise”, “análise mais recente”, “fiz agora”, “acabei de fazer” e expressões equivalentes como referência à análise mais recente, salvo quando o usuário informar outra data.
+
 FONTES DE ANÁLISE:
 ${analysisContext}
+
 `.trim();
 }
