@@ -17,14 +17,19 @@ export default function Sidebar() {
           <SidebarGroupLabel>Observer</SidebarGroupLabel>
           <SidebarMenu>
             <SidebarMenuItem>
-              <Link href="/measurements">
-                <SidebarMenuButton>Medidas</SidebarMenuButton>
-              </Link>
-						</SidebarMenuItem>
-						<SidebarMenuItem>
-              <Link href="/live">
-                <SidebarMenuButton>Ao vivo</SidebarMenuButton>
-              </Link>
+              <SidebarMenuButton asChild>
+                <Link href="/measurements">Medidas</Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link href="/live">Ao vivo</Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link href="/chat">Consultor</Link>
+              </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
