@@ -52,8 +52,9 @@ export default function ChatConversation({
             </div>
           </ConversationEmptyState>
         ) : (
-          messages.map((message) => (
+          messages.map((message, index) => (
             <ChatMessage
+              isLastMessage={index === messages.length - 1}
               isStreaming={isStreaming}
               key={message.id}
               message={message}

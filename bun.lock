@@ -72,6 +72,7 @@
         "@hookform/resolvers": "^5.9.1",
         "@next-safe-action/adapter-react-hook-form": "^2.1.0",
         "@number-flow/react": "^0.6.2",
+        "@radix-ui/react-use-controllable-state": "^1.2.6",
         "@streamdown/cjk": "^1.0.3",
         "@streamdown/code": "^1.1.1",
         "@streamdown/math": "^1.0.2",
