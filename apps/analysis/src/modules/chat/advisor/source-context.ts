@@ -1,5 +1,6 @@
 import { formatDate } from "../../../utils/date";
-import { metadataSchema } from "../../analysis/schemas";
+import { ANALYSIS_SOURCE_PROTOCOL } from "../constants";
+import type { AdvisorAnalysis } from "../repository/advisor-analyses";
 
 const PARAMETER_DEFINITIONS = [
   {
@@ -34,21 +35,6 @@ const PARAMETER_DEFINITIONS = [
   },
 ] as const;
 
-export interface AdvisorAnalysis {
-  analysisCreatedAt: Date;
-  analysisId: number;
-  cycleId: number | null;
-  dissolvedOxygenScore: number;
-  endTime: Date;
-  finalScore: number;
-  metadata: unknown;
-  phScore: number;
-  salinityScore: number;
-  startTime: Date;
-  temperatureScore: number;
-  turbidityScore: number;
-}
-
 export interface AdvisorSource {
   analysisCreatedAt: Date;
   analysisId: number;
@@ -61,21 +47,6 @@ export interface AdvisorSource {
   sourceKey: string;
 }
 
-function parseMetadata(metadata: unknown) {
-  let parsedMetadata = metadata;
-
-  if (typeof metadata === "string") {
-    try {
-      parsedMetadata = JSON.parse(metadata);
-    } catch {
-      return;
-    }
-  }
-
-  const result = metadataSchema.safeParse(parsedMetadata);
-  return result.success ? result.data : undefined;
-}
-
 function formatValue(value: number, unit: string | null): string {
   const formattedValue = value.toFixed(2);
   return unit ? `${formattedValue} ${unit}` : formattedValue;
@@ -84,24 +55,27 @@ function formatValue(value: number, unit: string | null): string {
 function formatParameter(
   analysis: AdvisorAnalysis,
   definition: (typeof PARAMETER_DEFINITIONS)[number],
-  metadata: ReturnType<typeof parseMetadata>
+  metadata: AdvisorAnalysis["metadata"]
 ): string {
   const score = analysis[definition.scoreKey];
   const rawValues = metadata?.parameterStats[definition.statsKey]?.rawValues;
   const details = [`pontuação ${score.toFixed(1)}/100`];
 
-  if (typeof rawValues?.mean === "number") {
-    details.push(`média ${formatValue(rawValues.mean, definition.unit)}`);
+  if (!rawValues) {
+    return `- ${definition.label}: ${details.join(", ")}`;
   }
-  if (typeof rawValues?.min === "number") {
-    details.push(`mínimo ${formatValue(rawValues.min, definition.unit)}`);
+
+  const { count, max, mean, min } = rawValues;
+  if (mean !== null) {
+    details.push(`média ${formatValue(mean, definition.unit)}`);
   }
-  if (typeof rawValues?.max === "number") {
-    details.push(`máximo ${formatValue(rawValues.max, definition.unit)}`);
+  if (min !== null) {
+    details.push(`mínimo ${formatValue(min, definition.unit)}`);
   }
-  if (typeof rawValues?.count === "number") {
-    details.push(`${rawValues.count} medições`);
+  if (max !== null) {
+    details.push(`máximo ${formatValue(max, definition.unit)}`);
   }
+  details.push(`${count} medições`);
 
   return `- ${definition.label}: ${details.join(", ")}`;
 }
@@ -117,8 +91,8 @@ export function createAdvisorSource(
   rank: number,
   similarity: number | null
 ): AdvisorSource {
-  const sourceKey = `S${rank}`;
-  const metadata = parseMetadata(analysis.metadata);
+  const sourceKey = `${ANALYSIS_SOURCE_PROTOCOL.labelPrefix}${rank}`;
+  const { metadata } = analysis;
   const cycle = analysis.cycleId?.toString() ?? "não informado";
   const parameterLines = PARAMETER_DEFINITIONS.map((definition) =>
     formatParameter(analysis, definition, metadata)

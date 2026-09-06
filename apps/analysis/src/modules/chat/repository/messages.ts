@@ -1,68 +1,34 @@
-import {
-  analysisEmbeddings,
-  analysisResults,
-  chats,
-  db,
-  messageSources,
-  messages,
-  ponds,
-} from "database";
-import { and, asc, cosineDistance, desc, eq, gt, sql } from "drizzle-orm";
-import type {
-  CompleteAssistantMessageInput,
-  CreateUserMessageInput,
-  IncompleteAssistantMessageStatus,
-} from "./types";
+import type { PersistedMessagePart } from "database";
+import { chats, db, messageSources, messages } from "database";
+import { and, asc, eq } from "drizzle-orm";
 
-const advisorAnalysisSelection = {
-  analysisCreatedAt: analysisResults.createdAt,
-  analysisId: analysisResults.id,
-  cycleId: analysisResults.cycleId,
-  dissolvedOxygenScore: analysisResults.dissolvedOxygenScore,
-  endTime: analysisResults.endTime,
-  finalScore: analysisResults.finalScore,
-  metadata: analysisResults.metadata,
-  phScore: analysisResults.phScore,
-  salinityScore: analysisResults.salinityScore,
-  startTime: analysisResults.startTime,
-  temperatureScore: analysisResults.temperatureScore,
-  turbidityScore: analysisResults.turbidityScore,
-};
-
-export async function pondExists(pondId: number): Promise<boolean> {
-  const result = await db
-    .select({ id: ponds.id })
-    .from(ponds)
-    .where(eq(ponds.id, pondId))
-    .limit(1);
-
-  return result.length > 0;
+export interface CreateUserMessageInput {
+  chatId: number;
+  content: string;
+  messageId: string;
+  parts: PersistedMessagePart[];
 }
 
-export async function findChatByPondId(pondId: number) {
-  const result = await db
-    .select()
-    .from(chats)
-    .where(eq(chats.pondId, pondId))
-    .limit(1);
-
-  return result[0];
+export interface PersistedAdvisorSourceInput {
+  analysisCreatedAt: Date;
+  analysisId: number;
+  cycleId: number | null;
+  periodEnd: Date;
+  periodStart: Date;
+  rank: number;
+  similarity: number | null;
+  sourceKey: string;
 }
 
-export async function createOrGetChatForPond(pondId: number, title: string) {
-  const createdChats = await db
-    .insert(chats)
-    .values({ pondId, title })
-    .onConflictDoNothing({ target: chats.pondId })
-    .returning();
-  const chat = createdChats[0] ?? (await findChatByPondId(pondId));
-
-  if (!chat) {
-    throw new Error("Failed to create or load the pond chat");
-  }
-
-  return chat;
+export interface CompleteAssistantMessageInput {
+  chatId: number;
+  content: string;
+  messageRowId: number;
+  parts: PersistedMessagePart[];
+  sources: PersistedAdvisorSourceInput[];
 }
+
+export type IncompleteAssistantMessageStatus = "aborted" | "failed";
 
 export async function listMessagesByChatId(chatId: number) {
   return await db
@@ -210,45 +176,4 @@ export async function markAssistantMessageIncomplete(
     .update(messages)
     .set({ status, updatedAt: new Date() })
     .where(eq(messages.id, messageRowId));
-}
-
-export async function findRecentAnalysesForPond(pondId: number, limit: number) {
-  return await db
-    .select(advisorAnalysisSelection)
-    .from(analysisResults)
-    .where(eq(analysisResults.pondId, pondId))
-    .orderBy(desc(analysisResults.createdAt), desc(analysisResults.id))
-    .limit(limit);
-}
-
-export async function findSemanticallyRelevantAnalysesForPond(
-  pondId: number,
-  queryEmbedding: number[],
-  limit: number,
-  minimumSimilarity: number
-) {
-  const similarity = sql<number>`1 - (${cosineDistance(
-    analysisEmbeddings.embedding,
-    queryEmbedding
-  )})`.mapWith(Number);
-
-  return await db
-    .select({
-      ...advisorAnalysisSelection,
-      similarity,
-    })
-    .from(analysisEmbeddings)
-    .innerJoin(
-      analysisResults,
-      eq(analysisEmbeddings.analysisId, analysisResults.id)
-    )
-    .where(
-      and(eq(analysisResults.pondId, pondId), gt(similarity, minimumSimilarity))
-    )
-    .orderBy(
-      desc(similarity),
-      desc(analysisResults.createdAt),
-      desc(analysisResults.id)
-    )
-    .limit(limit);
 }

@@ -1,17 +1,15 @@
 "use client";
 
+import { RadioIcon } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { getLiveMeasurementsAction } from "../../actions";
-import type {
-  LiveMeasurementsSnapshot,
-} from "../../actions/types";
-import MetricChart from "./components/metric-chart";
-import { buildMetricSeries } from "../../utils";
+import { useCallback, useEffect, useState } from "react";
 import { POLLING_INTERVAL_MS, WINDOW_SECONDS } from "@/app/constants/live";
 import { Badge } from "@/components/ui/badge";
-import { RadioIcon } from "lucide-react";
 import { formatDateTimeMed } from "@/lib/utils/date";
+import { getLiveMeasurementsAction } from "../../actions";
+import type { LiveMeasurementsSnapshot } from "../../actions/types";
+import { buildMetricSeries } from "../../utils";
+import MetricChart from "./components/metric-chart";
 
 interface LiveDashboardProps {
   initialData: LiveMeasurementsSnapshot;
@@ -75,12 +73,12 @@ export default function LiveDashboard({
     snapshot.window,
   ]);
 
-	const series = buildMetricSeries(snapshot.items);
+  const series = buildMetricSeries(snapshot.items);
   const windowSeconds = WINDOW_SECONDS[snapshot.window];
 
-	return (
-		<section className="flex flex-col gap-2">
-			<header className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+  return (
+    <section className="flex flex-col gap-2">
+      <header className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div className="space-y-1">
           <h1
             className="font-semibold text-2xl tracking-tight"
@@ -113,6 +111,6 @@ export default function LiveDashboard({
           />
         ))}
       </div>
-		</section>
+    </section>
   );
 }

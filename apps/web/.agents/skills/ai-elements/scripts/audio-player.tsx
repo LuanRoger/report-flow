@@ -1,5 +1,7 @@
 "use client";
 
+import type { Experimental_SpeechResult as SpeechResult } from "ai";
+import { useEffect, useState } from "react";
 import {
   AudioPlayer,
   AudioPlayerControlBar,
@@ -13,8 +15,6 @@ import {
   AudioPlayerTimeRange,
   AudioPlayerVolumeRange,
 } from "@/components/ai-elements/audio-player";
-import type { Experimental_SpeechResult as SpeechResult } from "ai";
-import { useEffect, useState } from "react";
 
 const Example = () => {
   const [data, setData] = useState<SpeechResult["audio"] | null>(null);

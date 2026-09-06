@@ -7,7 +7,10 @@ export function formatDateTimeMed(date: string): string {
 }
 
 export function formatDateTime(date: string | number): string {
-  const parsedDate = typeof date === "string" ? DateTime.fromISO(date) : DateTime.fromMillis(date);
+  const parsedDate =
+    typeof date === "string"
+      ? DateTime.fromISO(date)
+      : DateTime.fromMillis(date);
 
-  return parsedDate.toFormat("HH:mm")
+  return parsedDate.toFormat("HH:mm");
 }

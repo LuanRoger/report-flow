@@ -8,12 +8,13 @@ interface ActivePondChatOperation {
   token: symbol;
 }
 
+const POND_CHAT_OPERATION_DESCRIPTION = "pond-chat-operation";
 const activeOperations = new Map<number, ActivePondChatOperation>();
 
-export const acquirePondChatOperation = async (
+export async function acquirePondChatOperation(
   pondId: number,
   operation: PondChatOperation
-): Promise<() => void> => {
+): Promise<() => void> {
   const activeOperation = activeOperations.get(pondId);
 
   if (activeOperation) {
@@ -25,13 +26,17 @@ export const acquirePondChatOperation = async (
     throw new PondChatOperationConflictError();
   }
 
-  const token = Symbol("pond-chat-operation");
   let finishOperation: () => void = () => undefined;
   const finished = new Promise<void>((resolve) => {
     finishOperation = resolve;
   });
 
-  activeOperations.set(pondId, { finished, operation, token });
+  const lockToken = Symbol(POND_CHAT_OPERATION_DESCRIPTION);
+  activeOperations.set(pondId, {
+    finished,
+    operation,
+    token: lockToken,
+  });
 
   let released = false;
   return () => {
@@ -40,9 +45,9 @@ export const acquirePondChatOperation = async (
     }
 
     released = true;
-    if (activeOperations.get(pondId)?.token === token) {
+    if (activeOperations.get(pondId)?.token === lockToken) {
       activeOperations.delete(pondId);
     }
     finishOperation();
   };
-};
+}

@@ -1,5 +1,7 @@
 "use client";
 
+import { ArrowUp, Trash2 } from "lucide-react";
+import { memo, useCallback, useState } from "react";
 import type { QueueMessage, QueueTodo } from "@/components/ai-elements/queue";
 import {
   Queue,
@@ -18,8 +20,6 @@ import {
   QueueSectionLabel,
   QueueSectionTrigger,
 } from "@/components/ai-elements/queue";
-import { ArrowUp, Trash2 } from "lucide-react";
-import { memo, useCallback, useState } from "react";
 
 const sampleMessages: QueueMessage[] = [
   {
@@ -128,8 +128,8 @@ const MessageActions = memo(
 MessageActions.displayName = "MessageActions";
 
 interface TodoItemProps {
-  todo: QueueTodo;
   onRemove: (id: string) => void;
+  todo: QueueTodo;
 }
 
 const TodoItem = memo(({ todo, onRemove }: TodoItemProps) => {

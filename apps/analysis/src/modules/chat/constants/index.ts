@@ -1,12 +1,27 @@
-export const ADVISOR_CHAT_MODEL = "gpt-5.6-luna";
-export const ADVISOR_REASONING_EFFORT = "low" as const;
-export const ADVISOR_REASONING_SUMMARY = "auto" as const;
-export const ADVISOR_STREAM_RETRY_LIMIT = 2;
+export const ADVISOR_MODEL_CONFIG = {
+  historyMessageLimit: 30,
+  maxOutputTokens: 1600,
+  model: "gpt-5.6-luna",
+  reasoningEffort: "low",
+  reasoningSummary: "auto",
+  streamRetryLimit: 2,
+} as const;
 
-export const ADVISOR_SEMANTIC_RESULT_LIMIT = 4;
-export const ADVISOR_RECENT_RESULT_LIMIT = 2;
-export const ADVISOR_CONTEXT_SOURCE_LIMIT = 5;
-export const ADVISOR_MINIMUM_SIMILARITY = 0.5;
-export const ADVISOR_HISTORY_MESSAGE_LIMIT = 30;
-export const ADVISOR_MESSAGE_CHARACTER_LIMIT = 4000;
-export const ADVISOR_MAX_OUTPUT_TOKENS = 1600;
+export const ADVISOR_RETRIEVAL_CONFIG = {
+  contextSourceLimit: 5,
+  minimumSimilarity: 0.5,
+  recentResultLimit: 2,
+  semanticResultLimit: 4,
+  userMessageQueryLimit: 3,
+} as const;
+
+export const ANALYSIS_SOURCE_PROTOCOL = {
+  labelPrefix: "S",
+  mediaType: "application/vnd.report-flow.analysis",
+} as const;
+
+export const CHAT_MESSAGE_CONSTRAINTS = {
+  characterLimit: 4000,
+  idCharacterLimit: 128,
+  idPattern: /^[A-Za-z0-9_-]+$/,
+} as const;

@@ -1,35 +1,34 @@
 {
-	"$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
-	"vcs": {
-		"enabled": true,
-		"clientKind": "git",
-		"useIgnoreFile": true
-	},
-	"files": {
-		"ignoreUnknown": true,
-		"includes": [
-			"!**/*.d.ts",
-			"!apps/web/src/components/ui",
-			"!apps/web/src/components/charts"
-		]
-	},
-	"linter": {
-		"rules": {
-			"a11y": {
-				"noSvgWithoutTitle": "off"
-			}
-		}
-	},
-	"assist": {
-		"enabled": true,
-		"actions": {
-			"source": {
-				"organizeImports": "on"
-			}
-		}
-	},
-	"extends": [
-		"ultracite/biome/core",
-		"ultracite/biome/next"
-	]
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "ignoreUnknown": true,
+    "includes": [
+      "!**/*.d.ts",
+      "!apps/web/src/components/ui",
+      "!apps/web/src/components/charts",
+      "!apps/web/src/components/ai-elements",
+      "!apps/web/.agents"
+    ]
+  },
+  "linter": {
+    "rules": {
+      "a11y": {
+        "noSvgWithoutTitle": "off"
+      }
+    }
+  },
+  "assist": {
+    "enabled": true,
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
+  "extends": ["ultracite/biome/core", "ultracite/biome/next"]
 }

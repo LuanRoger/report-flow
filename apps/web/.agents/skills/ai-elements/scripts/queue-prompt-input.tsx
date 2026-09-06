@@ -1,5 +1,7 @@
 "use client";
 
+import { CheckIcon, GlobeIcon, Trash2 } from "lucide-react";
+import { memo, useCallback, useRef, useState } from "react";
 import {
   Attachment,
   AttachmentPreview,
@@ -47,8 +49,6 @@ import {
   QueueSection,
   QueueSectionContent,
 } from "@/components/ai-elements/queue";
-import { CheckIcon, GlobeIcon, Trash2 } from "lucide-react";
-import { memo, useCallback, useRef, useState } from "react";
 
 const models = [
   {
@@ -118,8 +118,8 @@ const AttachmentItem = memo(({ attachment, onRemove }: AttachmentItemProps) => {
 AttachmentItem.displayName = "AttachmentItem";
 
 interface TodoItemProps {
-  todo: QueueTodo;
   onRemove: (id: string) => void;
+  todo: QueueTodo;
 }
 
 const TodoItem = memo(({ todo, onRemove }: TodoItemProps) => {
@@ -155,8 +155,8 @@ TodoItem.displayName = "TodoItem";
 
 interface ModelItemProps {
   m: (typeof models)[0];
-  selectedModel: string;
   onSelect: (id: string) => void;
+  selectedModel: string;
 }
 
 const ModelItem = memo(({ m, selectedModel, onSelect }: ModelItemProps) => {
