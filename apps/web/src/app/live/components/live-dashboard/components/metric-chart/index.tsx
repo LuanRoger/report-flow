@@ -1,4 +1,9 @@
 import { useCallback } from "react";
+import type { MetricSeries } from "@/app/live/types";
+import { chartCssVars } from "@/components/charts/chart-context";
+import { Grid } from "@/components/charts/grid";
+import { LiveLine } from "@/components/charts/live-line";
+import { LiveLineChart } from "@/components/charts/live-line-chart";
 import { LiveXAxis } from "@/components/charts/live-x-axis";
 import { LiveYAxis } from "@/components/charts/live-y-axis";
 import { ChartTooltip } from "@/components/charts/tooltip/chart-tooltip";
@@ -10,15 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { chartCssVars } from "@/components/charts/chart-context";
-import { Grid } from "@/components/charts/grid";
-import { LiveLine } from "@/components/charts/live-line";
-import {
-  LiveLineChart,
-} from "@/components/charts/live-line-chart";
-import { MetricSeries } from "@/app/live/types";
 import { formatDateTime } from "@/lib/utils/date";
-
 
 export default function MetricChart({
   definition,

@@ -1,6 +1,11 @@
 "use client";
 
-import { CodeBlock, CodeBlockCopyButton } from "@/components/ai-elements/code-block";
+import type { ToolUIPart } from "ai";
+import { memo, useCallback, useState } from "react";
+import {
+  CodeBlock,
+  CodeBlockCopyButton,
+} from "@/components/ai-elements/code-block";
 import {
   Sandbox,
   SandboxContent,
@@ -24,8 +29,6 @@ import {
   StackTraceHeader,
 } from "@/components/ai-elements/stack-trace";
 import { Button } from "@/components/ui/button";
-import type { ToolUIPart } from "ai";
-import { memo, useCallback, useState } from "react";
 
 const code = `import math
 
@@ -67,9 +70,9 @@ const states: ToolUIPart["state"][] = [
 ];
 
 interface StateButtonProps {
-  s: ToolUIPart["state"];
   currentState: ToolUIPart["state"];
   onStateChange: (state: ToolUIPart["state"]) => void;
+  s: ToolUIPart["state"];
 }
 
 const StateButton = memo(

@@ -1,5 +1,8 @@
 "use client";
 
+import { GlobeIcon, MicIcon, PlusIcon, SendIcon } from "lucide-react";
+import { nanoid } from "nanoid";
+import { memo, useCallback, useState } from "react";
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
 import {
   PromptInput,
@@ -15,9 +18,6 @@ import {
   PromptInputTools,
 } from "@/components/ai-elements/prompt-input";
 import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
-import { GlobeIcon, MicIcon, PlusIcon, SendIcon } from "lucide-react";
-import { nanoid } from "nanoid";
-import { memo, useCallback, useState } from "react";
 
 const suggestions: { key: string; value: string }[] = [
   { key: nanoid(), value: "What are the latest trends in AI?" },
@@ -55,8 +55,8 @@ const handleSubmit = (message: PromptInputMessage) => {
 };
 
 interface SuggestionItemProps {
-  suggestion: { key: string; value: string };
   onSuggestionClick: (value: string) => void;
+  suggestion: { key: string; value: string };
 }
 
 const SuggestionItem = memo(

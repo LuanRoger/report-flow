@@ -1,5 +1,15 @@
 "use client";
 
+import type { SourceDocumentUIPart } from "ai";
+import {
+  AtSignIcon,
+  CheckIcon,
+  FilesIcon,
+  GlobeIcon,
+  ImageIcon,
+  RulerIcon,
+} from "lucide-react";
+import { memo, useCallback, useState } from "react";
 import type { AttachmentData } from "@/components/ai-elements/attachments";
 import {
   Attachment,
@@ -50,16 +60,6 @@ import {
   usePromptInputReferencedSources,
 } from "@/components/ai-elements/prompt-input";
 import { Button } from "@/components/ui/button";
-import type { SourceDocumentUIPart } from "ai";
-import {
-  AtSignIcon,
-  CheckIcon,
-  FilesIcon,
-  GlobeIcon,
-  ImageIcon,
-  RulerIcon,
-} from "lucide-react";
-import { memo, useCallback, useState } from "react";
 
 const models = [
   {
@@ -123,8 +123,8 @@ const AttachmentItem = memo(({ attachment, onRemove }: AttachmentItemProps) => {
 AttachmentItem.displayName = "AttachmentItem";
 
 interface SourceItemProps {
-  source: AttachmentData;
   onRemove: (id: string) => void;
+  source: AttachmentData;
 }
 
 const SourceItem = memo(({ source, onRemove }: SourceItemProps) => {
@@ -145,8 +145,8 @@ SourceItem.displayName = "SourceItem";
 
 interface ModelItemProps {
   m: (typeof models)[0];
-  selectedModel: string;
   onSelect: (id: string) => void;
+  selectedModel: string;
 }
 
 const ModelItem = memo(({ m, selectedModel, onSelect }: ModelItemProps) => {
@@ -172,8 +172,8 @@ const ModelItem = memo(({ m, selectedModel, onSelect }: ModelItemProps) => {
 ModelItem.displayName = "ModelItem";
 
 interface SourceCommandItemProps {
-  source: SourceDocumentUIPart;
   onAdd: (source: SourceDocumentUIPart) => void;
+  source: SourceDocumentUIPart;
 }
 
 const SourceCommandItem = memo(({ source, onAdd }: SourceCommandItemProps) => {
