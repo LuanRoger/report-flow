@@ -1,5 +1,6 @@
 export const ADVISOR_CHAT_MODEL = "gpt-5.6-luna";
 export const ADVISOR_REASONING_EFFORT = "low" as const;
+export const ADVISOR_REASONING_SUMMARY = "auto" as const;
 export const ADVISOR_STREAM_RETRY_LIMIT = 2;
 
 export const ADVISOR_SEMANTIC_RESULT_LIMIT = 4;

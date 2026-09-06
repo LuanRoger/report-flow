@@ -4,6 +4,7 @@ import {
   convertToModelMessages,
   createUIMessageStream,
   createUIMessageStreamResponse,
+  isReasoningUIPart,
   isTextUIPart,
   safeValidateUIMessages,
   streamText,
@@ -16,6 +17,7 @@ import {
   ADVISOR_HISTORY_MESSAGE_LIMIT,
   ADVISOR_MAX_OUTPUT_TOKENS,
   ADVISOR_REASONING_EFFORT,
+  ADVISOR_REASONING_SUMMARY,
   ADVISOR_STREAM_RETRY_LIMIT,
 } from "../constants";
 import {
@@ -124,14 +126,16 @@ function getModelHistory(messages: UIMessage[]): UIMessage[] {
 }
 
 function getPersistableResponseParts(message: UIMessage): UIMessage["parts"] {
-  return message.parts.map((part) =>
-    isTextUIPart(part)
-      ? {
-          text: part.text,
-          type: "text" as const,
-        }
-      : part
-  );
+  return message.parts.map((part) => {
+    if (isTextUIPart(part) || isReasoningUIPart(part)) {
+      return {
+        text: part.text,
+        type: part.type,
+      };
+    }
+
+    return part;
+  });
 }
 
 async function createPondChatMessageStream(
@@ -219,6 +223,7 @@ async function createPondChatMessageStream(
           providerOptions: {
             openai: {
               reasoningEffort: ADVISOR_REASONING_EFFORT,
+              reasoningSummary: ADVISOR_REASONING_SUMMARY,
             },
           },
           streamRetries: ADVISOR_STREAM_RETRY_LIMIT,
@@ -235,7 +240,7 @@ async function createPondChatMessageStream(
               );
               return SAFE_STREAM_ERROR;
             },
-            sendReasoning: false,
+            sendReasoning: true,
             sendSources: false,
             sendStart: false,
             stream: result.stream,
