@@ -1,3 +1,5 @@
+import "server-only";
+
 import ky, { type KyInstance } from "ky";
 import { ENV } from "varlock/env";
 

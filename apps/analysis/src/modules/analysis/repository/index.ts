@@ -1,5 +1,5 @@
 import { analysisEmbeddings, analysisResults, db } from "database";
-import { and, cosineDistance, desc, eq, gt, sql } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { generateEmbedding } from "../utils/rag";
 import {
   type AnalysisResult,
@@ -77,41 +77,6 @@ export async function getAnalysesForPond(pondId: number) {
     .where(eq(analysisResults.pondId, pondId))
     .orderBy(desc(analysisResults.createdAt))
     .execute();
-}
-
-export async function findRelevantAnalyses(
-  query: string,
-  analysisId?: number,
-  limit = 4,
-  minSimilarity = 0.5
-) {
-  const queryEmbedding = await generateEmbedding(query);
-
-  const similarity = sql<number>`1 - (${cosineDistance(
-    analysisEmbeddings.embedding,
-    queryEmbedding
-  )})`;
-
-  const whereClause = analysisId
-    ? and(
-        gt(similarity, minSimilarity),
-        eq(analysisEmbeddings.analysisId, analysisId)
-      )
-    : gt(similarity, minSimilarity);
-  const dbQuery = db
-    .select({
-      analysisId: analysisEmbeddings.analysisId,
-      content: analysisEmbeddings.content,
-      id: analysisEmbeddings.id,
-      similarity,
-    })
-    .from(analysisEmbeddings)
-    .where(whereClause)
-    .orderBy(desc(similarity))
-    .limit(limit);
-
-  const results = await dbQuery.execute();
-  return results;
 }
 
 export async function storeAnalysisResult(

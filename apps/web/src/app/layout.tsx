@@ -5,6 +5,7 @@ import { NuqsAdapter } from "nuqs/adapters/next";
 import Sidebar from "@/components/sidebar";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
@@ -35,7 +36,7 @@ export default function RootLayout({
         geistSans.variable,
         geistMono.variable
       )}
-      lang="en"
+      lang="pt-BR"
       suppressHydrationWarning
     >
       <body>
@@ -47,6 +48,7 @@ export default function RootLayout({
                 {children}
               </SidebarProvider>
             </TooltipProvider>
+            <Toaster />
           </ThemeProvider>
         </NuqsAdapter>
       </body>

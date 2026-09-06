@@ -4,10 +4,10 @@ import * as analysisEmbeddings from "../schemas/analysis-embeddings";
 import * as analysisResults from "../schemas/analysis-results";
 import * as chats from "../schemas/chats";
 import * as measurements from "../schemas/measurements";
+import * as messageSources from "../schemas/message-sources";
 import * as messages from "../schemas/messages";
 import * as pondCycles from "../schemas/pond-cycles";
 import * as ponds from "../schemas/ponds";
-import * as streams from "../schemas/streams";
 
 export const schemas = {
   ...ponds,
@@ -15,8 +15,8 @@ export const schemas = {
   ...measurements,
   ...analysisResults,
   ...analysisEmbeddings,
-  ...streams,
   ...messages,
+  ...messageSources,
   ...chats,
 };
 
@@ -32,6 +32,7 @@ export const relations = defineRelations(schemas, (relation) => ({
       from: relation.analysisResults.cycleId,
       to: relation.pondCycles.id,
     }),
+    messageSources: relation.many.messageSources(),
     pond: relation.one.ponds({
       from: relation.analysisResults.pondId,
       to: relation.ponds.id,
@@ -39,7 +40,10 @@ export const relations = defineRelations(schemas, (relation) => ({
   },
   chats: {
     messages: relation.many.messages(),
-    streams: relation.many.streams(),
+    pond: relation.one.ponds({
+      from: relation.chats.pondId,
+      to: relation.ponds.id,
+    }),
   },
   measurements: {
     cycle: relation.one.pondCycles({
@@ -51,11 +55,22 @@ export const relations = defineRelations(schemas, (relation) => ({
       to: relation.ponds.id,
     }),
   },
+  messageSources: {
+    analysis: relation.one.analysisResults({
+      from: relation.messageSources.analysisId,
+      to: relation.analysisResults.id,
+    }),
+    message: relation.one.messages({
+      from: relation.messageSources.messageRowId,
+      to: relation.messages.id,
+    }),
+  },
   messages: {
     chat: relation.one.chats({
       from: relation.messages.chatId,
       to: relation.chats.id,
     }),
+    sources: relation.many.messageSources(),
   },
   pondCycles: {
     measurements: relation.many.measurements(),
@@ -64,10 +79,7 @@ export const relations = defineRelations(schemas, (relation) => ({
       to: relation.ponds.id,
     }),
   },
-  streams: {
-    chat: relation.one.chats({
-      from: relation.streams.chatId,
-      to: relation.chats.id,
-    }),
+  ponds: {
+    chats: relation.many.chats(),
   },
 }));
