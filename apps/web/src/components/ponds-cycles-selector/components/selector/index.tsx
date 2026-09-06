@@ -15,12 +15,14 @@ import { pondDataQuery } from "./query";
 
 interface PondsCyclesSelectorShellProps {
   cyclesId?: number[];
+  hideCycles?: boolean;
   pondsId: number[];
 }
 
 export default function PondsCyclesSelectorShell({
   pondsId,
   cyclesId,
+  hideCycles = false,
 }: PondsCyclesSelectorShellProps) {
   const [isPending, startTransition] = useTransition();
   const [pondData, setPondData] = useQueryStates(pondDataQuery, {
@@ -54,24 +56,26 @@ export default function PondsCyclesSelectorShell({
         </SelectContent>
       </Select>
 
-      <Select
-        disabled={!cyclesId?.length}
-        onValueChange={updateCycleId}
-        value={selectedCycleId?.toString()}
-      >
-        <SelectTrigger>
-          <SelectValue placeholder="Selecione um ciclo" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectGroup>
-            {cyclesId?.map((cycleId) => (
-              <SelectItem key={cycleId} value={cycleId.toString()}>
-                {cycleId}
-              </SelectItem>
-            ))}
-          </SelectGroup>
-        </SelectContent>
-      </Select>
+      {!hideCycles && (
+        <Select
+          disabled={!cyclesId?.length}
+          onValueChange={updateCycleId}
+          value={selectedCycleId?.toString()}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Selecione um ciclo" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              {cyclesId?.map((cycleId) => (
+                <SelectItem key={cycleId} value={cycleId.toString()}>
+                  {cycleId}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      )}
       {isPending && <Spinner />}
     </div>
   );
