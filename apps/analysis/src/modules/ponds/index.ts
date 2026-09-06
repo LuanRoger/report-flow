@@ -1,9 +1,10 @@
 import Elysia from "elysia";
 import z from "zod";
 import {
-  getPondCycleParamsSchema,
   getPondCycleResponseSchema,
+  getPondCyclesResponseSchema,
   getPondsResponseSchema,
+  pondIdParamSchema,
 } from "./schemas";
 import { getPondCycleById, getPonds } from "./use-cases";
 
@@ -30,6 +31,30 @@ export const pondsCyclesModule = new Elysia({ prefix: "/ponds" })
     }
   )
   .get(
+    "/:id/cycles",
+    async ({ params }) => {
+      const { id } = params;
+
+      const cycles = await getPondCycleById(id);
+      const response = getPondCyclesResponseSchema.parse(cycles);
+
+      return response;
+    },
+    {
+      detail: {
+        description: "Get pond cycles by id",
+        operationId: "getPondCycles",
+      },
+      params: pondIdParamSchema,
+      response: {
+        200: getPondCyclesResponseSchema,
+        400: z.string(),
+        404: z.string(),
+        500: z.string(),
+      },
+    }
+  )
+  .get(
     "/:id/cycle",
     async ({ params }) => {
       const { id } = params;
@@ -44,7 +69,7 @@ export const pondsCyclesModule = new Elysia({ prefix: "/ponds" })
         description: "Get current pond cycle",
         operationId: "getPondCycle",
       },
-      params: getPondCycleParamsSchema,
+      params: pondIdParamSchema,
       response: {
         200: getPondCycleResponseSchema,
         400: z.string(),

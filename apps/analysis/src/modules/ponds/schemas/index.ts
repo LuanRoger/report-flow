@@ -7,7 +7,7 @@ export const getPondsResponseSchema = z.array(
   })
 );
 
-export const getPondCycleParamsSchema = z.object({
+export const pondIdParamSchema = z.object({
   id: z.coerce.number().positive(),
 });
 
@@ -17,3 +17,5 @@ export const getPondCycleResponseSchema = z.object({
   id: z.number(),
   startDate: z.iso.date(),
 });
+
+export const getPondCyclesResponseSchema = z.array(getPondCycleResponseSchema);

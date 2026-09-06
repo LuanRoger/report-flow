@@ -5,7 +5,7 @@ export async function getPonds() {
 }
 
 export async function getPondCycles(pondId: number) {
-  return await db.query.pondCycles.findFirst({ where: { pondId } });
+  return await db.query.pondCycles.findMany({ where: { pondId } });
 }
 
 export async function getCurrentPondCycle(pondId: number) {

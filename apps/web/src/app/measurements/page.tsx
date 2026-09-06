@@ -1,15 +1,15 @@
+import PondsCyclesSelector from "@/components/ponds-cycles-selector";
 import { getMeasurementsAction } from "./actions";
-import InvalidScopeAlert from "./components/invalid-scope-alert";
 import MeasurementsTable from "./components/measurements-table";
 import { loadSearchParams } from "./query";
 
 export default async function MeasurementsPage({
   searchParams,
 }: PageProps<"/measurements">) {
-  const { cycleId, cursor } = await loadSearchParams(searchParams);
+  const { cycleId, pondId, cursor } = await loadSearchParams(searchParams);
 
-  if (cycleId === null) {
-    return <InvalidScopeAlert hasBothScopes={false} />;
+  if (cycleId === null || pondId === null) {
+		return <PondsCyclesSelector pondId={pondId} />;
   }
 
   const { data, serverError } = await getMeasurementsAction({
