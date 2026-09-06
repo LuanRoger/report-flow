@@ -1,5 +1,7 @@
-"use client"
+"use client";
 
+import { useQueryStates } from "nuqs";
+import { useCallback, useTransition } from "react";
 import {
   Select,
   SelectContent,
@@ -8,7 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { parseAsInteger, useQueryStates } from "nuqs";
+import { Spinner } from "@/components/ui/spinner";
+import { pondDataQuery } from "./query";
 
 interface PondsCyclesSelectorShellProps {
   cyclesId?: number[];
@@ -19,18 +22,24 @@ export default function PondsCyclesSelectorShell({
   pondsId,
   cyclesId,
 }: PondsCyclesSelectorShellProps) {
-	const [pondData, setPondData] = useQueryStates({
-		cycleId: parseAsInteger,
-		pondId: parseAsInteger,
-	}, {
-		history: "push",
-		shallow: false
-	})
-	const { cycleId: selectedCycleId, pondId: selectedPondId } = pondData
+  const [isPending, startTransition] = useTransition();
+  const [pondData, setPondData] = useQueryStates(pondDataQuery, {
+    history: "push",
+    shallow: false,
+    startTransition,
+  });
+  const { cycleId: selectedCycleId, pondId: selectedPondId } = pondData;
+
+  const updatePondId = useCallback((pondId: string) => {
+    setPondData({ pondId: Number.parseInt(pondId, 10) });
+  }, []);
+  const updateCycleId = useCallback((cycleId: string) => {
+    setPondData({ cycleId: Number.parseInt(cycleId, 10) });
+  }, []);
 
   return (
-    <div className="flex gap-2">
-      <Select value={selectedPondId?.toString()} onValueChange={(pondId) => setPondData({ pondId: Number.parseInt(pondId) })}>
+    <div className="flex items-center gap-2">
+      <Select onValueChange={updatePondId} value={selectedPondId?.toString()}>
         <SelectTrigger>
           <SelectValue placeholder="Selecione um viveiro" />
         </SelectTrigger>
@@ -45,22 +54,25 @@ export default function PondsCyclesSelectorShell({
         </SelectContent>
       </Select>
 
-      {cyclesId && (
-        <Select value={selectedCycleId?.toString()} onValueChange={(cycleId) => setPondData({ cycleId: Number.parseInt(cycleId) })}>
-          <SelectTrigger>
-            <SelectValue placeholder="Selecione um ciclo" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              {cyclesId.map((cycleId) => (
-                <SelectItem key={cycleId} value={cycleId.toString()}>
-                  {cycleId}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      )}
+      <Select
+        disabled={!cyclesId?.length}
+        onValueChange={updateCycleId}
+        value={selectedCycleId?.toString()}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="Selecione um ciclo" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            {cyclesId?.map((cycleId) => (
+              <SelectItem key={cycleId} value={cycleId.toString()}>
+                {cycleId}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+      {isPending && <Spinner />}
     </div>
   );
 }
