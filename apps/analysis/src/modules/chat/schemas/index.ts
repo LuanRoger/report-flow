@@ -1,8 +1,6 @@
 import { messageRoles, messageStatuses } from "database";
 import z from "zod";
-import { ADVISOR_MESSAGE_CHARACTER_LIMIT } from "../constants";
-
-const MESSAGE_ID_PATTERN = /^[A-Za-z0-9_-]+$/;
+import { CHAT_MESSAGE_CONSTRAINTS } from "../constants";
 
 export const persistedMessagePartSchema = z
   .object({
@@ -14,28 +12,32 @@ export const persistedMessagePartsSchema = z.array(persistedMessagePartSchema);
 
 const submittedTextPartSchema = z
   .object({
-    text: z.string().trim().min(1).max(ADVISOR_MESSAGE_CHARACTER_LIMIT),
+    text: z.string().trim().min(1).max(CHAT_MESSAGE_CONSTRAINTS.characterLimit),
     type: z.literal("text"),
   })
   .strict();
 
-const submittedUserMessageSchema = z
+export const submittedUserMessageSchema = z
   .object({
-    id: z.string().min(1).max(128).regex(MESSAGE_ID_PATTERN),
-    parts: z.array(submittedTextPartSchema).length(1),
+    id: z
+      .string()
+      .min(1)
+      .max(CHAT_MESSAGE_CONSTRAINTS.idCharacterLimit)
+      .regex(CHAT_MESSAGE_CONSTRAINTS.idPattern),
+    parts: z.tuple([submittedTextPartSchema]),
     role: z.literal("user"),
-  })
-  .strict();
-
-export const submitPondChatMessageSchema = z
-  .object({
-    message: submittedUserMessageSchema,
   })
   .strict();
 
 export type SubmittedPondChatMessage = z.infer<
   typeof submittedUserMessageSchema
 >;
+
+export const submitPondChatMessageSchema = z
+  .object({
+    message: submittedUserMessageSchema,
+  })
+  .strict();
 
 export const pondChatParamsSchema = z.object({
   pondId: z.coerce.number().int().positive(),

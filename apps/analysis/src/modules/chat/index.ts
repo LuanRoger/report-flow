@@ -11,8 +11,8 @@ import {
   clearPondChatHistory,
   getOrCreatePondChat,
   getPondChatHistory,
-} from "./use-cases";
-import { streamPondChatMessage } from "./use-cases/stream-message";
+} from "./use-cases/pond-chat";
+import { streamPondChatMessage } from "./use-cases/stream-pond-chat-message";
 
 export const chatsModule = new Elysia({ prefix: "/chats" })
   .post(

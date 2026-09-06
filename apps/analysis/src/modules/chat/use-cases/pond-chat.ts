@@ -1,17 +1,20 @@
 import { ChatPondNotFoundError, PondChatNotFoundError } from "../models/errors";
 import {
-  clearMessagesByChatId,
   createOrGetChatForPond,
   findChatByPondId,
-  listMessagesByChatId,
   pondExists,
-} from "../repository";
-import { acquirePondChatOperation } from "../utils/operations";
+} from "../repository/chats";
+import {
+  clearMessagesByChatId,
+  listMessagesByChatId,
+} from "../repository/messages";
+import { acquirePondChatOperation } from "../stores/operations";
 
 const DEFAULT_CHAT_TITLE = "Consultor de qualidade da água";
 
 async function ensurePondExists(pondId: number): Promise<void> {
-  if (!(await pondExists(pondId))) {
+  const pondIsPresent = await pondExists(pondId);
+  if (!pondIsPresent) {
     throw new ChatPondNotFoundError(pondId);
   }
 }

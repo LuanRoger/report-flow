@@ -1,5 +1,5 @@
 import { DateTime } from "luxon";
-import type { AdvisorSource } from "./context";
+import type { AdvisorSource } from "./source-context";
 
 const NO_ANALYSIS_INFORMATION_RESPONSE =
   "Não encontrei informações suficientes nas análises disponíveis para responder com segurança.";
