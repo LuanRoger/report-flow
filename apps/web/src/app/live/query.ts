@@ -4,4 +4,4 @@ export const livePageQueryParams = {
   pondId: parseAsInteger,
 };
 
-export const loadLiveSearchParams = createLoader(livePageQueryParams);
+export const loadSearchParams = createLoader(livePageQueryParams);

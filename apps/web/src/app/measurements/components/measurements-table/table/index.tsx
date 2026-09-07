@@ -17,7 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatDateTimeMed } from "@/lib/utils/date";
-import type { Measurement } from "../../actions/types";
+import type { Measurement } from "../../../actions/types";
 
 const parameterLabels: Record<string, string> = {
   dissolvedOxygen: "Dissolved oxygen",

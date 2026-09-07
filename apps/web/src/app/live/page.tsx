@@ -1,27 +1,15 @@
-import { getLiveMeasurementsAction } from "./actions";
-import InvalidPondAlert from "./components/invalid-pond-alert";
+import PondsCyclesSelector from "@/components/ponds-cycles-selector";
 import LiveDashboard from "./components/live-dashboard";
-import { loadLiveSearchParams } from "./query";
+import { loadSearchParams } from "./query";
 
 export default async function LivePage({ searchParams }: PageProps<"/live">) {
-  const { pondId } = await loadLiveSearchParams(searchParams);
+  const { pondId } = await loadSearchParams(searchParams);
+  const canShowLiveDashboard = pondId !== null && pondId >= 1;
 
-  if (pondId === null || pondId < 1) {
-    return <InvalidPondAlert />;
-  }
-
-  const bucket = "15s" as const;
-  const window = "15m" as const;
-
-  const { data, serverError } = await getLiveMeasurementsAction({
-    bucket,
-    pondId,
-    window,
-  });
-
-  if (serverError || !data) {
-    return <h1>Error: {serverError}</h1>;
-  }
-
-  return <LiveDashboard initialData={data} key={pondId} pondId={pondId} />;
+  return (
+    <>
+      <PondsCyclesSelector hideCycles pondId={pondId} />
+      {canShowLiveDashboard && <LiveDashboard pondId={pondId} />}
+    </>
+  );
 }

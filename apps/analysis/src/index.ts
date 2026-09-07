@@ -11,6 +11,7 @@ import { version } from "../package.json";
 import { analysesModule } from "./modules/analysis";
 import { chatsModule } from "./modules/chat";
 import { measurementsModule } from "./modules/measurements";
+import { pondsCyclesModule } from "./modules/ponds";
 
 const appName = "analysis";
 const port = 3001;
@@ -87,4 +88,5 @@ new Elysia()
   .use(analysesModule)
   .use(chatsModule)
   .use(measurementsModule)
+  .use(pondsCyclesModule)
   .listen(port);

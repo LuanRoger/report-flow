@@ -8,7 +8,8 @@ import {
 export const pageQueryParams = {
   cursor: parseAsString,
   cursorHistory: parseAsArrayOf(parseAsString).withDefault([]),
-  cycleId: parseAsInteger,
+	cycleId: parseAsInteger,
+  pondId: parseAsInteger,
   page: parseAsInteger.withDefault(1),
 };
 
