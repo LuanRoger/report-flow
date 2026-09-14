@@ -1,37 +1,55 @@
 import {
+  foreignKey,
   index,
+  integer,
   jsonb,
   pgTable,
   real,
   serial,
-  text,
   timestamp,
 } from "drizzle-orm/pg-core";
+import { pondCycles } from "./pond-cycles";
+import { ponds } from "./ponds";
 
 export const analysisResults = pgTable(
   "analysis_results",
   {
-    aiSummary: text("ai_summary"),
     createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
       .notNull()
       .defaultNow(),
-    cycleId: serial("cycle_id"),
+    cycleId: integer("cycle_id"),
     dissolvedOxygenScore: real("dissolved_oxygen_score").notNull(),
-    endTime: timestamp("end_time").notNull(),
+    endTime: timestamp("end_time", {
+      mode: "date",
+      withTimezone: true,
+    }).notNull(),
 
     finalScore: real("final_score").notNull(),
     id: serial("id").primaryKey(),
 
     metadata: jsonb("metadata").notNull(),
     phScore: real("ph_score").notNull(),
-    pondId: serial("pond_id").notNull(),
+    pondId: integer("pond_id")
+      .notNull()
+      .references(() => ponds.id, {
+        name: "fk_analysis_results_pond",
+        onDelete: "cascade",
+      }),
     salinityScore: real("salinity_score").notNull(),
 
-    startTime: timestamp("start_time").notNull(),
+    startTime: timestamp("start_time", {
+      mode: "date",
+      withTimezone: true,
+    }).notNull(),
     temperatureScore: real("temperature_score").notNull(),
-    turbidityScore: real("turbidity_score").notNull(),
   },
   (table) => [
+    foreignKey({
+      columns: [table.cycleId, table.pondId],
+      foreignColumns: [pondCycles.id, pondCycles.pondId],
+      name: "fk_analysis_results_cycle_pond",
+    }).onDelete("cascade"),
+
     index("analysis_results_pond_idx").on(table.pondId),
     index("analysis_results_cycle_idx").on(table.cycleId),
     index("analysis_results_start_time_idx").on(table.startTime),

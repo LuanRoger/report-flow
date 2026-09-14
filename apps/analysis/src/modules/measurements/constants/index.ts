@@ -1,6 +1,5 @@
 export const REALTIME_MEASUREMENT_PARAMETERS = [
   "temperature",
-  "turbidity",
   "dissolvedOxygen",
 ] as const;
 

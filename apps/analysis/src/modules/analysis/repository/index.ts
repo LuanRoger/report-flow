@@ -1,4 +1,9 @@
-import { analysisEmbeddings, analysisResults, db } from "database";
+import {
+  analysisAiSummaries,
+  analysisEmbeddings,
+  analysisResults,
+  db,
+} from "database";
 import { desc, eq } from "drizzle-orm";
 import { generateEmbedding } from "../utils/rag";
 import {
@@ -14,7 +19,7 @@ export async function getMeasurementsForCycle(
 ): Promise<Measurement[]> {
   return await db.query.measurements.findMany({
     orderBy: {
-      recordedAt: "desc",
+      recordedAt: "asc",
     },
     where: {
       cycleId,
@@ -29,7 +34,7 @@ export async function getMeasurementsForPond(
 ): Promise<Measurement[]> {
   return await db.query.measurements.findMany({
     orderBy: {
-      recordedAt: "desc",
+      recordedAt: "asc",
     },
     where: {
       AND: [
@@ -39,7 +44,7 @@ export async function getMeasurementsForPond(
         {
           recordedAt: {
             gte: startDate,
-            lte: endDate,
+            lt: endDate,
           },
         },
       ],
@@ -62,12 +67,19 @@ export async function getAnalysisById(
     where: {
       id,
     },
+    with: {
+      aiSummary: true,
+    },
   });
   if (!result) {
     return;
   }
 
-  return await analysisResultsSchema.parseAsync(result);
+  const analysis = await analysisResultsSchema.parseAsync(result);
+  return {
+    ...analysis,
+    aiSummary: result.aiSummary?.summary ?? null,
+  };
 }
 
 export async function getAnalysesForPond(pondId: number) {
@@ -81,26 +93,35 @@ export async function getAnalysesForPond(pondId: number) {
 
 export async function storeAnalysisResult(
   result: CreateAnalysisResult,
-  embeddingData: CreateAnalysisEmbedding
-) {
-  await db.transaction(async (tx) => {
-    const newAnalysis = await tx
+  embeddingData: CreateAnalysisEmbedding,
+  aiSummary: string | null
+): Promise<void> {
+  await db.transaction(async (transaction) => {
+    const [newAnalysis] = await transaction
       .insert(analysisResults)
       .values(result)
-      .returning();
-    if (newAnalysis.length === 0) {
+      .returning({ id: analysisResults.id });
+    if (!newAnalysis) {
       throw new Error("Failed to create analysis result");
     }
 
-    const analysisId = newAnalysis[0].id;
-    await tx.insert(analysisEmbeddings).values({
-      analysisId,
+    await transaction.insert(analysisEmbeddings).values({
+      analysisId: newAnalysis.id,
       ...embeddingData,
     });
+
+    if (aiSummary) {
+      await transaction.insert(analysisAiSummaries).values({
+        analysisId: newAnalysis.id,
+        summary: aiSummary,
+      });
+    }
   });
 }
 
-export async function createAnalysisResult(data: CreateAnalysisResult) {
+export async function createAnalysisResult(
+  data: CreateAnalysisResult
+): Promise<void> {
   await db.insert(analysisResults).values(data);
 }
 
@@ -117,16 +138,9 @@ export async function storeAnalysisEmbedding(
   });
 }
 
-export async function deleteAnalysisById(analysisId: number) {
-  await db.transaction(async (tx) => {
-    await tx
-      .delete(analysisResults)
-      .where(eq(analysisResults.id, analysisId))
-      .execute();
-
-    await tx
-      .delete(analysisEmbeddings)
-      .where(eq(analysisEmbeddings.analysisId, analysisId))
-      .execute();
-  });
+export async function deleteAnalysisById(analysisId: number): Promise<void> {
+  await db
+    .delete(analysisResults)
+    .where(eq(analysisResults.id, analysisId))
+    .execute();
 }

@@ -1,9 +1,10 @@
 import { db, measurements } from "@/db";
 import type { CreateMeasurement } from "./types";
 
-export async function getPondCycle(pondId: number) {
+export async function getPondCycle(cycleId: number, pondId: number) {
   return await db.query.pondCycles.findFirst({
     where: {
+      id: cycleId,
       pondId,
     },
   });

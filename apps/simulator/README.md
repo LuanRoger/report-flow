@@ -6,7 +6,7 @@ A simulator for generating water quality measurements for aquaculture ponds. Thi
 
 ```bash
 cd apps/simulator
-npm install
+bun install
 ```
 
 ## Usage
@@ -20,7 +20,7 @@ The simulator can run in two modes: constant (real-time) or pre-calculated (hist
 export INGEST_URL=http://localhost:3000/ingest/manual
 
 # Run in constant mode (default)
-node src/index.js
+bun run src/index.ts
 ```
 
 ### Command Line Arguments
@@ -29,10 +29,11 @@ node src/index.js
 |----------|-------------|---------|----------|
 | `--mode` | Running mode: `constant` or `precalc` | `constant` | No |
 | `--scenario` | Water quality scenario: `ideal`, `normal`, `alerta`, `critico`, or `misto` | `normal` | No |
-| `--rate` | Measurements per minute (constant mode) | `60` | No |
-| `--from` | Start date/time (precalc mode) | - | Yes for precalc |
-| `--to` | End date/time (precalc mode) | - | Yes for precalc |
-| `--step-minutes` | Time step between measurements (precalc mode) | `30` | No |
+| `--rate` | Persisted parameter rows per minute (constant mode, emitted four rows per collection instant) | `24` | No |
+| `--from` | Inclusive start date/time (precalc mode) | - | Yes for precalc |
+| `--to` | Exclusive end date/time (precalc mode) | - | Yes for precalc |
+| `--step-seconds` | Time between collection instants (precalc mode) | `10` | No |
+| `--step-minutes` | Legacy minute-based interval, used only when `--step-seconds` is absent | - | No |
 | `--pond-id` | Pond ID to simulate | `1` | No |
 | `--cycle-id` | Cycle ID to simulate | `1` | No |
 | `--enable-logs` | Enable console logging: `true` or `false` | `false` | No |
@@ -42,13 +43,13 @@ node src/index.js
 #### Constant Mode (Real-time Simulation)
 
 ```bash
-# Simulate normal conditions at 30 measurements per minute
+# Simulate the natural rate of four rows every ten seconds
 export INGEST_URL=http://localhost:3000/ingest/manual
-node src/index.js --mode constant --scenario normal --rate 30 --enable-logs true
+bun run src/index.ts --mode constant --scenario normal --rate 24 --enable-logs true
 
 # Simulate alert conditions for pond 2, cycle 3
 export INGEST_URL=http://localhost:3000/ingest/manual
-node src/index.js --mode constant --scenario alerta --pond-id 2 --cycle-id 3 --rate 10
+bun run src/index.ts --mode constant --scenario alerta --pond-id 2 --cycle-id 3 --rate 24
 ```
 
 #### Pre-calculated Mode (Historical Data)
@@ -56,20 +57,20 @@ node src/index.js --mode constant --scenario alerta --pond-id 2 --cycle-id 3 --r
 ```bash
 # Generate historical data for a specific date range
 export INGEST_URL=http://localhost:3000/ingest/manual
-node src/index.js --mode precalc --scenario ideal \
-  --from "2026-01-01T00:00:00" \
-  --to "2026-01-01T23:59:59" \
-  --step-minutes 15 \
+bun run src/index.ts --mode precalc --scenario ideal \
+  --from "2026-01-01T00:00:00Z" \
+  --to "2026-01-02T00:00:00Z" \
+  --step-seconds 10 \
   --pond-id 1 \
   --cycle-id 1 \
   --enable-logs true
 
 # Generate mixed scenario data for pond 3, cycle 2
 export INGEST_URL=http://localhost:3000/ingest/manual
-node src/index.js --mode precalc --scenario misto \
-  --from "2026-06-01T00:00:00" \
-  --to "2026-06-07T23:59:59" \
-  --step-minutes 30 \
+bun run src/index.ts --mode precalc --scenario misto \
+  --from "2026-06-01T00:00:00Z" \
+  --to "2026-06-08T00:00:00Z" \
+  --step-seconds 10 \
   --pond-id 3 \
   --cycle-id 2
 ```
@@ -82,29 +83,25 @@ The simulator supports different water quality scenarios:
 - Temperature: 27-30°C
 - pH: 7.5-8.3
 - Salinity: 15-25 ppt
-- Turbidity: 5-20 NTU
-- Dissolved Oxygen: 6-9 mg/L
+- Dissolved Oxygen: 4.8-5.2 mg/L
 
 ### Normal Conditions
 - Temperature: 26-31°C
 - pH: 7.2-8.6
 - Salinity: 10-30 ppt
-- Turbidity: 10-40 NTU
-- Dissolved Oxygen: 5-7 mg/L
+- Dissolved Oxygen: 4.5-5.5 mg/L
 
 ### Alert Conditions
 - Temperature: 24-33°C
 - pH: 6.8-9.0
 - Salinity: 5-35 ppt
-- Turbidity: 30-80 NTU
-- Dissolved Oxygen: 3.5-5 mg/L
+- Dissolved Oxygen: 3.5-4.5 mg/L
 
 ### Critical Conditions
 - Temperature: 20-36°C
 - pH: 6.2-9.5
 - Salinity: 0-40 ppt
-- Turbidity: 60-200 NTU
-- Dissolved Oxygen: 1-3.5 mg/L
+- Dissolved Oxygen: 1-3 mg/L
 
 ### Mixed Conditions
 - Randomly selects from all scenarios for each measurement
@@ -116,7 +113,6 @@ The simulator generates data for these water quality parameters:
 - **Temperature** (°C) - Water temperature
 - **pH** (pH units) - Acidity/alkalinity
 - **Salinity** (ppt) - Salt concentration
-- **Turbidity** (NTU) - Water clarity
 - **Dissolved Oxygen** (mg/L) - Oxygen levels
 
 ## Data Format
@@ -129,7 +125,7 @@ Each measurement sent to the ingest service has this structure:
   "cycleId": 1,
   "recordedAt": "2026-06-07T12:34:56.789Z",
   "parameterCode": "temperature",
-  "value": "28.5",
+  "value": 28.5,
   "unit": "°C",
   "sourceType": "simulator"
 }
@@ -143,9 +139,11 @@ Each measurement sent to the ingest service has this structure:
 
 ## Notes
 
-- The simulator automatically handles unique constraint violations by adding small time offsets to measurements
+- Both modes generate all four parameter rows with the same timestamp at each collection instant
+- Constant mode defaults to the natural rate of four rows every ten seconds
+- Pre-calculated ranges use the half-open `[start, end)` convention
 - All timestamps are in ISO 8601 format with UTC timezone
-- Values are sent as strings to match the ingest service schema
+- Values are sent as numbers to match the ingest service schema
 - The simulator will run indefinitely in constant mode until manually stopped (Ctrl+C)
 
 ## Error Handling

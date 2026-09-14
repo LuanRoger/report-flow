@@ -1,16 +1,23 @@
 import {
   index,
+  integer,
   pgTable,
   serial,
   text,
   timestamp,
   vector,
 } from "drizzle-orm/pg-core";
+import { analysisResults } from "./analysis-results";
 
 export const analysisEmbeddings = pgTable(
   "analysis_embeddings",
   {
-    analysisId: serial("analysis_id").notNull(),
+    analysisId: integer("analysis_id")
+      .notNull()
+      .references(() => analysisResults.id, {
+        name: "fk_analysis_embeddings_analysis",
+        onDelete: "cascade",
+      }),
 
     content: text("content").notNull(),
 

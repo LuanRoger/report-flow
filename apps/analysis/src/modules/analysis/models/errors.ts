@@ -1,3 +1,5 @@
+import type { ParameterCode } from "database";
+
 export class PondNotFoundError extends Error {
   status = 404;
 
@@ -19,8 +21,12 @@ export class AnalysisNotFound extends Error {
 export class InsufficientDataError extends Error {
   status = 400;
 
-  constructor() {
-    super("Insufficient data");
+  constructor(missingParameters: ParameterCode[] = []) {
+    const details =
+      missingParameters.length > 0
+        ? ` Missing parameters: ${missingParameters.join(", ")}.`
+        : "";
+    super(`Insufficient data.${details}`);
     this.name = "InsufficientDataError";
   }
 }

@@ -1,72 +1,111 @@
 import type { ParameterCode } from "database";
 import type { NormalizationConfig, NormalizedScore } from "../types/analysis";
 
-// Normalization configurations for each parameter
-const PARAMETER_CONFIGS: Record<
-  ParameterCode,
-  { normalization: NormalizationConfig }
-> = {
+export const SCORING_PARAMETER_CODES = [
+  "dissolvedOxygen",
+  "temperature",
+  "ph",
+  "salinity",
+] as const satisfies readonly ParameterCode[];
+
+export const PARAMETER_CONFIGS = {
   dissolvedOxygen: {
     normalization: {
       type: "triangular",
-      w: 2, // tolerance width
-      xopt: 5, // optimal dissolved oxygen in mg/L
+      w: 2,
+      xopt: 5,
     },
   },
   ph: {
     normalization: {
-      mu: 8.0, // optimal pH
-      sigma: 0.5, // tolerance
+      mu: 8,
+      sigma: 0.75,
       type: "gaussian",
     },
   },
   salinity: {
     normalization: {
-      mu: 20, // optimal salinity in ppt
-      sigma: 5, // tolerance
+      mu: 20,
+      sigma: 7.5,
       type: "gaussian",
     },
   },
   temperature: {
     normalization: {
-      mu: 30, // optimal temperature in °C
-      sigma: 2, // tolerance
+      mu: 30,
+      sigma: 3,
       type: "gaussian",
     },
   },
-  turbidity: {
-    normalization: {
-      type: "triangular",
-      w: 30, // tolerance width
-      xopt: 50, // optimal turbidity in NTU
-    },
-  },
-};
+} satisfies Record<ParameterCode, { normalization: NormalizationConfig }>;
 
-// Parameter weights for final score calculation
-export const PARAMETER_WEIGHTS: Record<ParameterCode, number> = {
-  dissolvedOxygen: 0.3,
-  ph: 0.2,
-  salinity: 0.15,
-  temperature: 0.25,
-  turbidity: 0.1,
-};
+export const PARAMETER_WEIGHTS = {
+  dissolvedOxygen: 0.33,
+  ph: 0.22,
+  salinity: 0.17,
+  temperature: 0.28,
+} as const satisfies Record<ParameterCode, number>;
 
-// Aggregation weights for temporal aggregation
-export const AGGREGATION_WEIGHTS = {
-  alpha: 0.5, // mean score weight
-  beta: 0.3, // minimum score weight
-  gamma: 0.2, // critical time ratio weight
-};
+export const CRITICAL_THRESHOLD = 50;
+export const EXPECTED_COLLECTION_INTERVAL_SECONDS = 10;
+export const MAXIMUM_CONTINUITY_GAP_SECONDS = 20;
+export const MINIMUM_COVERAGE_PERCENTAGE = 70;
+export const SCORING_MODEL_VERSION = "tcc-symmetric-oxygen-v1";
+export const WINDOW_CONVENTION = "[start,end)";
 
-// Critical threshold for unfavorable conditions
-export const CRITICAL_THRESHOLD = 40;
+export function gaussianNormalize(
+  value: number,
+  mu: number,
+  sigma: number
+): number {
+  if (!(Number.isFinite(value) && Number.isFinite(mu) && sigma > 0)) {
+    throw new Error(
+      "Gaussian normalization requires finite values and sigma > 0"
+    );
+  }
+
+  const exponent = -((value - mu) ** 2) / (2 * sigma ** 2);
+  const score = 1 + 99 * Math.exp(exponent);
+
+  return Math.max(1, Math.min(100, score));
+}
+
+export function triangularNormalize(
+  value: number,
+  optimum: number,
+  width: number
+): number {
+  if (!(Number.isFinite(value) && Number.isFinite(optimum) && width > 0)) {
+    throw new Error(
+      "Triangular normalization requires finite values and width > 0"
+    );
+  }
+
+  const distance = Math.abs(value - optimum);
+  const ratio = Math.max(0, 1 - distance / width);
+  const score = 1 + 99 * ratio;
+
+  return Math.max(1, Math.min(100, score));
+}
+
+export function normalizeParameter(
+  parameterCode: ParameterCode,
+  value: number
+): number {
+  const { normalization } = PARAMETER_CONFIGS[parameterCode];
+
+  if (normalization.type === "gaussian") {
+    return gaussianNormalize(value, normalization.mu, normalization.sigma);
+  }
+
+  return triangularNormalize(value, normalization.xopt, normalization.w);
+}
 
 export function normalizeMeasurements(
   measurements: Array<{
     parameterCode: ParameterCode;
-    value: number;
     recordedAt: Date;
+    value: number;
   }>
 ): Record<ParameterCode, NormalizedScore[]> {
   const normalizedByParameter: Record<ParameterCode, NormalizedScore[]> = {
@@ -74,95 +113,25 @@ export function normalizeMeasurements(
     ph: [],
     salinity: [],
     temperature: [],
-    turbidity: [],
   };
 
   for (const measurement of measurements) {
-    const normalizedScore: NormalizedScore = {
+    normalizedByParameter[measurement.parameterCode].push({
       parameterCode: measurement.parameterCode,
       recordedAt: measurement.recordedAt,
       score: normalizeParameter(measurement.parameterCode, measurement.value),
-    };
-    normalizedByParameter[measurement.parameterCode].push(normalizedScore);
+    });
   }
 
   return normalizedByParameter;
 }
 
-/**
- * Gaussian normalization function
- * S(x) = 1 + 99 * e^(-(x-μ)² / (2σ²))
- */
-export function gaussianNormalize(
-  x: number,
-  mu: number,
-  sigma: number
-): number {
-  const exponent = -((x - mu) ** 2) / (2 * sigma ** 2);
-  const score = 1 + 99 * Math.exp(exponent);
-
-  return Math.max(1, Math.min(100, score));
-}
-
-/**
- * Triangular normalization function
- * S(x) = 1 + 99 * max(0, 1 - |x-x_opt|/w)
- */
-export function triangularNormalize(
-  x: number,
-  xopt: number,
-  w: number
-): number {
-  const distance = Math.abs(x - xopt);
-  const ratio = Math.max(0, 1 - distance / w);
-  const score = 1 + 99 * ratio;
-
-  return Math.max(1, Math.min(100, score));
-}
-
-/**
- * Normalize a parameter value based on its configuration
- */
-export function normalizeParameter(
-  parameterCode: ParameterCode,
-  value: number
-): number {
-  const config = PARAMETER_CONFIGS[parameterCode];
-
-  if (!config) {
-    throw new Error(`Unknown parameter code: ${parameterCode}`);
-  }
-
-  const { normalization } = config;
-
-  if (normalization.type === "gaussian") {
-    return gaussianNormalize(value, normalization.mu, normalization.sigma);
-  }
-  if (normalization.type === "triangular") {
-    return triangularNormalize(value, normalization.xopt, normalization.w);
-  }
-
-  throw new Error(`Unknown normalization type: ${normalization}`);
-}
-
-/**
- * Get the normalization configuration for a parameter
- */
 export function getNormalizationConfig(
   parameterCode: ParameterCode
 ): NormalizationConfig {
-  const config = PARAMETER_CONFIGS[parameterCode];
-  if (!config) {
-    throw new Error(`Unknown parameter code: ${parameterCode}`);
-  }
-  return config.normalization;
+  return PARAMETER_CONFIGS[parameterCode].normalization;
 }
 
-/**
- * Get parameter weight for final score calculation
- */
 export function getParameterWeight(parameterCode: ParameterCode): number {
   return PARAMETER_WEIGHTS[parameterCode];
 }
-
-export { PARAMETER_CONFIGS };

@@ -4,66 +4,6 @@ import { formatDate } from "@/utils/date";
 import { AI_ANALYSIS_SUMMARY_SYSTEM_PROMPT } from "../constants";
 import type { ScoreResult } from "../schemas/types";
 
-function formatAnalysisContext(result: ScoreResult): string {
-  const { pondId, finalScore, metadata, startDate, endDate, parameterScores } =
-    result;
-  const { executionStats, parameterStats, criticalThreshold } = metadata;
-  const { dataCoverage, timeRange, totalMeasurements } = executionStats;
-
-  const parameterAnalysis: string[] = [];
-  const parameterCodes = Object.keys(parameterScores) as Array<
-    keyof typeof parameterScores
-  >;
-
-  for (const paramCode of parameterCodes) {
-    const score = parameterScores[paramCode];
-    const stats = parameterStats[paramCode];
-    const temporal = stats.temporalMetrics;
-
-    const scoreDescription = getScoreDescription(score);
-    const criticalInfo =
-      temporal.criticalTimeRatio > 0.1
-        ? `, with ${(temporal.criticalTimeRatio * 100).toFixed(0)}% of readings in critical range`
-        : "";
-
-    parameterAnalysis.push(
-      `${paramCode}: ${score.toFixed(0)}/100 (${scoreDescription}${criticalInfo})`
-    );
-  }
-
-  const temporalSummary: string[] = [];
-  for (const paramCode of parameterCodes) {
-    const stats = parameterStats[paramCode];
-    const temporal = stats.temporalMetrics;
-
-    if (temporal.criticalCount > 0) {
-      temporalSummary.push(
-        `${paramCode} had ${temporal.criticalCount} critical readings`
-      );
-    }
-  }
-
-  return `
-Analysis Context:
-- Pond: ${pondId}
-- Period: ${formatDate(startDate)} to ${formatDate(endDate)}
-- Analysis Date Range: ${formatDate(timeRange.actualStart)} to ${formatDate(timeRange.actualEnd)}
-- Total Measurements: ${totalMeasurements}
-- Data Coverage: ${dataCoverage.coveragePercentage}% (${dataCoverage.presentParameters.length} parameters monitored)
-- Overall Water Quality Score: ${finalScore.toFixed(1)}/100 (${getScoreDescription(finalScore)})
-- Critical Threshold: ${criticalThreshold}/100
-
-Parameter Performance:
-${parameterAnalysis.join("\n")}
-
-${temporalSummary.length > 0 ? `\nCritical Alerts:\n${temporalSummary.join("\n")}` : ""}
-
-Configuration:
-- Aggregation Weights: Alpha=${metadata.aggregationWeights.alpha}, Beta=${metadata.aggregationWeights.beta}, Gamma=${metadata.aggregationWeights.gamma}
-- Parameter Weights: Temperature=${metadata.parameterWeights.temperature}, pH=${metadata.parameterWeights.ph}, Salinity=${metadata.parameterWeights.salinity}, Dissolved Oxygen=${metadata.parameterWeights.dissolvedOxygen}, Turbidity=${metadata.parameterWeights.turbidity}
-`;
-}
-
 function getScoreDescription(score: number): string {
   if (score >= 90) {
     return "Excellent";
@@ -86,9 +26,58 @@ function getScoreDescription(score: number): string {
   return "Critical";
 }
 
+function formatAnalysisContext(result: ScoreResult): string {
+  const { endDate, finalScore, metadata, parameterScores, pondId, startDate } =
+    result;
+  const {
+    criticalThreshold,
+    executionStats,
+    maximumContinuityGapSeconds,
+    parameterStats,
+    parameterWeights,
+    scoringModelVersion,
+  } = metadata;
+  const { dataCoverage, timeRange, totalMeasurements } = executionStats;
+  const parameterAnalysis: string[] = [];
+
+  for (const parameterCode of Object.keys(parameterScores) as Array<
+    keyof typeof parameterScores
+  >) {
+    const score = parameterScores[parameterCode];
+    const temporal = parameterStats[parameterCode].temporalMetrics;
+    const unfavorablePercentage = (temporal.pLow * 100).toFixed(1);
+
+    parameterAnalysis.push(
+      `${parameterCode}: ${score.toFixed(1)}/100 (${getScoreDescription(score)}), ` +
+        `duration-weighted mean ${temporal.weightedMeanScore.toFixed(1)}, ` +
+        `unfavorable time ${unfavorablePercentage}%, ` +
+        `coverage ${temporal.coveragePercentage.toFixed(1)}%`
+    );
+  }
+
+  return `
+Analysis Context:
+- Pond: ${pondId}
+- Period: ${formatDate(startDate)} to ${formatDate(endDate)}
+- Analysis Date Range: ${formatDate(timeRange.actualStart)} to ${formatDate(timeRange.actualEnd)}
+- Total Measurements: ${totalMeasurements}
+- Data Coverage: ${dataCoverage.coveragePercentage.toFixed(1)}%
+- Coverage Sufficient: ${dataCoverage.hasSufficientCoverage}
+- Overall Water Quality Score: ${finalScore.toFixed(1)}/100 (${getScoreDescription(finalScore)})
+- Critical Threshold: ${criticalThreshold}/100
+
+Parameter Performance:
+${parameterAnalysis.join("\n")}
+
+Configuration:
+- Scoring Model: ${scoringModelVersion}
+- Maximum Continuity Gap: ${maximumContinuityGapSeconds} seconds
+- Parameter Weights: Temperature=${parameterWeights.temperature}, pH=${parameterWeights.ph}, Salinity=${parameterWeights.salinity}, Dissolved Oxygen=${parameterWeights.dissolvedOxygen}
+`;
+}
+
 export async function generateAiSummary(result: ScoreResult): Promise<string> {
   const context = formatAnalysisContext(result);
-
   const { text } = await generateText({
     maxOutputTokens: 400,
     model: openai("gpt-4o-mini-2024-07-18"),

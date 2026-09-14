@@ -1,4 +1,5 @@
 import { formatDate } from "../../../utils/date";
+import type { UnfavorableInterval } from "../../analysis/types/analysis";
 import { ANALYSIS_SOURCE_PROTOCOL } from "../constants";
 import type { AdvisorAnalysis } from "../repository/advisor-analyses";
 
@@ -27,12 +28,6 @@ const PARAMETER_DEFINITIONS = [
     statsKey: "dissolvedOxygen",
     unit: "mg/L",
   },
-  {
-    label: "Turbidez",
-    scoreKey: "turbidityScore",
-    statsKey: "turbidity",
-    unit: "NTU",
-  },
 ] as const;
 
 export interface AdvisorSource {
@@ -52,20 +47,34 @@ function formatValue(value: number, unit: string | null): string {
   return unit ? `${formattedValue} ${unit}` : formattedValue;
 }
 
+function formatUnfavorableIntervals(intervals: UnfavorableInterval[]): string {
+  if (intervals.length === 0) {
+    return "nenhum intervalo desfavorável";
+  }
+
+  return intervals
+    .map(
+      (interval) =>
+        `${formatDate(interval.start)} a ${formatDate(interval.end)} (${interval.durationSeconds.toFixed(0)} s)`
+    )
+    .join("; ");
+}
+
 function formatParameter(
   analysis: AdvisorAnalysis,
   definition: (typeof PARAMETER_DEFINITIONS)[number],
   metadata: AdvisorAnalysis["metadata"]
 ): string {
   const score = analysis[definition.scoreKey];
-  const rawValues = metadata?.parameterStats[definition.statsKey]?.rawValues;
+  const stats = metadata?.parameterStats[definition.statsKey];
   const details = [`pontuação ${score.toFixed(1)}/100`];
 
-  if (!rawValues) {
+  if (!stats) {
     return `- ${definition.label}: ${details.join(", ")}`;
   }
 
-  const { count, max, mean, min } = rawValues;
+  const { count, max, mean, min } = stats.rawValues;
+  const temporal = stats.temporalMetrics;
   if (mean !== null) {
     details.push(`média ${formatValue(mean, definition.unit)}`);
   }
@@ -76,6 +85,9 @@ function formatParameter(
     details.push(`máximo ${formatValue(max, definition.unit)}`);
   }
   details.push(`${count} medições`);
+  details.push(`cobertura ${temporal.coveragePercentage.toFixed(1)}%`);
+  details.push(`P_low ${(temporal.pLow * 100).toFixed(1)}%`);
+  details.push(formatUnfavorableIntervals(temporal.unfavorableIntervals));
 
   return `- ${definition.label}: ${details.join(", ")}`;
 }
@@ -97,20 +109,32 @@ export function createAdvisorSource(
   const parameterLines = PARAMETER_DEFINITIONS.map((definition) =>
     formatParameter(analysis, definition, metadata)
   );
-  const context = [
+  const contextParts = [
     `[${sourceKey}]`,
+    `Identificador da análise: ${analysis.analysisId}`,
     `Data de criação: ${formatDate(analysis.analysisCreatedAt)}`,
     `Período avaliado: ${formatDate(analysis.startTime)} a ${formatDate(analysis.endTime)}`,
     `Ciclo: ${cycle}`,
     `Pontuação geral: ${analysis.finalScore.toFixed(1)}/100`,
-    "Parâmetros:",
-    ...parameterLines,
-  ].join("\n");
+  ];
+
+  if (metadata) {
+    contextParts.push(
+      `Cobertura geral: ${metadata.executionStats.dataCoverage.coveragePercentage.toFixed(1)}%`,
+      `Limiar crítico: ${metadata.criticalThreshold}`,
+      `Pesos: oxigênio dissolvido ${metadata.parameterWeights.dissolvedOxygen}, temperatura ${metadata.parameterWeights.temperature}, pH ${metadata.parameterWeights.ph}, salinidade ${metadata.parameterWeights.salinity}`
+    );
+  }
+
+  contextParts.push("Parâmetros:", ...parameterLines);
+  if (analysis.aiSummary) {
+    contextParts.push(`Interpretação gerada: ${analysis.aiSummary}`);
+  }
 
   return {
     analysisCreatedAt: analysis.analysisCreatedAt,
     analysisId: analysis.analysisId,
-    context,
+    context: contextParts.join("\n"),
     cycleId: analysis.cycleId,
     periodEnd: analysis.endTime,
     periodStart: analysis.startTime,

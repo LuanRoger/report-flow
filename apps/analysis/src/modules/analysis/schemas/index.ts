@@ -5,38 +5,68 @@ export const idParamSchema = z.object({
   id: z.coerce.number().min(1, { error: "ID is required" }),
 });
 
-export const analysisBodySchema = z.object({
-  endDate: z.coerce.date().optional(),
-  startDate: z.coerce.date().optional(),
-  window: z.enum(ANALYSIS_TIME_WINDOWS).optional().default("7d"),
+export const analysisGenerationOptionsSchema = z.object({
+  generateAiSummary: z.boolean().optional().default(true),
 });
+
+export const analysisBodySchema = analysisGenerationOptionsSchema
+  .extend({
+    endDate: z.coerce.date().optional(),
+    startDate: z.coerce.date().optional(),
+    window: z.enum(ANALYSIS_TIME_WINDOWS).optional().default("7d"),
+  })
+  .superRefine(({ endDate, startDate, window }, context) => {
+    if (window === "custom" && !(startDate && endDate)) {
+      context.addIssue({
+        code: "custom",
+        message: "Custom windows require startDate and endDate",
+        path: ["window"],
+      });
+    }
+
+    if (startDate && endDate && startDate.getTime() >= endDate.getTime()) {
+      context.addIssue({
+        code: "custom",
+        message: "startDate must be before endDate",
+        path: ["startDate"],
+      });
+    }
+  });
+
+export const parameterCodeSchema = z.enum([
+  "dissolvedOxygen",
+  "temperature",
+  "ph",
+  "salinity",
+]);
 
 export const parametersScores = z.object({
   dissolvedOxygen: z.number().min(1).max(100),
   ph: z.number().min(1).max(100),
   salinity: z.number().min(1).max(100),
   temperature: z.number().min(1).max(100),
-  turbidity: z.number().min(1).max(100),
-});
-
-export const aggregationWeightsSchema = z.object({
-  alpha: z.number(),
-  beta: z.number(),
-  gamma: z.number(),
 });
 
 export const parameterWeightsSchema = z.object({
-  dissolvedOxygen: z.number(),
-  ph: z.number(),
-  salinity: z.number(),
-  temperature: z.number(),
-  turbidity: z.number(),
+  dissolvedOxygen: z.number().nonnegative(),
+  ph: z.number().nonnegative(),
+  salinity: z.number().nonnegative(),
+  temperature: z.number().nonnegative(),
+});
+
+export const parameterCoverageSchema = z.object({
+  coveragePercentage: z.number().min(0).max(100),
+  coveredDurationSeconds: z.number().nonnegative(),
+  missingDurationSeconds: z.number().nonnegative(),
 });
 
 export const dataCoverageSchema = z.object({
   coveragePercentage: z.number().min(0).max(100),
   hasSufficientCoverage: z.boolean(),
-  presentParameters: z.array(z.string()),
+  minimumRequiredPercentage: z.number().min(0).max(100),
+  missingParameters: z.array(parameterCodeSchema),
+  parameterCoverage: z.record(parameterCodeSchema, parameterCoverageSchema),
+  presentParameters: z.array(parameterCodeSchema),
 });
 
 export const timeRangeSchema = z.object({
@@ -48,30 +78,34 @@ export const timeRangeSchema = z.object({
 
 export const executionStatsSchema = z.object({
   dataCoverage: dataCoverageSchema,
-  measurementsByParameter: z.record(z.string(), z.number()),
+  measurementsByParameter: z.record(parameterCodeSchema, z.number().int()),
   timeRange: timeRangeSchema,
-  totalMeasurements: z.number(),
+  totalMeasurements: z.number().int().nonnegative(),
 });
 
 export const rawValuesSchema = z.object({
-  count: z.number(),
+  count: z.number().int().nonnegative(),
   max: z.number().nullable(),
   mean: z.number().nullable(),
   min: z.number().nullable(),
 });
 
-export const normalizedScoresSchema = z.object({
-  count: z.number(),
-  max: z.number().nullable(),
-  mean: z.number().nullable(),
-  min: z.number().nullable(),
+export const normalizedScoresSchema = rawValuesSchema;
+
+export const unfavorableIntervalSchema = z.object({
+  durationSeconds: z.number().positive(),
+  end: z.coerce.date(),
+  start: z.coerce.date(),
 });
 
 export const temporalMetricsSchema = z.object({
-  criticalCount: z.number(),
-  criticalTimeRatio: z.number(),
-  meanScore: z.number(),
-  minScore: z.number(),
+  coveragePercentage: z.number().min(0).max(100),
+  coveredDurationSeconds: z.number().positive(),
+  missingDurationSeconds: z.number().nonnegative(),
+  pLow: z.number().min(0).max(1),
+  unfavorableDurationSeconds: z.number().nonnegative(),
+  unfavorableIntervals: z.array(unfavorableIntervalSchema),
+  weightedMeanScore: z.number().min(1).max(100),
 });
 
 export const parameterStatsSchema = z.object({
@@ -81,15 +115,18 @@ export const parameterStatsSchema = z.object({
 });
 
 export const metadataSchema = z.object({
-  aggregationWeights: aggregationWeightsSchema,
-  criticalThreshold: z.number(),
+  criticalThreshold: z.number().min(1).max(100),
   executionStats: executionStatsSchema,
-  parameterStats: z.record(z.string(), parameterStatsSchema),
+  maximumContinuityGapSeconds: z.number().positive(),
+  minimumCoveragePercentage: z.number().min(0).max(100),
+  parameterStats: z.record(parameterCodeSchema, parameterStatsSchema),
   parameterWeights: parameterWeightsSchema,
+  scoringModelVersion: z.string().min(1),
+  windowConvention: z.literal("[start,end)"),
 });
 
 export const scoreResultSchema = z.object({
-  aiSummary: z.string().optional(),
+  aiSummary: z.string().nullable(),
   endDate: z.coerce.date(),
   finalScore: z.number().min(1).max(100),
   metadata: metadataSchema,
@@ -99,20 +136,19 @@ export const scoreResultSchema = z.object({
 });
 
 export const getAnalysisById200ResponseSchema = z.object({
-  aiSummary: z.string().optional(),
+  aiSummary: z.string().nullable(),
   createdAt: z.coerce.date(),
-  cycleId: z.number(),
-  dissolvedOxygenScore: z.number().min(0).max(100),
+  cycleId: z.number().nullable(),
+  dissolvedOxygenScore: z.number().min(1).max(100),
   endTime: z.coerce.date(),
-  finalScore: z.number().min(0).max(100),
+  finalScore: z.number().min(1).max(100),
   id: z.number(),
   metadata: metadataSchema,
-  phScore: z.number().min(0).max(100),
+  phScore: z.number().min(1).max(100),
   pondId: z.number(),
-  salinityScore: z.number().min(0).max(100),
+  salinityScore: z.number().min(1).max(100),
   startTime: z.coerce.date(),
-  temperatureScore: z.number().min(0).max(100),
-  turbidityScore: z.number().min(0).max(100),
+  temperatureScore: z.number().min(1).max(100),
 });
 
 export const performAnalysisByPond200ResponseSchema = scoreResultSchema;

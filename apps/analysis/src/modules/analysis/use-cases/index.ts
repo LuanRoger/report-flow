@@ -1,3 +1,4 @@
+import type { ParameterCode } from "database";
 import {
   AnalysisNotFound,
   InsufficientDataError,
@@ -12,46 +13,81 @@ import {
   storeAnalysisResult as storeAnalysisResultRepository,
 } from "../repository";
 import type { Measurement } from "../repository/types";
-import type { AnalysisQuery, ScoreResult } from "../schemas/types";
+import type {
+  AnalysisGenerationOptions,
+  AnalysisQuery,
+  ScoreResult,
+} from "../schemas/types";
 import { generateAiSummary } from "../utils/ai-summary";
 import { calculateTimeWindow } from "../utils/date";
-import { normalizeMeasurements } from "../utils/normalization";
+import {
+  EXPECTED_COLLECTION_INTERVAL_SECONDS,
+  normalizeMeasurements,
+  SCORING_PARAMETER_CODES,
+} from "../utils/normalization";
 import { formatAnalysisForEmbedding, generateEmbedding } from "../utils/rag";
 import { generateHtmlReport } from "../utils/report";
 import {
   buildScoreResult,
   calculateParameterTemporalScores,
-  checkDataCoverage,
 } from "../utils/scoring";
 
-async function performCoreAnalysis(
+const MILLISECONDS_PER_SECOND = 1000;
+
+function findActualDateRange(measurements: Measurement[]): {
+  actualEndDate: Date;
+  actualStartDate: Date;
+} {
+  let maximumTimestamp = Number.NEGATIVE_INFINITY;
+  let minimumTimestamp = Number.POSITIVE_INFINITY;
+
+  for (const measurement of measurements) {
+    const timestamp = measurement.recordedAt.getTime();
+    maximumTimestamp = Math.max(maximumTimestamp, timestamp);
+    minimumTimestamp = Math.min(minimumTimestamp, timestamp);
+  }
+
+  return {
+    actualEndDate: new Date(maximumTimestamp),
+    actualStartDate: new Date(minimumTimestamp),
+  };
+}
+
+function findMissingParameters(measurements: Measurement[]): ParameterCode[] {
+  const presentParameters = new Set(
+    measurements.map((measurement) => measurement.parameterCode)
+  );
+
+  return SCORING_PARAMETER_CODES.filter(
+    (parameterCode) => !presentParameters.has(parameterCode)
+  );
+}
+
+function performCoreAnalysis(
   pondId: number,
   measurements: Measurement[],
   requestedStartDate: Date,
   requestedEndDate: Date
-): Promise<ScoreResult> {
-  const coverageResult = checkDataCoverage(measurements);
+): ScoreResult {
+  const missingParameters = findMissingParameters(measurements);
+  if (missingParameters.length > 0) {
+    throw new InsufficientDataError(missingParameters);
+  }
 
-  const recordedAtDates = measurements.map((m) => m.recordedAt);
-  const actualStartDate = new Date(
-    Math.min(...recordedAtDates.map((d) => d.getTime()))
-  );
-  const actualEndDate = new Date(
-    Math.max(...recordedAtDates.map((d) => d.getTime()))
-  );
+  const { actualEndDate, actualStartDate } = findActualDateRange(measurements);
   const minimalMeasurements = measurements.map((measurement) => ({
     parameterCode: measurement.parameterCode,
     recordedAt: measurement.recordedAt,
     value: measurement.value,
   }));
-
   const normalizedByParameter = normalizeMeasurements(minimalMeasurements);
-
   const parameterTemporalScores = calculateParameterTemporalScores(
-    normalizedByParameter
+    normalizedByParameter,
+    requestedStartDate,
+    requestedEndDate
   );
 
-  const scoreResult = buildScoreResult(
+  return buildScoreResult(
     pondId,
     requestedStartDate,
     requestedEndDate,
@@ -59,14 +95,22 @@ async function performCoreAnalysis(
     actualEndDate,
     minimalMeasurements,
     parameterTemporalScores,
-    normalizedByParameter,
-    coverageResult.hasSufficientCoverage,
-    coverageResult.coveragePercentage,
-    coverageResult.presentParameters
+    normalizedByParameter
   );
+}
 
-  const aiSummary = await generateAiSummary(scoreResult);
-  return { ...scoreResult, aiSummary };
+async function maybeGenerateAiSummary(
+  result: ScoreResult,
+  generateSummary: boolean
+): Promise<ScoreResult> {
+  if (!generateSummary) {
+    return result;
+  }
+
+  return {
+    ...result,
+    aiSummary: await generateAiSummary(result),
+  };
 }
 
 export async function getAnalysisById(id: number) {
@@ -82,15 +126,19 @@ export async function performAnalysisByPond(
   pondId: number,
   query: AnalysisQuery
 ): Promise<ScoreResult> {
-  const { startDate: startDateQuery, endDate: endDateQuery, window } = query;
-
-  const { startDate, endDate } = calculateTimeWindow(
+  const {
+    endDate: endDateQuery,
+    generateAiSummary: shouldGenerateAiSummary,
+    startDate: startDateQuery,
+    window,
+  } = query;
+  const { endDate, startDate } = calculateTimeWindow(
     window,
     startDateQuery,
     endDateQuery
   );
-
   const pond = await getPondByIdRepository(pondId);
+
   if (!pond) {
     throw new PondNotFoundError(pondId);
   }
@@ -100,93 +148,88 @@ export async function performAnalysisByPond(
     startDate,
     endDate
   );
-
   if (measurements.length === 0) {
     throw new InsufficientDataError();
   }
 
-  return performCoreAnalysis(pondId, measurements, startDate, endDate);
+  const result = performCoreAnalysis(pondId, measurements, startDate, endDate);
+  return await maybeGenerateAiSummary(result, shouldGenerateAiSummary);
 }
 
 export async function performAnalysisByCycle(
-  cycleId: number
+  cycleId: number,
+  options: AnalysisGenerationOptions = { generateAiSummary: true }
 ): Promise<ScoreResult> {
   const measurements = await getMeasurementsForCycleRepository(cycleId);
-
   if (measurements.length === 0) {
     throw new InsufficientDataError();
   }
 
-  const { pondId } = measurements[0];
-
-  const actualStartDate = new Date(
-    Math.min(...measurements.map((m) => m.recordedAt.getTime()))
+  const { actualEndDate, actualStartDate } = findActualDateRange(measurements);
+  const requestedEndDate = new Date(
+    actualEndDate.getTime() +
+      EXPECTED_COLLECTION_INTERVAL_SECONDS * MILLISECONDS_PER_SECOND
   );
-  const actualEndDate = new Date(
-    Math.max(...measurements.map((m) => m.recordedAt.getTime()))
-  );
-
-  return performCoreAnalysis(
-    pondId,
+  const result = performCoreAnalysis(
+    measurements[0].pondId,
     measurements,
     actualStartDate,
-    actualEndDate
+    requestedEndDate
   );
+
+  return await maybeGenerateAiSummary(result, options.generateAiSummary);
 }
 
 export async function storeAnalysisScoreResult(
   result: ScoreResult,
   cycleId?: number
-) {
+): Promise<void> {
   const {
-    pondId,
-    finalScore,
-    parameterScores,
-    startDate,
-    endDate,
-    metadata,
     aiSummary,
+    endDate,
+    finalScore,
+    metadata,
+    parameterScores,
+    pondId,
+    startDate,
   } = result;
-
   const embeddingContent = formatAnalysisForEmbedding(result);
   const embedding = await generateEmbedding(embeddingContent);
 
   await storeAnalysisResultRepository(
     {
-      aiSummary,
       cycleId,
       dissolvedOxygenScore: parameterScores.dissolvedOxygen,
       endTime: endDate,
       finalScore,
-      metadata: JSON.stringify(metadata),
+      metadata,
       phScore: parameterScores.ph,
       pondId,
       salinityScore: parameterScores.salinity,
       startTime: startDate,
       temperatureScore: parameterScores.temperature,
-      turbidityScore: parameterScores.turbidity,
     },
     {
       content: embeddingContent,
       embedding,
-    }
+    },
+    aiSummary
   );
 }
 
 export async function deleteAnalysisById(id: number) {
-  const analysis = getAnalysisById(id);
-
+  const analysis = await getAnalysisById(id);
   await deleteAnalysisByIdRepository(id);
   return analysis;
 }
 
-export async function generateReportForAnalysis(analysisId: number) {
+export async function generateReportForAnalysis(
+  analysisId: number
+): Promise<string> {
   const analysis = await getAnalysisByIdRepository(analysisId);
   if (!analysis) {
     throw new AnalysisNotFound(analysisId);
   }
 
-  const report = generateHtmlReport(analysis);
-
-  return report;
+  return generateHtmlReport(analysis, { aiSummary: analysis.aiSummary });
 }

@@ -1,13 +1,7 @@
 type Scenario = "ideal" | "normal" | "alerta" | "critico" | "misto";
 type Mode = "constant" | "precalc";
 
-const PARAMS = [
-  "temperature",
-  "ph",
-  "salinity",
-  "turbidity",
-  "dissolvedOxygen",
-] as const;
+const PARAMS = ["temperature", "ph", "salinity", "dissolvedOxygen"] as const;
 
 type ParamCode = (typeof PARAMS)[number];
 
@@ -40,7 +34,6 @@ const UNITS: Record<ParamCode, string> = {
   ph: "pH",
   salinity: "ppt",
   temperature: "°C",
-  turbidity: "NTU",
 };
 
 const RANGES: Record<
@@ -48,33 +41,29 @@ const RANGES: Record<
   Record<ParamCode, [number, number]>
 > = {
   alerta: {
-    dissolvedOxygen: [3.5, 5],
+    dissolvedOxygen: [3.5, 4.5],
     ph: [6.8, 9.0],
     salinity: [5, 35],
     temperature: [24, 33],
-    turbidity: [30, 80],
   },
   critico: {
-    dissolvedOxygen: [1, 3.5],
+    dissolvedOxygen: [1, 3],
     ph: [6.2, 9.5],
     salinity: [0, 40],
     temperature: [20, 36],
-    turbidity: [60, 200],
   },
   ideal: {
-    dissolvedOxygen: [6, 9],
+    dissolvedOxygen: [4.8, 5.2],
     ph: [7.5, 8.3],
     salinity: [15, 25],
     temperature: [27, 30],
-    turbidity: [5, 20],
   },
   misto: {} as Record<ParamCode, [number, number]>,
   normal: {
-    dissolvedOxygen: [5, 7],
+    dissolvedOxygen: [4.5, 5.5],
     ph: [7.2, 8.6],
     salinity: [10, 30],
     temperature: [26, 31],
-    turbidity: [10, 40],
   },
 };
 
@@ -149,7 +138,7 @@ function parseArgs(): {
   rate: number;
   from: string | undefined;
   to: string | undefined;
-  stepMinutes: number;
+  stepSeconds: number;
   enableLogs: boolean;
   pondId: number;
   cycleId: number;
@@ -162,10 +151,15 @@ function parseArgs(): {
 
   const scenario = (get("scenario") ?? "normal") as Scenario;
   const mode = (get("mode") ?? "constant") as Mode;
-  const rate = Number(get("rate") ?? "60"); // registros por minuto
+  const rate = Number(get("rate") ?? "24");
   const from = get("from");
   const to = get("to");
-  const stepMinutes = Number(get("step-minutes") ?? "30");
+  const stepSecondsArgument = get("step-seconds");
+  const stepMinutesArgument = get("step-minutes");
+  const stepSeconds = Number(
+    stepSecondsArgument ??
+      (stepMinutesArgument ? Number(stepMinutesArgument) * 60 : 10)
+  );
   const enableLogs = get("enable-logs")?.toLowerCase() === "true";
   const pondId = Number(get("pond-id") ?? "1");
   const cycleId = Number(get("cycle-id") ?? "1");
@@ -178,7 +172,7 @@ function parseArgs(): {
     pondId,
     rate,
     scenario,
-    stepMinutes,
+    stepSeconds,
     to,
   };
 }
@@ -188,27 +182,26 @@ async function runConstant(
   rate: number,
   enableLogs: boolean
 ) {
-  const intervalMs = Math.floor(60_000 / rate);
-  if (enableLogs) {
-    console.log(`Modo constante: ${rate}/min, intervalo ${intervalMs}ms`);
+  if (!(Number.isFinite(rate) && rate > 0)) {
+    throw new Error("A taxa deve ser maior que zero.");
   }
 
-  // biome-ignore lint/suspicious/noUnnecessaryConditions: Nescessary in a infinite loop
-  while (true) {
-    const param = PARAMS[Math.floor(Math.random() * PARAMS.length)];
-    if (!param) {
-      continue;
-    }
-
-    // Add small random offset (0-100ms) to avoid timestamp collisions
-    const now = new Date();
-    const offsetTime = new Date(
-      now.getTime() + Math.floor(Math.random() * 100)
+  const intervalMs = Math.max(1, Math.floor((60_000 * PARAMS.length) / rate));
+  if (enableLogs) {
+    console.log(
+      `Modo constante: ${rate} registros/min, intervalo de coleta ${intervalMs}ms`
     );
-    const payload = buildPayload(param, offsetTime, scenario);
-    // biome-ignore lint/performance/noAwaitInLoops: Will send requests sequentially after a timer. This operation is not to be made concurrently
-    await send(payload, enableLogs);
-    await new Promise((r) => setTimeout(r, intervalMs));
+  }
+
+  // biome-ignore lint/suspicious/noUnnecessaryConditions: Necessary in an infinite loop
+  while (true) {
+    const recordedAt = new Date();
+    for (const param of PARAMS) {
+      const payload = buildPayload(param, recordedAt, scenario);
+      // biome-ignore lint/performance/noAwaitInLoops: Requests intentionally preserve collection order
+      await send(payload, enableLogs);
+    }
+    await new Promise((resolve) => setTimeout(resolve, intervalMs));
   }
 }
 
@@ -216,7 +209,7 @@ async function runPrecalc(
   scenario: Scenario,
   fromIso: string,
   toIso: string,
-  stepMinutes: number,
+  stepSeconds: number,
   enableLogs: boolean
 ) {
   const start = new Date(fromIso);
@@ -224,22 +217,23 @@ async function runPrecalc(
   if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
     throw new Error("Datas inválidas para --from e --to");
   }
+  if (start.getTime() >= end.getTime()) {
+    throw new Error("A data inicial deve ser anterior à data final.");
+  }
+  if (!(Number.isFinite(stepSeconds) && stepSeconds > 0)) {
+    throw new Error("O intervalo de coleta deve ser maior que zero.");
+  }
 
   if (enableLogs) {
     console.log(
-      `Modo pre-calculado: ${start.toISOString()} -> ${end.toISOString()} | step ${stepMinutes} min`
+      `Modo pre-calculado: ${start.toISOString()} -> ${end.toISOString()} | intervalo ${stepSeconds} s`
     );
   }
 
-  for (let t = start.getTime(); t <= end.getTime(); t += stepMinutes * 60_000) {
-    for (let i = 0; i < PARAMS.length; i += 1) {
-      const param = PARAMS[i];
-      if (!param) {
-        continue;
-      }
-
-      const paramTime = new Date(t + i * 1000);
-      const payload = buildPayload(param, paramTime, scenario);
+  for (let t = start.getTime(); t < end.getTime(); t += stepSeconds * 1000) {
+    const recordedAt = new Date(t);
+    for (const param of PARAMS) {
+      const payload = buildPayload(param, recordedAt, scenario);
 
       // biome-ignore lint/performance/noAwaitInLoops: Will send requests sequentially after a timer. This operation is not to be made concurrently
       await send(payload, enableLogs);
@@ -254,7 +248,7 @@ async function runPrecalc(
     rate,
     from,
     to,
-    stepMinutes,
+    stepSeconds,
     enableLogs,
     pondId,
     cycleId,
@@ -272,6 +266,6 @@ async function runPrecalc(
     if (!(from && to)) {
       throw new Error("No modo precalc, informe --from e --to");
     }
-    await runPrecalc(scenario, from, to, stepMinutes, enableLogs);
+    await runPrecalc(scenario, from, to, stepSeconds, enableLogs);
   }
 })();

@@ -5,11 +5,7 @@ export const WINDOW_SECONDS = {
   "15m": 15 * 60,
   "24h": 24 * 60 * 60,
 } as const;
-export const liveParameterCodes = [
-  "temperature",
-  "turbidity",
-  "dissolvedOxygen",
-] as const;
+export const liveParameterCodes = ["temperature", "dissolvedOxygen"] as const;
 export const liveBuckets = ["15s", "1m", "5m", "15m"] as const;
 export const liveWindows = ["15m", "1h", "6h", "24h"] as const;
 export const metricDefinitions = [
@@ -19,13 +15,6 @@ export const metricDefinitions = [
     fractionDigits: 2,
     title: "Temperature",
     unit: "°C",
-  },
-  {
-    code: "turbidity",
-    description: "Average suspended-particle reading",
-    fractionDigits: 1,
-    title: "Turbidity",
-    unit: "NTU",
   },
   {
     code: "dissolvedOxygen",

@@ -3,6 +3,7 @@ import { embed } from "ai";
 import { formatDate } from "@/utils/date";
 import { ANALYSIS_EMBEDDING_DIMENSIONS } from "../constants";
 import type { ScoreResult } from "../schemas/types";
+import type { UnfavorableInterval } from "../types/analysis";
 
 function getScoreLabel(score: number): string {
   if (score >= 90) {
@@ -26,50 +27,80 @@ function getScoreLabel(score: number): string {
   return "Critical";
 }
 
+function formatUnfavorableIntervals(intervals: UnfavorableInterval[]): string {
+  if (intervals.length === 0) {
+    return "none";
+  }
+
+  return intervals
+    .map(
+      (interval) =>
+        `${interval.start.toISOString()} to ${interval.end.toISOString()} (${interval.durationSeconds.toFixed(0)}s)`
+    )
+    .join("; ");
+}
+
 export function formatAnalysisForEmbedding(result: ScoreResult): string {
-  const { pondId, finalScore, parameterScores, metadata } = result;
-  const { executionStats, parameterStats, criticalThreshold } = metadata;
+  const { aiSummary, finalScore, metadata, parameterScores, pondId } = result;
+  const {
+    criticalThreshold,
+    executionStats,
+    maximumContinuityGapSeconds,
+    minimumCoveragePercentage,
+    parameterStats,
+    parameterWeights,
+    scoringModelVersion,
+    windowConvention,
+  } = metadata;
   const { dataCoverage, timeRange, totalMeasurements } = executionStats;
-
-  // Build parameter descriptions
   const parameterDescriptions: string[] = [];
-  const parameterCodes = Object.keys(parameterScores) as Array<
-    keyof typeof parameterScores
-  >;
 
-  for (const paramCode of parameterCodes) {
-    const score = parameterScores[paramCode];
-    const stats = parameterStats[paramCode];
+  for (const parameterCode of Object.keys(parameterScores) as Array<
+    keyof typeof parameterScores
+  >) {
+    const score = parameterScores[parameterCode];
+    const stats = parameterStats[parameterCode];
     const temporal = stats.temporalMetrics;
 
-    const scoreLabel = getScoreLabel(score);
-
     parameterDescriptions.push(
-      `${paramCode}: score=${score.toFixed(0)}/${scoreLabel}, ` +
-        `mean=${stats.rawValues.mean?.toFixed(2) ?? "N/A"}, ` +
-        `min=${stats.rawValues.min?.toFixed(2) ?? "N/A"}, ` +
-        `max=${stats.rawValues.max?.toFixed(2) ?? "N/A"}, ` +
+      `${parameterCode}: score=${score.toFixed(2)} (${getScoreLabel(score)}), ` +
+        `rawMean=${stats.rawValues.mean?.toFixed(2) ?? "N/A"}, ` +
+        `rawMin=${stats.rawValues.min?.toFixed(2) ?? "N/A"}, ` +
+        `rawMax=${stats.rawValues.max?.toFixed(2) ?? "N/A"}, ` +
         `count=${stats.rawValues.count}, ` +
-        `critical=${(temporal.criticalTimeRatio * 100).toFixed(1)}%`
+        `weightedMeanScore=${temporal.weightedMeanScore.toFixed(2)}, ` +
+        `pLow=${temporal.pLow.toFixed(4)}, ` +
+        `coverage=${temporal.coveragePercentage.toFixed(2)}%, ` +
+        `coveredSeconds=${temporal.coveredDurationSeconds.toFixed(0)}, ` +
+        `unfavorableSeconds=${temporal.unfavorableDurationSeconds.toFixed(0)}, ` +
+        `unfavorableIntervals=${formatUnfavorableIntervals(temporal.unfavorableIntervals)}`
     );
   }
 
+  const generatedInterpretation = aiSummary
+    ? `\nGenerated interpretation:\n${aiSummary}\n`
+    : "";
+
   return `
 Pond Analysis: ${pondId}
-Period: ${formatDate(timeRange.requestedStart)} to ${formatDate(timeRange.requestedEnd)}
+Requested Period: ${formatDate(timeRange.requestedStart)} to ${formatDate(timeRange.requestedEnd)}
 Actual Data: ${formatDate(timeRange.actualStart)} to ${formatDate(timeRange.actualEnd)}
+Window Convention: ${windowConvention}
 
-Overall Score: ${finalScore.toFixed(1)}/${getScoreLabel(finalScore)}
+Overall Score: ${finalScore.toFixed(2)} (${getScoreLabel(finalScore)})
 Total Measurements: ${totalMeasurements}
-Data Coverage: ${dataCoverage.coveragePercentage}% (${dataCoverage.presentParameters.length} parameters)
+Overall Coverage: ${dataCoverage.coveragePercentage.toFixed(2)}%
+Coverage Sufficient: ${dataCoverage.hasSufficientCoverage}
+Minimum Coverage: ${minimumCoveragePercentage}%
 Critical Threshold: ${criticalThreshold}
 
 Parameters:
 ${parameterDescriptions.join("\n")}
-
+${generatedInterpretation}
 Configuration:
-Aggregation Weights: Alpha=${metadata.aggregationWeights.alpha}, Beta=${metadata.aggregationWeights.beta}, Gamma=${metadata.aggregationWeights.gamma}
-Parameter Weights: Temperature=${metadata.parameterWeights.temperature}, pH=${metadata.parameterWeights.ph}, Salinity=${metadata.parameterWeights.salinity}, Dissolved Oxygen=${metadata.parameterWeights.dissolvedOxygen}, Turbidity=${metadata.parameterWeights.turbidity}
+Scoring Model: ${scoringModelVersion}
+Maximum Continuity Gap: ${maximumContinuityGapSeconds} seconds
+Parameter Weights: Temperature=${parameterWeights.temperature}, pH=${parameterWeights.ph}, Salinity=${parameterWeights.salinity}, Dissolved Oxygen=${parameterWeights.dissolvedOxygen}
 `;
 }
 

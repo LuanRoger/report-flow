@@ -4,6 +4,7 @@ export type AnalysisTimeWindow = "7d" | "30d" | "90d" | "custom";
 
 export interface AnalysisQueryParams {
   endDate?: string;
+  generateAiSummary?: boolean;
   pondId: string;
   startDate?: string;
   window?: string;
@@ -22,35 +23,44 @@ export interface NormalizedScore {
   score: number;
 }
 
+export interface UnfavorableInterval {
+  durationSeconds: number;
+  end: Date;
+  start: Date;
+}
+
+export interface ParameterMetrics {
+  coveragePercentage: number;
+  coveredDurationSeconds: number;
+  missingDurationSeconds: number;
+  pLow: number;
+  unfavorableDurationSeconds: number;
+  unfavorableIntervals: UnfavorableInterval[];
+  weightedMeanScore: number;
+}
+
 export interface ParameterStats {
   normalizedScores: {
-    min: number | null;
+    count: number;
     max: number | null;
     mean: number | null;
-    count: number;
+    min: number | null;
   };
   rawValues: {
-    min: number | null;
+    count: number;
     max: number | null;
     mean: number | null;
-    count: number;
+    min: number | null;
   };
   temporalMetrics: ParameterMetrics;
 }
 
-export interface ParameterMetrics {
-  criticalCount: number;
-  criticalTimeRatio: number;
-  meanScore: number;
-  minScore: number;
-}
-
 export interface ParameterTemporalScore {
+  metrics: ParameterMetrics;
   parameterCode: ParameterCode;
   temporalScore: number;
 }
 
-// Normalization configuration types
 export interface GaussianConfig {
   mu: number;
   sigma: number;
@@ -64,8 +74,3 @@ export interface TriangularConfig {
 }
 
 export type NormalizationConfig = GaussianConfig | TriangularConfig;
-
-export interface ParameterConfig {
-  normalization: NormalizationConfig;
-  weight: number;
-}

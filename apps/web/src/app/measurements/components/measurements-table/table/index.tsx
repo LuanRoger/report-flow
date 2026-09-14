@@ -24,7 +24,6 @@ const parameterLabels: Record<string, string> = {
   ph: "pH",
   salinity: "Salinity",
   temperature: "Temperature",
-  turbidity: "Turbidity",
 };
 
 interface MeasurementsTableProps {

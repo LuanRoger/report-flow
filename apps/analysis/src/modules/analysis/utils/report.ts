@@ -1,7 +1,7 @@
-import type { AnalysisResult } from "database";
+import type { AnalysisResult } from "../repository/types";
 
 export interface ReportOptions {
-  aiSummary?: string;
+  aiSummary?: string | null;
 }
 
 /**
@@ -12,7 +12,6 @@ const PARAMETER_DISPLAY_NAMES: Record<string, string> = {
   ph: "pH",
   salinity: "Salinity",
   temperature: "Temperature",
-  turbidity: "Turbidity",
 };
 
 /**
@@ -23,7 +22,6 @@ const PARAMETER_UNITS: Record<string, string> = {
   ph: "",
   salinity: "ppt",
   temperature: "°C",
-  turbidity: "NTU",
 };
 
 /**
@@ -153,7 +151,6 @@ function generateParameterScoresRows(result: AnalysisResult): string {
     ph: result.phScore,
     salinity: result.salinityScore,
     temperature: result.temperatureScore,
-    turbidity: result.turbidityScore,
   };
   const parameterCodes = Object.keys(parameterScores);
 
@@ -201,10 +198,11 @@ function generateTemporalMetricsRows(result: AnalysisResult): string {
     rows += `
 		<tr>
 			<td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: left; font-weight: 600;">${displayName}</td>
-			<td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center;">${formatNumber(temporal.meanScore)}</td>
-			<td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center;">${formatNumber(temporal.minScore)}</td>
-			<td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center;">${(temporal.criticalTimeRatio * 100).toFixed(1)}%</td>
-			<td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center;">${temporal.criticalCount}</td>
+			<td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center;">${formatNumber(temporal.weightedMeanScore)}</td>
+			<td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center;">${(temporal.pLow * 100).toFixed(1)}%</td>
+			<td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center;">${temporal.coveragePercentage.toFixed(1)}%</td>
+			<td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center;">${formatNumber(temporal.coveredDurationSeconds)} s</td>
+			<td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center;">${temporal.unfavorableIntervals.length}</td>
 		</tr>
 		`;
   }
@@ -251,10 +249,13 @@ export function generateHtmlReport(
   const metadataContent =
     typeof metadata === "string" ? JSON.parse(metadata) : metadata;
   const {
-    executionStats,
     criticalThreshold,
-    aggregationWeights,
+    executionStats,
+    maximumContinuityGapSeconds,
+    minimumCoveragePercentage,
     parameterWeights,
+    scoringModelVersion,
+    windowConvention,
   } = metadataContent;
   const { totalMeasurements, dataCoverage, timeRange } = executionStats;
   const { aiSummary } = options;
@@ -686,10 +687,11 @@ export function generateHtmlReport(
 						<thead>
 							<tr>
 								<th>Parameter</th>
-								<th>Mean Score</th>
-								<th>Min Score</th>
-								<th>Critical Time %</th>
-								<th>Critical Count</th>
+								<th>Weighted Mean Score</th>
+								<th>Unfavorable Time</th>
+								<th>Coverage</th>
+								<th>Covered Duration</th>
+								<th>Unfavorable Intervals</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -725,12 +727,14 @@ export function generateHtmlReport(
 				<h3>⚙️ Analysis Configuration</h3>
 				<div class="info-grid">
 					<div class="info-card">
-						<div class="title">Aggregation Weights</div>
+						<div class="title">Temporal Configuration</div>
 						<div class="content">
 							<ul style="list-style: none; padding: 0;">
-								<li><strong>Alpha (Mean):</strong> ${aggregationWeights.alpha}</li>
-								<li><strong>Beta (Min):</strong> ${aggregationWeights.beta}</li>
-								<li><strong>Gamma (Critical):</strong> ${aggregationWeights.gamma}</li>
+								<li><strong>Model:</strong> ${scoringModelVersion}</li>
+								<li><strong>Window:</strong> ${windowConvention}</li>
+								<li><strong>Critical threshold:</strong> ${criticalThreshold}</li>
+								<li><strong>Maximum continuity gap:</strong> ${maximumContinuityGapSeconds} s</li>
+								<li><strong>Minimum coverage:</strong> ${minimumCoveragePercentage}%</li>
 							</ul>
 						</div>
 					</div>
@@ -742,7 +746,6 @@ export function generateHtmlReport(
 								<li><strong>pH:</strong> ${parameterWeights.ph}</li>
 								<li><strong>Salinity:</strong> ${parameterWeights.salinity}</li>
 								<li><strong>Dissolved Oxygen:</strong> ${parameterWeights.dissolvedOxygen}</li>
-								<li><strong>Turbidity:</strong> ${parameterWeights.turbidity}</li>
 							</ul>
 						</div>
 					</div>

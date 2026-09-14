@@ -9,7 +9,6 @@ CREATE TYPE parameter_code AS ENUM (
     'temperature',
     'ph',
     'salinity',
-    'turbidity',
     'dissolvedOxygen'
 );
 
@@ -17,7 +16,6 @@ CREATE TYPE unit_code AS ENUM (
     '°C',
     'pH',
     'ppt',
-    'NTU',
     'mg/L'
 );
 
@@ -45,7 +43,8 @@ CREATE TABLE pond_cycles (
     pond_id INTEGER NOT NULL,
     start_date DATE NOT NULL,
     end_date DATE,
-    harvest_date DATE
+    harvest_date DATE,
+    CONSTRAINT pond_cycles_id_pond_id_unique UNIQUE (id, pond_id)
 );
 
 -- Create measurements as a TimescaleDB hypertable.
@@ -81,10 +80,17 @@ CREATE TABLE analysis_results (
     ph_score REAL NOT NULL,
     salinity_score REAL NOT NULL,
     dissolved_oxygen_score REAL NOT NULL,
-    turbidity_score REAL NOT NULL,
     metadata JSONB NOT NULL,
-    ai_summary TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Store generated AI summaries separately from deterministic analysis results
+CREATE TABLE analysis_ai_summaries (
+    id SERIAL PRIMARY KEY,
+    analysis_id INTEGER NOT NULL,
+    summary TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT analysis_ai_summaries_analysis_id_unique UNIQUE (analysis_id)
 );
 
 -- Create analysis_embeddings table for RAG (Retrieval-Augmented Generation)
@@ -136,9 +142,8 @@ CREATE TABLE message_sources (
 -- INDEXES FOR MEASUREMENTS TABLE (TimescaleDB)
 -- ============================================
 
--- Unique indexes for measurements
-CREATE UNIQUE INDEX measurements_pond_time_idx ON measurements (pond_id, cycle_id, recorded_at);
-CREATE UNIQUE INDEX measurements_param_time_idx ON measurements (parameter_code, recorded_at);
+-- Unique index for measurements
+CREATE UNIQUE INDEX measurements_pond_parameter_recorded_at_unique ON measurements (pond_id, parameter_code, recorded_at);
 
 -- Performance indexes for common query patterns
 CREATE INDEX measurements_pond_idx ON measurements (pond_id);
@@ -149,7 +154,6 @@ CREATE INDEX measurements_created_at_idx ON measurements (created_at);
 
 -- Composite indexes for common query patterns
 CREATE INDEX measurements_pond_cycle_idx ON measurements (pond_id, cycle_id);
-CREATE INDEX measurements_pond_parameter_recorded_at_idx ON measurements (pond_id, parameter_code, recorded_at DESC);
 CREATE INDEX measurements_pond_recorded_at_id_idx ON measurements (pond_id, recorded_at DESC, id DESC);
 CREATE INDEX measurements_cycle_recorded_at_id_idx ON measurements (cycle_id, recorded_at DESC, id DESC);
 CREATE INDEX measurements_parameter_recorded_at_idx ON measurements (parameter_code, recorded_at);
@@ -222,8 +226,8 @@ CREATE INDEX message_sources_analysis_idx ON message_sources (analysis_id);
 ALTER TABLE measurements ADD CONSTRAINT fk_measurements_pond
     FOREIGN KEY (pond_id) REFERENCES ponds(id) ON DELETE CASCADE;
 
-ALTER TABLE measurements ADD CONSTRAINT fk_measurements_cycle
-    FOREIGN KEY (cycle_id) REFERENCES pond_cycles(id) ON DELETE CASCADE;
+ALTER TABLE measurements ADD CONSTRAINT fk_measurements_cycle_pond
+    FOREIGN KEY (cycle_id, pond_id) REFERENCES pond_cycles(id, pond_id) ON DELETE CASCADE;
 
 ALTER TABLE pond_cycles ADD CONSTRAINT fk_pond_cycles_pond
     FOREIGN KEY (pond_id) REFERENCES ponds(id) ON DELETE CASCADE;
@@ -231,8 +235,11 @@ ALTER TABLE pond_cycles ADD CONSTRAINT fk_pond_cycles_pond
 ALTER TABLE analysis_results ADD CONSTRAINT fk_analysis_results_pond
     FOREIGN KEY (pond_id) REFERENCES ponds(id) ON DELETE CASCADE;
 
-ALTER TABLE analysis_results ADD CONSTRAINT fk_analysis_results_cycle
-    FOREIGN KEY (cycle_id) REFERENCES pond_cycles(id) ON DELETE CASCADE;
+ALTER TABLE analysis_results ADD CONSTRAINT fk_analysis_results_cycle_pond
+    FOREIGN KEY (cycle_id, pond_id) REFERENCES pond_cycles(id, pond_id) ON DELETE CASCADE;
+
+ALTER TABLE analysis_ai_summaries ADD CONSTRAINT fk_analysis_ai_summaries_analysis
+    FOREIGN KEY (analysis_id) REFERENCES analysis_results(id) ON DELETE CASCADE;
 
 ALTER TABLE analysis_embeddings ADD CONSTRAINT fk_analysis_embeddings_analysis
     FOREIGN KEY (analysis_id) REFERENCES analysis_results(id) ON DELETE CASCADE;

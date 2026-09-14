@@ -1,6 +1,7 @@
 // biome-ignore lint/performance/noBarrelFile: Re-exporting to be used in other packages without installing external packages
 export { parameterCodes, unitCodes } from "./constants";
 export * from "./db";
+export { analysisAiSummaries } from "./schemas/analysis-ai-summaries";
 export { analysisEmbeddings } from "./schemas/analysis-embeddings";
 export { analysisResults } from "./schemas/analysis-results";
 export { chats } from "./schemas/chats";

@@ -1,9 +1,15 @@
-import { analysisEmbeddings, analysisResults, db } from "database";
+import {
+  analysisAiSummaries,
+  analysisEmbeddings,
+  analysisResults,
+  db,
+} from "database";
 import { and, cosineDistance, desc, eq, gt, sql } from "drizzle-orm";
 import { metadataSchema } from "../../analysis/schemas";
 import type { Metadata } from "../../analysis/schemas/types";
 
 export interface AdvisorAnalysis {
+  aiSummary: string | null;
   analysisCreatedAt: Date;
   analysisId: number;
   cycleId: number | null;
@@ -15,10 +21,10 @@ export interface AdvisorAnalysis {
   salinityScore: number;
   startTime: Date;
   temperatureScore: number;
-  turbidityScore: number;
 }
 
 const advisorAnalysisSelection = {
+  aiSummary: analysisAiSummaries.summary,
   analysisCreatedAt: analysisResults.createdAt,
   analysisId: analysisResults.id,
   cycleId: analysisResults.cycleId,
@@ -30,7 +36,6 @@ const advisorAnalysisSelection = {
   salinityScore: analysisResults.salinityScore,
   startTime: analysisResults.startTime,
   temperatureScore: analysisResults.temperatureScore,
-  turbidityScore: analysisResults.turbidityScore,
 };
 
 function parseAnalysisMetadata(metadata: unknown): Metadata | undefined {
@@ -64,6 +69,10 @@ export async function findRecentAnalysesForPond(
   const analyses = await db
     .select(advisorAnalysisSelection)
     .from(analysisResults)
+    .leftJoin(
+      analysisAiSummaries,
+      eq(analysisAiSummaries.analysisId, analysisResults.id)
+    )
     .where(eq(analysisResults.pondId, pondId))
     .orderBy(desc(analysisResults.createdAt), desc(analysisResults.id))
     .limit(limit);
@@ -91,6 +100,10 @@ export async function findSemanticallyRelevantAnalysesForPond(
     .innerJoin(
       analysisResults,
       eq(analysisEmbeddings.analysisId, analysisResults.id)
+    )
+    .leftJoin(
+      analysisAiSummaries,
+      eq(analysisAiSummaries.analysisId, analysisResults.id)
     )
     .where(
       and(eq(analysisResults.pondId, pondId), gt(similarity, minimumSimilarity))

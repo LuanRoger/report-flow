@@ -2,7 +2,7 @@
 
 > Status: Phase 8 validation and hardening complete; automated and live tests deferred
 >
-> Last updated: 2026-09-05
+> Last updated: 2026-09-13
 >
 > This file is the source of truth for implementing the pond-scoped advisor chat. Read it before changing chat, RAG, database, or streaming code, and update its checklist and decision log after each completed phase.
 
@@ -27,7 +27,7 @@ Only one phase should be implemented at a time. Complete targeted validation bef
 - Every chat is scoped to exactly one pond.
 - Retrieval, prompt construction, OpenAI generation, and chat persistence belong in `apps/analysis`.
 - `apps/web` uses `useChat` and a Next.js streaming proxy; it must not access the database directly.
-- The OpenAI chat model is hard-coded as `gpt-4o-mini-2024-07-18` for now.
+- The current OpenAI chat model is hard-coded as `gpt-5.6-luna`.
 - Questions about recorded pond conditions must be grounded in stored analyses.
 - The advisor may also answer safe, general aquaculture questions such as “Como posso diminuir o pH da água?”.
 - Analysis-derived claims require source labels; general advice must not receive fake analysis citations.
@@ -297,7 +297,7 @@ For example, “Como posso diminuir o pH da água?” may receive safe general g
 
 ### Phase 3 implementation status
 
-- [x] Hard-code `gpt-4o-mini-2024-07-18` in chat constants.
+- [x] Hard-code `gpt-4o-mini-2024-07-18` in chat constants for the first implementation (superseded by `gpt-5.6-luna` on 2026-09-13).
 - [x] Require `pondId` for semantic and recent-analysis repository queries.
 - [x] Retrieve two recent analyses and up to four semantic matches above `0.5` similarity.
 - [x] Deduplicate candidates and cap model context at five sources.
@@ -349,7 +349,7 @@ There is no resume endpoint, persisted stream event log, Redis dependency, or st
 - [x] Use recent user turns to improve follow-up retrieval queries.
 - [x] Create the assistant row with `streaming` status before token delivery.
 - [x] Stream analysis sources as `source-document` parts with safe date, period, and cycle titles.
-- [x] Merge the `gpt-4o-mini-2024-07-18` text stream into one outer UI message stream.
+- [x] Merge the `gpt-4o-mini-2024-07-18` text stream into one outer UI message stream for the first implementation (model superseded by `gpt-5.6-luna` on 2026-09-13).
 - [x] Persist completed assistant parts and normalized source provenance in one transaction.
 - [x] Propagate request cancellation to OpenAI and mark aborted/failed assistant rows without treating partial output as completed.
 - [x] Consume an independent SSE copy so stream completion callbacks can finish persistence work.
@@ -600,7 +600,7 @@ The first release is complete when:
 | 2026-08-29 | Show analysis creation date, period, and cycle in citations. |
 | 2026-08-29 | Remove resumable stream persistence; keep normal streaming and cancellation. |
 | 2026-08-29 | Ship one active persistent chat with clear-history behavior before multi-chat management. |
-| 2026-08-29 | Hard-code `gpt-4o-mini-2024-07-18` for the first chat implementation. |
+| 2026-08-29 | Hard-code `gpt-4o-mini-2024-07-18` for the first chat implementation (superseded on 2026-09-13). |
 | 2026-08-29 | Update the unapplied handwritten initial migration directly instead of adding a forward migration. |
 | 2026-08-29 | Complete the non-streaming analysis chat foundation with create/load, history, and clear endpoints. |
 | 2026-08-29 | Use pond-scoped vector-plus-recency retrieval and sanitized structured analysis context. |
@@ -610,6 +610,7 @@ The first release is complete when:
 | 2026-08-31 | Clear history only after confirmation, serialize pond chat mutations in the current analysis process, and reset client state only after server success. |
 | 2026-08-31 | Complete Phase 8 as a no-test validation and hardening pass, enforce the analysis client as server-only, and defer permanent/live evaluation by request. |
 | 2026-09-05 | Simplify citations to plain Streamdown labels plus a per-message analysis source list; remove the custom markdown and inline hover-card layers. |
+| 2026-09-13 | Supersede `gpt-4o-mini-2024-07-18` with `gpt-5.6-luna` as the current hard-coded chat model. |
 
 ## Instructions for future implementation agents
 

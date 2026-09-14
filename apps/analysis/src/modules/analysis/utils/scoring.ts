@@ -5,209 +5,315 @@ import type {
   ParameterMetrics,
   ParameterStats,
   ParameterTemporalScore,
+  UnfavorableInterval,
 } from "../types/analysis";
 import {
-  AGGREGATION_WEIGHTS,
   CRITICAL_THRESHOLD,
-  getParameterWeight,
+  MAXIMUM_CONTINUITY_GAP_SECONDS,
+  MINIMUM_COVERAGE_PERCENTAGE,
   PARAMETER_WEIGHTS,
+  SCORING_MODEL_VERSION,
+  SCORING_PARAMETER_CODES,
+  WINDOW_CONVENTION,
 } from "./normalization";
 
-export function checkDataCoverage(
-  measurements: Array<{ parameterCode: ParameterCode }>,
-  expectedParameters: ParameterCode[] = [
-    "temperature",
-    "ph",
-    "salinity",
-    "dissolvedOxygen",
-    "turbidity",
-  ]
-): {
-  hasSufficientCoverage: boolean;
-  coveragePercentage: number;
-  presentParameters: ParameterCode[];
-} {
-  const presentParameters = new Set(measurements.map((m) => m.parameterCode));
-  const coverage = presentParameters.size / expectedParameters.length;
-  const coveragePercentage = Math.round(coverage * 100);
-  const hasSufficientCoverage = coverage >= 0.7; // At least 70% coverage
+const MILLISECONDS_PER_SECOND = 1000;
 
-  return {
-    coveragePercentage,
-    hasSufficientCoverage,
-    presentParameters: Array.from(presentParameters) as ParameterCode[],
-  };
-}
-
-export function calculateRawValueStats(values: number[]): {
-  min: number | null;
+interface NumericStats {
+  count: number;
   max: number | null;
   mean: number | null;
-  count: number;
-} {
+  min: number | null;
+}
+
+interface DataCoverageResult {
+  coveragePercentage: number;
+  hasSufficientCoverage: boolean;
+  minimumRequiredPercentage: number;
+  missingParameters: ParameterCode[];
+  parameterCoverage: Record<
+    ParameterCode,
+    {
+      coveragePercentage: number;
+      coveredDurationSeconds: number;
+      missingDurationSeconds: number;
+    }
+  >;
+  presentParameters: ParameterCode[];
+}
+
+function clampScore(score: number): number {
+  return Math.max(1, Math.min(100, score));
+}
+
+function calculateStats<T>(
+  values: readonly T[],
+  getValue: (value: T) => number
+): NumericStats {
   if (values.length === 0) {
     return { count: 0, max: null, mean: null, min: null };
   }
 
+  let maximum = Number.NEGATIVE_INFINITY;
+  let minimum = Number.POSITIVE_INFINITY;
+  let sum = 0;
+
+  for (const value of values) {
+    const numericValue = getValue(value);
+    maximum = Math.max(maximum, numericValue);
+    minimum = Math.min(minimum, numericValue);
+    sum += numericValue;
+  }
+
   return {
     count: values.length,
-    max: Math.max(...values),
-    mean: values.reduce((sum, val) => sum + val, 0) / values.length,
-    min: Math.min(...values),
+    max: maximum,
+    mean: sum / values.length,
+    min: minimum,
   };
 }
 
-export function calculateNormalizedScoreStats(scores: number[]): {
-  min: number | null;
-  max: number | null;
-  mean: number | null;
-  count: number;
-} {
-  if (scores.length === 0) {
-    return { count: 0, max: null, mean: null, min: null };
+export function calculateRawValueStats(values: number[]): NumericStats {
+  return calculateStats(values, (value) => value);
+}
+
+export function calculateNormalizedScoreStats(scores: number[]): NumericStats {
+  return calculateStats(scores, (score) => score);
+}
+
+function appendUnfavorableInterval(
+  intervals: UnfavorableInterval[],
+  startTime: number,
+  endTime: number
+): void {
+  const durationSeconds = (endTime - startTime) / MILLISECONDS_PER_SECOND;
+  const previousInterval = intervals.at(-1);
+
+  if (previousInterval?.end.getTime() === startTime) {
+    previousInterval.end = new Date(endTime);
+    previousInterval.durationSeconds += durationSeconds;
+    return;
   }
 
-  return {
-    count: scores.length,
-    max: Math.max(...scores),
-    mean: scores.reduce((sum, val) => sum + val, 0) / scores.length,
-    min: Math.min(...scores),
-  };
+  intervals.push({
+    durationSeconds,
+    end: new Date(endTime),
+    start: new Date(startTime),
+  });
 }
 
-export function calculateTemporalMetrics(scores: number[]): ParameterMetrics {
-  if (scores.length === 0) {
-    throw new Error("Cannot calculate metrics from empty scores array");
+export function calculateTemporalMetrics(
+  scores: NormalizedScore[],
+  requestedStart: Date,
+  requestedEnd: Date,
+  maximumContinuityGapSeconds = MAXIMUM_CONTINUITY_GAP_SECONDS
+): ParameterMetrics {
+  const windowStart = requestedStart.getTime();
+  const windowEnd = requestedEnd.getTime();
+
+  if (!(windowStart < windowEnd)) {
+    throw new Error("Analysis start must be before analysis end");
+  }
+  if (
+    !Number.isFinite(maximumContinuityGapSeconds) ||
+    maximumContinuityGapSeconds <= 0
+  ) {
+    throw new Error("Maximum continuity gap must be greater than zero");
   }
 
-  const meanScore =
-    scores.reduce((sum, score) => sum + score, 0) / scores.length;
+  const sortedScores = scores
+    .filter((score) => score.recordedAt.getTime() < windowEnd)
+    .sort(
+      (left, right) => left.recordedAt.getTime() - right.recordedAt.getTime()
+    );
+  const maximumGapMilliseconds =
+    maximumContinuityGapSeconds * MILLISECONDS_PER_SECOND;
+  const windowDurationMilliseconds = windowEnd - windowStart;
 
-  const minScore = Math.min(...scores);
+  let coveredDurationMilliseconds = 0;
+  let unfavorableDurationMilliseconds = 0;
+  let weightedScoreTotal = 0;
+  const unfavorableIntervals: UnfavorableInterval[] = [];
 
-  const criticalCount = scores.filter(
-    (score) => score < CRITICAL_THRESHOLD
-  ).length;
-  const criticalTimeRatio = criticalCount / scores.length;
+  for (const [index, normalizedScore] of sortedScores.entries()) {
+    const readingTime = normalizedScore.recordedAt.getTime();
+    const nextReadingTime = sortedScores[index + 1]?.recordedAt.getTime();
+
+    if (nextReadingTime === readingTime) {
+      throw new Error(
+        `Duplicate ${normalizedScore.parameterCode} reading timestamp`
+      );
+    }
+
+    const intervalStart = Math.max(readingTime, windowStart);
+    const intervalEnd = Math.min(
+      nextReadingTime ?? windowEnd,
+      windowEnd,
+      readingTime + maximumGapMilliseconds
+    );
+
+    if (intervalEnd <= intervalStart) {
+      continue;
+    }
+
+    const intervalDuration = intervalEnd - intervalStart;
+    coveredDurationMilliseconds += intervalDuration;
+    weightedScoreTotal += normalizedScore.score * intervalDuration;
+
+    if (normalizedScore.score < CRITICAL_THRESHOLD) {
+      unfavorableDurationMilliseconds += intervalDuration;
+      appendUnfavorableInterval(
+        unfavorableIntervals,
+        intervalStart,
+        intervalEnd
+      );
+    }
+  }
+
+  if (coveredDurationMilliseconds === 0) {
+    throw new Error("Cannot calculate temporal metrics without covered data");
+  }
+
+  const weightedMeanScore = weightedScoreTotal / coveredDurationMilliseconds;
+  const pLow = unfavorableDurationMilliseconds / coveredDurationMilliseconds;
+  const coveredDurationSeconds =
+    coveredDurationMilliseconds / MILLISECONDS_PER_SECOND;
+  const missingDurationSeconds =
+    (windowDurationMilliseconds - coveredDurationMilliseconds) /
+    MILLISECONDS_PER_SECOND;
 
   return {
-    criticalCount,
-    criticalTimeRatio,
-    meanScore,
-    minScore,
+    coveragePercentage:
+      (coveredDurationMilliseconds / windowDurationMilliseconds) * 100,
+    coveredDurationSeconds,
+    missingDurationSeconds,
+    pLow,
+    unfavorableDurationSeconds:
+      unfavorableDurationMilliseconds / MILLISECONDS_PER_SECOND,
+    unfavorableIntervals,
+    weightedMeanScore,
   };
 }
 
-/**
- * Calculate temporal aggregation score for a parameter
- * Ŝ_i = α * mean(S_i) + β * min(S_i) + γ * (100 - P_low,i * 100)
- */
 export function calculateTemporalScore(metrics: ParameterMetrics): number {
-  const { alpha, beta, gamma } = AGGREGATION_WEIGHTS;
-
-  const meanComponent = alpha * metrics.meanScore;
-  const minComponent = beta * metrics.minScore;
-  const criticalComponent = gamma * (100 - metrics.criticalTimeRatio * 100);
-
-  const temporalScore = meanComponent + minComponent + criticalComponent;
-
-  // Clamp to [1, 100] range
-  return Math.max(1, Math.min(100, temporalScore));
+  const favorableTimeComponent = 100 - 99 * metrics.pLow;
+  return clampScore((metrics.weightedMeanScore + favorableTimeComponent) / 2);
 }
 
-/**
- * Calculate the final pond score from parameter temporal scores
- */
+export function calculateParameterTemporalScores(
+  normalizedByParameter: Record<ParameterCode, NormalizedScore[]>,
+  requestedStart: Date,
+  requestedEnd: Date,
+  maximumContinuityGapSeconds = MAXIMUM_CONTINUITY_GAP_SECONDS
+): Record<ParameterCode, ParameterTemporalScore> {
+  const temporalScores = {} as Record<ParameterCode, ParameterTemporalScore>;
+
+  for (const parameterCode of SCORING_PARAMETER_CODES) {
+    const metrics = calculateTemporalMetrics(
+      normalizedByParameter[parameterCode],
+      requestedStart,
+      requestedEnd,
+      maximumContinuityGapSeconds
+    );
+
+    temporalScores[parameterCode] = {
+      metrics,
+      parameterCode,
+      temporalScore: calculateTemporalScore(metrics),
+    };
+  }
+
+  return temporalScores;
+}
+
+export function checkDataCoverage(
+  parameterTemporalScores: Partial<
+    Record<ParameterCode, ParameterTemporalScore>
+  >,
+  minimumCoveragePercentage = MINIMUM_COVERAGE_PERCENTAGE
+): DataCoverageResult {
+  const parameterCoverage = {} as DataCoverageResult["parameterCoverage"];
+  const missingParameters: ParameterCode[] = [];
+  const presentParameters: ParameterCode[] = [];
+  let totalCoveragePercentage = 0;
+
+  for (const parameterCode of SCORING_PARAMETER_CODES) {
+    const temporalScore = parameterTemporalScores[parameterCode];
+    if (!temporalScore) {
+      missingParameters.push(parameterCode);
+      parameterCoverage[parameterCode] = {
+        coveragePercentage: 0,
+        coveredDurationSeconds: 0,
+        missingDurationSeconds: 0,
+      };
+      continue;
+    }
+
+    const { metrics } = temporalScore;
+    presentParameters.push(parameterCode);
+    totalCoveragePercentage += metrics.coveragePercentage;
+    parameterCoverage[parameterCode] = {
+      coveragePercentage: metrics.coveragePercentage,
+      coveredDurationSeconds: metrics.coveredDurationSeconds,
+      missingDurationSeconds: metrics.missingDurationSeconds,
+    };
+  }
+
+  const coveragePercentage =
+    totalCoveragePercentage / SCORING_PARAMETER_CODES.length;
+  const allParametersMeetThreshold = SCORING_PARAMETER_CODES.every(
+    (parameterCode) =>
+      parameterCoverage[parameterCode].coveragePercentage >=
+      minimumCoveragePercentage
+  );
+
+  return {
+    coveragePercentage,
+    hasSufficientCoverage:
+      missingParameters.length === 0 && allParametersMeetThreshold,
+    minimumRequiredPercentage: minimumCoveragePercentage,
+    missingParameters,
+    parameterCoverage,
+    presentParameters,
+  };
+}
+
 export function calculatePondScore(
   parameterScores: Record<ParameterCode, number>
 ): number {
   let finalScore = 0;
 
-  for (const [parameterCode, score] of Object.entries(parameterScores)) {
-    const weight = getParameterWeight(parameterCode as ParameterCode);
-    finalScore += weight * score;
+  for (const parameterCode of SCORING_PARAMETER_CODES) {
+    finalScore +=
+      PARAMETER_WEIGHTS[parameterCode] * parameterScores[parameterCode];
   }
 
-  // Clamp to [1, 100] range
-  return Math.max(1, Math.min(100, finalScore));
+  return clampScore(finalScore);
 }
 
-/**
- * Calculate comprehensive parameter statistics including raw values and normalized scores
- */
 export function calculateParameterStats(
   measurements: Array<{ parameterCode: ParameterCode; value: number }>,
-  normalizedByParameter: Record<ParameterCode, NormalizedScore[]>
-): Record<string, ParameterStats> {
-  const parameterStats: Record<ParameterCode, ParameterStats> = {} as Record<
-    ParameterCode,
-    ParameterStats
-  >;
+  normalizedByParameter: Record<ParameterCode, NormalizedScore[]>,
+  parameterTemporalScores: Record<ParameterCode, ParameterTemporalScore>
+): Record<ParameterCode, ParameterStats> {
+  const parameterStats = {} as Record<ParameterCode, ParameterStats>;
 
-  for (const parameterCode of Object.keys(
-    normalizedByParameter
-  ) as ParameterCode[]) {
-    // Get raw values for this parameter
+  for (const parameterCode of SCORING_PARAMETER_CODES) {
     const rawValues = measurements
-      .filter((m) => m.parameterCode === parameterCode)
-      .map((m) => m.value);
-
-    // Get normalized scores for this parameter
+      .filter((measurement) => measurement.parameterCode === parameterCode)
+      .map((measurement) => measurement.value);
     const normalizedScores = normalizedByParameter[parameterCode].map(
-      (n) => n.score
+      (score) => score.score
     );
 
-    // Calculate raw value stats
-    const rawStats = calculateRawValueStats(rawValues);
-
-    // Calculate normalized score stats
-    const normalizedStats = calculateNormalizedScoreStats(normalizedScores);
-
-    // Calculate temporal metrics
-    const temporalMetrics =
-      normalizedScores.length > 0
-        ? calculateTemporalMetrics(normalizedScores)
-        : { criticalCount: 0, criticalTimeRatio: 0, meanScore: 1, minScore: 1 };
-
     parameterStats[parameterCode] = {
-      normalizedScores: normalizedStats,
-      rawValues: rawStats,
-      temporalMetrics,
+      normalizedScores: calculateNormalizedScoreStats(normalizedScores),
+      rawValues: calculateRawValueStats(rawValues),
+      temporalMetrics: parameterTemporalScores[parameterCode].metrics,
     };
   }
 
   return parameterStats;
-}
-
-/**
- * Calculate parameter temporal scores from normalized measurements
- */
-export function calculateParameterTemporalScores(
-  normalizedByParameter: Record<ParameterCode, NormalizedScore[]>
-): Record<ParameterCode, ParameterTemporalScore> {
-  const temporalScores: Record<ParameterCode, ParameterTemporalScore> =
-    {} as Record<ParameterCode, ParameterTemporalScore>;
-
-  for (const [parameterCode, scores] of Object.entries(normalizedByParameter)) {
-    if (scores.length === 0) {
-      // If no data for this parameter, use minimum score
-      temporalScores[parameterCode as ParameterCode] = {
-        parameterCode: parameterCode as ParameterCode,
-        temporalScore: 1,
-      };
-      continue;
-    }
-
-    const metrics = calculateTemporalMetrics(scores.map((s) => s.score));
-    const temporalScore = calculateTemporalScore(metrics);
-
-    temporalScores[parameterCode as ParameterCode] = {
-      parameterCode: parameterCode as ParameterCode,
-      temporalScore,
-    };
-  }
-
-  return temporalScores;
 }
 
 export function buildScoreResult(
@@ -218,53 +324,35 @@ export function buildScoreResult(
   actualEndDate: Date,
   measurements: Array<{ parameterCode: ParameterCode; value: number }>,
   parameterTemporalScores: Record<ParameterCode, ParameterTemporalScore>,
-  normalizedByParameter: Record<ParameterCode, NormalizedScore[]>,
-  hasSufficientCoverage: boolean,
-  coveragePercentage: number,
-  presentParameters: ParameterCode[]
+  normalizedByParameter: Record<ParameterCode, NormalizedScore[]>
 ): ScoreResult {
+  const parameterScores: Record<ParameterCode, number> = {
+    dissolvedOxygen: parameterTemporalScores.dissolvedOxygen.temporalScore,
+    ph: parameterTemporalScores.ph.temporalScore,
+    salinity: parameterTemporalScores.salinity.temporalScore,
+    temperature: parameterTemporalScores.temperature.temporalScore,
+  };
+  const dataCoverage = checkDataCoverage(parameterTemporalScores);
   const parameterStats = calculateParameterStats(
     measurements,
-    normalizedByParameter
+    normalizedByParameter,
+    parameterTemporalScores
   );
-
-  const parameterScores: Record<ParameterCode, number> = {
-    dissolvedOxygen: 1,
-    ph: 1,
-    salinity: 1,
-    temperature: 1,
-    turbidity: 1,
+  const measurementsByParameter: Record<ParameterCode, number> = {
+    dissolvedOxygen: normalizedByParameter.dissolvedOxygen.length,
+    ph: normalizedByParameter.ph.length,
+    salinity: normalizedByParameter.salinity.length,
+    temperature: normalizedByParameter.temperature.length,
   };
 
-  for (const [parameterCode, temporalScore] of Object.entries(
-    parameterTemporalScores
-  )) {
-    parameterScores[parameterCode as ParameterCode] =
-      temporalScore.temporalScore;
-  }
-
-  const finalScore = calculatePondScore({
-    ...parameterScores,
-  });
-
-  const measurementsByParameter: Record<string, number> = {};
-  for (const parameter of Object.keys(normalizedByParameter)) {
-    measurementsByParameter[parameter] =
-      normalizedByParameter[parameter as ParameterCode].length;
-  }
-
   return {
+    aiSummary: null,
     endDate: requestedEndDate,
-    finalScore,
+    finalScore: calculatePondScore(parameterScores),
     metadata: {
-      aggregationWeights: { ...AGGREGATION_WEIGHTS },
       criticalThreshold: CRITICAL_THRESHOLD,
       executionStats: {
-        dataCoverage: {
-          coveragePercentage,
-          hasSufficientCoverage,
-          presentParameters: presentParameters.map((p) => p),
-        },
+        dataCoverage,
         measurementsByParameter,
         timeRange: {
           actualEnd: actualEndDate,
@@ -274,8 +362,12 @@ export function buildScoreResult(
         },
         totalMeasurements: measurements.length,
       },
+      maximumContinuityGapSeconds: MAXIMUM_CONTINUITY_GAP_SECONDS,
+      minimumCoveragePercentage: MINIMUM_COVERAGE_PERCENTAGE,
       parameterStats,
       parameterWeights: { ...PARAMETER_WEIGHTS },
+      scoringModelVersion: SCORING_MODEL_VERSION,
+      windowConvention: WINDOW_CONVENTION,
     },
     parameterScores,
     pondId,
