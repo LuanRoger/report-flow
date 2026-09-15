@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "modelVersion": "tcc-frozen-evaluation-v1",
+  "runtimeParameterCodes": ["temperature", "ph", "salinity", "dissolvedOxygen"],
+  "units": {
+    "temperature": "°C",
+    "ph": "pH",
+    "salinity": "ppt",
+    "dissolvedOxygen": "mg/L"
+  },
+  "scoreRange": {
+    "minimum": 1,
+    "maximum": 100
+  },
+  "normalization": {
+    "temperature": {
+      "kind": "gaussian",
+      "mu": 30,
+      "sigma": 3
+    },
+    "ph": {
+      "kind": "gaussian",
+      "mu": 8,
+      "sigma": 0.75
+    },
+    "salinity": {
+      "kind": "gaussian",
+      "mu": 20,
+      "sigma": 7.5
+    },
+    "dissolvedOxygen": {
+      "kind": "symmetricTriangle",
+      "reference": 5,
+      "halfWidth": 2
+    }
+  },
+  "unfavorableThreshold": 50,
+  "temporal": {
+    "formula": "(durationWeightedMean + (100 - 99 * pLow)) / 2",
+    "defaultMaximumContinuityGapSeconds": 20,
+    "minimumCoveragePerParameter": 0.7,
+    "sufficiencyRule": "allParameters",
+    "finalScoreAvailabilityRule": "allParametersHaveTemporalScores",
+    "missingDataTreatment": "excludeFromScoreDenominators",
+    "thresholdComparison": "score < unfavorableThreshold"
+  },
+  "collection": {
+    "intervalSeconds": 10,
+    "windowConvention": "[start,end)",
+    "timezone": "UTC"
+  },
+  "weights": {
+    "temperature": 0.28,
+    "ph": 0.22,
+    "salinity": 0.17,
+    "dissolvedOxygen": 0.33
+  },
+  "weightSumTolerance": 1e-12,
+  "formulas": {
+    "gaussian": "1 + 99 * exp(-((x - mu)^2) / (2 * sigma^2))",
+    "dissolvedOxygen": "1 + 99 * max(0, 1 - abs(x - 5) / 2)",
+    "pLow": "unfavorableCoveredDuration / coveredDuration",
+    "pondScore": "sum(parameterWeight * parameterTemporalScore)"
+  },
+  "limitations": [
+    "The score is an evaluation model, not a biologically validated shrimp-health index.",
+    "The symmetric dissolved-oxygen function intentionally penalizes values above 5 mg/L.",
+    "The universal threshold and configured weights are tracked model assumptions, not biologically calibrated constants."
+  ]
+}

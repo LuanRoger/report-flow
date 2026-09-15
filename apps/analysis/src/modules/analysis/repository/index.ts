@@ -93,7 +93,7 @@ export async function getAnalysesForPond(pondId: number) {
 
 export async function storeAnalysisResult(
   result: CreateAnalysisResult,
-  embeddingData: CreateAnalysisEmbedding,
+  embeddingData: CreateAnalysisEmbedding | null,
   aiSummary: string | null
 ): Promise<void> {
   await db.transaction(async (transaction) => {
@@ -105,10 +105,12 @@ export async function storeAnalysisResult(
       throw new Error("Failed to create analysis result");
     }
 
-    await transaction.insert(analysisEmbeddings).values({
-      analysisId: newAnalysis.id,
-      ...embeddingData,
-    });
+    if (embeddingData) {
+      await transaction.insert(analysisEmbeddings).values({
+        analysisId: newAnalysis.id,
+        ...embeddingData,
+      });
+    }
 
     if (aiSummary) {
       await transaction.insert(analysisAiSummaries).values({

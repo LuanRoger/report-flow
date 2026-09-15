@@ -1,9 +1,12 @@
 import type z from "zod";
 import type {
   analysisBodySchema,
+  analysisExecutionResponseSchema,
   analysisGenerationOptionsSchema,
   dataCoverageSchema,
+  executionPhaseFlagsSchema,
   executionStatsSchema,
+  executionTimingsSchema,
   metadataSchema,
   normalizedScoresSchema,
   parameterCoverageSchema,
@@ -21,8 +24,16 @@ export type AnalysisQuery = z.infer<typeof analysisBodySchema>;
 export type AnalysisGenerationOptions = z.infer<
   typeof analysisGenerationOptionsSchema
 >;
+export type AnalysisGenerationOptionsInput = z.input<
+  typeof analysisGenerationOptionsSchema
+>;
 export type ParametersScores = z.infer<typeof parametersScores>;
 export type ScoreResult = z.infer<typeof scoreResultSchema>;
+export type AnalysisExecutionResponse = z.infer<
+  typeof analysisExecutionResponseSchema
+>;
+export type ExecutionPhaseFlags = z.infer<typeof executionPhaseFlagsSchema>;
+export type ExecutionTimings = z.infer<typeof executionTimingsSchema>;
 export type ParameterWeights = z.infer<typeof parameterWeightsSchema>;
 export type ParameterCoverage = z.infer<typeof parameterCoverageSchema>;
 export type DataCoverage = z.infer<typeof dataCoverageSchema>;

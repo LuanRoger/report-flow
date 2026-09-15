@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "kind": "scoring",
+  "id": "C6-B",
+  "description": "One parameter has 60 percent coverage while the other three have full coverage.",
+  "seed": 1062,
+  "pondId": 1,
+  "cycleId": 1,
+  "start": "2026-01-09T00:00:00.000Z",
+  "end": "2026-01-09T00:01:40.000Z",
+  "intervalSeconds": 10,
+  "sourceType": "manual",
+  "documentedCadenceException": "Oxygen readings at offsets 0, 10, 70, 80, and 90 seconds leave [30,70) uncovered under the default 20-second continuity cap.",
+  "series": {
+    "temperature": {
+      "mode": "cadence",
+      "segments": [
+        {
+          "startOffsetSeconds": 0,
+          "value": 30
+        }
+      ]
+    },
+    "ph": {
+      "mode": "cadence",
+      "segments": [
+        {
+          "startOffsetSeconds": 0,
+          "value": 8
+        }
+      ]
+    },
+    "salinity": {
+      "mode": "cadence",
+      "segments": [
+        {
+          "startOffsetSeconds": 0,
+          "value": 20
+        }
+      ]
+    },
+    "dissolvedOxygen": {
+      "mode": "explicit",
+      "readings": [
+        {
+          "offsetSeconds": 0,
+          "value": 5
+        },
+        {
+          "offsetSeconds": 10,
+          "value": 5
+        },
+        {
+          "offsetSeconds": 70,
+          "value": 5
+        },
+        {
+          "offsetSeconds": 80,
+          "value": 5
+        },
+        {
+          "offsetSeconds": 90,
+          "value": 5
+        }
+      ]
+    }
+  }
+}

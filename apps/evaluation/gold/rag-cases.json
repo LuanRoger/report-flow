@@ -1,0 +1,1193 @@
+[
+  {
+    "id": "rag-direct-01",
+    "category": "direct",
+    "pondId": 1,
+    "question": "What was the final pond score during the C1 reference period from January 1 through January 8?",
+    "expectedContextIds": ["ctx:c1:pond-001:7d:p01"],
+    "expectedFacts": [
+      {
+        "field": "scenarioId",
+        "expectedValue": "C1"
+      },
+      {
+        "field": "period.start",
+        "expectedValue": "2026-01-01T00:00:00.000Z"
+      },
+      {
+        "field": "period.endExclusive",
+        "expectedValue": "2026-01-08T00:00:00.000Z"
+      },
+      {
+        "field": "finalScore",
+        "expectedValue": 100,
+        "tolerance": 0.01
+      }
+    ],
+    "mustAbstain": false,
+    "forbiddenUnsupportedClaims": [
+      "The score proves biological health",
+      "The pond will have a specific production outcome"
+    ]
+  },
+  {
+    "id": "rag-direct-02",
+    "category": "direct",
+    "pondId": 1,
+    "question": "Which four raw values defined the C1 reference condition for this pond?",
+    "expectedContextIds": ["ctx:c1:pond-001:7d:p01"],
+    "expectedFacts": [
+      {
+        "field": "rawValues.temperature",
+        "expectedValue": 30,
+        "tolerance": 0
+      },
+      {
+        "field": "rawValues.ph",
+        "expectedValue": 8,
+        "tolerance": 0
+      },
+      {
+        "field": "rawValues.salinity",
+        "expectedValue": 20,
+        "tolerance": 0
+      },
+      {
+        "field": "rawValues.dissolvedOxygen",
+        "expectedValue": 5,
+        "tolerance": 0
+      }
+    ],
+    "mustAbstain": false
+  },
+  {
+    "id": "rag-direct-03",
+    "category": "direct",
+    "pondId": 1,
+    "question": "What temperature scores were calculated for the C2 moderate-deviation period?",
+    "expectedContextIds": ["ctx:c2:pond-001:7d:p02"],
+    "expectedFacts": [
+      {
+        "field": "rawValues.temperature",
+        "expectedValue": 29,
+        "tolerance": 0
+      },
+      {
+        "field": "parameterStats.temperature.weightedMeanScore",
+        "expectedValue": 94.649987,
+        "tolerance": 0.01
+      },
+      {
+        "field": "parameterScores.temperature",
+        "expectedValue": 97.324994,
+        "tolerance": 0.01
+      },
+      {
+        "field": "parameterStats.temperature.pLow",
+        "expectedValue": 0,
+        "tolerance": 0.0001
+      }
+    ],
+    "mustAbstain": false
+  },
+  {
+    "id": "rag-direct-04",
+    "category": "direct",
+    "pondId": 1,
+    "question": "What dissolved-oxygen value and scores were present in the C2 period?",
+    "expectedContextIds": ["ctx:c2:pond-001:7d:p02"],
+    "expectedFacts": [
+      {
+        "field": "rawValues.dissolvedOxygen",
+        "expectedValue": 4.5,
+        "tolerance": 0
+      },
+      {
+        "field": "parameterStats.dissolvedOxygen.weightedMeanScore",
+        "expectedValue": 75.25,
+        "tolerance": 0.01
+      },
+      {
+        "field": "parameterScores.dissolvedOxygen",
+        "expectedValue": 87.625,
+        "tolerance": 0.01
+      },
+      {
+        "field": "parameterStats.dissolvedOxygen.pLow",
+        "expectedValue": 0,
+        "tolerance": 0.0001
+      }
+    ],
+    "mustAbstain": false
+  },
+  {
+    "id": "rag-direct-05",
+    "category": "direct",
+    "pondId": 1,
+    "question": "For C3-25, what share of covered time had unfavorable temperature and what was its temporal score?",
+    "expectedContextIds": ["ctx:c3-25:pond-001:7d:p03"],
+    "expectedFacts": [
+      {
+        "field": "parameterStats.temperature.pLow",
+        "expectedValue": 0.25,
+        "tolerance": 0.0001
+      },
+      {
+        "field": "parameterStats.temperature.unfavorableDurationSeconds",
+        "expectedValue": 151200,
+        "tolerance": 0
+      },
+      {
+        "field": "parameterStats.temperature.weightedMeanScore",
+        "expectedValue": 85.425029,
+        "tolerance": 0.01
+      },
+      {
+        "field": "parameterScores.temperature",
+        "expectedValue": 80.337515,
+        "tolerance": 0.01
+      }
+    ],
+    "mustAbstain": false
+  },
+  {
+    "id": "rag-direct-06",
+    "category": "direct",
+    "pondId": 1,
+    "question": "For C3-50, what share of covered time had unfavorable temperature and what final score resulted?",
+    "expectedContextIds": ["ctx:c3-50:pond-001:7d:p04"],
+    "expectedFacts": [
+      {
+        "field": "parameterStats.temperature.pLow",
+        "expectedValue": 0.5,
+        "tolerance": 0.0001
+      },
+      {
+        "field": "parameterStats.temperature.unfavorableDurationSeconds",
+        "expectedValue": 302400,
+        "tolerance": 0
+      },
+      {
+        "field": "parameterScores.temperature",
+        "expectedValue": 60.675029,
+        "tolerance": 0.01
+      },
+      {
+        "field": "finalScore",
+        "expectedValue": 88.989008,
+        "tolerance": 0.01
+      }
+    ],
+    "mustAbstain": false
+  },
+  {
+    "id": "rag-direct-07",
+    "category": "direct",
+    "pondId": 1,
+    "question": "How long did the low-oxygen event last in the seven-day C4 period, and what was oxygen pLow?",
+    "expectedContextIds": ["ctx:c4:pond-001:7d:p05"],
+    "expectedFacts": [
+      {
+        "field": "parameterStats.dissolvedOxygen.unfavorableDurationSeconds",
+        "expectedValue": 21600,
+        "tolerance": 0
+      },
+      {
+        "field": "parameterStats.dissolvedOxygen.pLow",
+        "expectedValue": 0.035714286,
+        "tolerance": 0.0001
+      },
+      {
+        "field": "parameterScores.dissolvedOxygen",
+        "expectedValue": 96.464286,
+        "tolerance": 0.01
+      },
+      {
+        "field": "finalScore",
+        "expectedValue": 98.833214,
+        "tolerance": 0.01
+      }
+    ],
+    "mustAbstain": false
+  },
+  {
+    "id": "rag-direct-08",
+    "category": "direct",
+    "pondId": 1,
+    "question": "What simultaneous raw deviations and final score were recorded for the C5 period?",
+    "expectedContextIds": ["ctx:c5:pond-001:7d:p06"],
+    "expectedFacts": [
+      {
+        "field": "rawValues.temperature",
+        "expectedValue": 26,
+        "tolerance": 0
+      },
+      {
+        "field": "rawValues.ph",
+        "expectedValue": 7,
+        "tolerance": 0
+      },
+      {
+        "field": "rawValues.salinity",
+        "expectedValue": 30,
+        "tolerance": 0
+      },
+      {
+        "field": "rawValues.dissolvedOxygen",
+        "expectedValue": 3,
+        "tolerance": 0
+      },
+      {
+        "field": "finalScore",
+        "expectedValue": 14.634539,
+        "tolerance": 0.01
+      }
+    ],
+    "mustAbstain": false,
+    "forbiddenUnsupportedClaims": ["A specific disease caused the deviations"]
+  },
+  {
+    "id": "rag-direct-09",
+    "category": "direct",
+    "pondId": 1,
+    "question": "What duration-weighted oxygen result demonstrates the irregular-interval behavior in C6-A?",
+    "expectedContextIds": ["ctx:c6-a:pond-001:100s:p07"],
+    "expectedFacts": [
+      {
+        "field": "parameterStats.dissolvedOxygen.weightedMeanScore",
+        "expectedValue": 10.9,
+        "tolerance": 0.01
+      },
+      {
+        "field": "parameterStats.dissolvedOxygen.pLow",
+        "expectedValue": 0.9,
+        "tolerance": 0.0001
+      },
+      {
+        "field": "parameterScores.dissolvedOxygen",
+        "expectedValue": 10.9,
+        "tolerance": 0.01
+      },
+      {
+        "field": "maximumContinuityGapSeconds",
+        "expectedValue": 90,
+        "tolerance": 0
+      }
+    ],
+    "mustAbstain": false,
+    "forbiddenUnsupportedClaims": [
+      "The oxygen simple sample mean was 50.5 and was used as the weighted result"
+    ]
+  },
+  {
+    "id": "rag-direct-10",
+    "category": "direct",
+    "pondId": 1,
+    "question": "What coverage result was produced by the deliberately missing oxygen interval in C6-B?",
+    "expectedContextIds": ["ctx:c6-b:pond-001:100s:p08"],
+    "expectedFacts": [
+      {
+        "field": "dataCoverage.parameterCoverage.dissolvedOxygen.coveragePercentage",
+        "expectedValue": 60,
+        "tolerance": 0.01
+      },
+      {
+        "field": "dataCoverage.coveragePercentage",
+        "expectedValue": 90,
+        "tolerance": 0.01
+      },
+      {
+        "field": "dataCoverage.coverageDecision",
+        "expectedValue": "insufficient"
+      },
+      {
+        "field": "parameterScores.dissolvedOxygen",
+        "expectedValue": 100,
+        "tolerance": 0.01
+      }
+    ],
+    "mustAbstain": false,
+    "forbiddenUnsupportedClaims": [
+      "Missing time was converted to a zero score",
+      "Ninety percent overall coverage was sufficient"
+    ]
+  },
+  {
+    "id": "rag-comparison-01",
+    "category": "comparison",
+    "pondId": 1,
+    "question": "How did this pond's C2 period compare with its earlier C1 period in final score?",
+    "expectedContextIds": ["ctx:c1:pond-001:7d:p01", "ctx:c2:pond-001:7d:p02"],
+    "expectedFacts": [
+      {
+        "field": "C1.finalScore",
+        "expectedValue": 100,
+        "tolerance": 0.01
+      },
+      {
+        "field": "C2.finalScore",
+        "expectedValue": 94.123996,
+        "tolerance": 0.01
+      },
+      {
+        "field": "finalScoreDifference.C1MinusC2",
+        "expectedValue": 5.876004,
+        "tolerance": 0.02
+      },
+      {
+        "field": "ordering",
+        "expectedValue": "C1 > C2"
+      }
+    ],
+    "mustAbstain": false
+  },
+  {
+    "id": "rag-comparison-02",
+    "category": "comparison",
+    "pondId": 1,
+    "question": "How did the 50 percent unfavorable-temperature period differ from the 25 percent period for the same pond?",
+    "expectedContextIds": [
+      "ctx:c3-25:pond-001:7d:p03",
+      "ctx:c3-50:pond-001:7d:p04"
+    ],
+    "expectedFacts": [
+      {
+        "field": "C3-25.temperature.pLow",
+        "expectedValue": 0.25,
+        "tolerance": 0.0001
+      },
+      {
+        "field": "C3-50.temperature.pLow",
+        "expectedValue": 0.5,
+        "tolerance": 0.0001
+      },
+      {
+        "field": "C3-25.finalScore",
+        "expectedValue": 94.494504,
+        "tolerance": 0.01
+      },
+      {
+        "field": "C3-50.finalScore",
+        "expectedValue": 88.989008,
+        "tolerance": 0.01
+      },
+      {
+        "field": "ordering",
+        "expectedValue": "C3-25 > C3-50"
+      }
+    ],
+    "mustAbstain": false
+  },
+  {
+    "id": "rag-comparison-03",
+    "category": "comparison",
+    "pondId": 1,
+    "question": "What changed between the C1 reference period and the seven-day C4 oxygen-event period?",
+    "expectedContextIds": ["ctx:c1:pond-001:7d:p01", "ctx:c4:pond-001:7d:p05"],
+    "expectedFacts": [
+      {
+        "field": "C1.dissolvedOxygen.pLow",
+        "expectedValue": 0,
+        "tolerance": 0.0001
+      },
+      {
+        "field": "C4.dissolvedOxygen.pLow",
+        "expectedValue": 0.035714286,
+        "tolerance": 0.0001
+      },
+      {
+        "field": "C1.finalScore",
+        "expectedValue": 100,
+        "tolerance": 0.01
+      },
+      {
+        "field": "C4.finalScore",
+        "expectedValue": 98.833214,
+        "tolerance": 0.01
+      },
+      {
+        "field": "ordering",
+        "expectedValue": "C1 > C4"
+      }
+    ],
+    "mustAbstain": false
+  },
+  {
+    "id": "rag-comparison-04",
+    "category": "comparison",
+    "pondId": 1,
+    "question": "Was the C2 moderate period better or worse than the later C5 simultaneous-deviation period?",
+    "expectedContextIds": ["ctx:c2:pond-001:7d:p02", "ctx:c5:pond-001:7d:p06"],
+    "expectedFacts": [
+      {
+        "field": "C2.finalScore",
+        "expectedValue": 94.123996,
+        "tolerance": 0.01
+      },
+      {
+        "field": "C5.finalScore",
+        "expectedValue": 14.634539,
+        "tolerance": 0.01
+      },
+      {
+        "field": "finalScoreDifference.C2MinusC5",
+        "expectedValue": 79.489457,
+        "tolerance": 0.02
+      },
+      {
+        "field": "ordering",
+        "expectedValue": "C2 > C5"
+      }
+    ],
+    "mustAbstain": false
+  },
+  {
+    "id": "rag-comparison-05",
+    "category": "comparison",
+    "pondId": 1,
+    "question": "How did the same six-hour C4 oxygen-event duration affect the seven-day and thirty-day periods?",
+    "expectedContextIds": ["ctx:c4:pond-001:7d:p05", "ctx:c4:pond-001:30d:p09"],
+    "expectedFacts": [
+      {
+        "field": "C4-7d.dissolvedOxygen.pLow",
+        "expectedValue": 0.035714286,
+        "tolerance": 0.0001
+      },
+      {
+        "field": "C4-30d.dissolvedOxygen.pLow",
+        "expectedValue": 0.008333333,
+        "tolerance": 0.0001
+      },
+      {
+        "field": "C4-7d.finalScore",
+        "expectedValue": 98.833214,
+        "tolerance": 0.01
+      },
+      {
+        "field": "C4-30d.finalScore",
+        "expectedValue": 99.72775,
+        "tolerance": 0.01
+      },
+      {
+        "field": "ordering",
+        "expectedValue": "C4-30d > C4-7d"
+      }
+    ],
+    "mustAbstain": false,
+    "forbiddenUnsupportedClaims": [
+      "The event lasted longer in the thirty-day fixture"
+    ]
+  },
+  {
+    "id": "rag-comparison-06",
+    "category": "comparison",
+    "pondId": 1,
+    "question": "How did C6-B coverage compare with the fully covered C1 period for this same pond?",
+    "expectedContextIds": [
+      "ctx:c1:pond-001:7d:p01",
+      "ctx:c6-b:pond-001:100s:p08"
+    ],
+    "expectedFacts": [
+      {
+        "field": "C1.overallCoveragePercentage",
+        "expectedValue": 100,
+        "tolerance": 0.01
+      },
+      {
+        "field": "C6-B.overallCoveragePercentage",
+        "expectedValue": 90,
+        "tolerance": 0.01
+      },
+      {
+        "field": "C6-B.dissolvedOxygenCoveragePercentage",
+        "expectedValue": 60,
+        "tolerance": 0.01
+      },
+      {
+        "field": "C6-B.coverageDecision",
+        "expectedValue": "insufficient"
+      }
+    ],
+    "mustAbstain": false
+  },
+  {
+    "id": "rag-comparison-07",
+    "category": "comparison",
+    "pondId": 1,
+    "question": "Compare the oxygen temporal result in C6-A with the covered oxygen score and coverage in C6-B.",
+    "expectedContextIds": [
+      "ctx:c6-a:pond-001:100s:p07",
+      "ctx:c6-b:pond-001:100s:p08"
+    ],
+    "expectedFacts": [
+      {
+        "field": "C6-A.dissolvedOxygenTemporalScore",
+        "expectedValue": 10.9,
+        "tolerance": 0.01
+      },
+      {
+        "field": "C6-A.dissolvedOxygenCoveragePercentage",
+        "expectedValue": 100,
+        "tolerance": 0.01
+      },
+      {
+        "field": "C6-B.dissolvedOxygenTemporalScore",
+        "expectedValue": 100,
+        "tolerance": 0.01
+      },
+      {
+        "field": "C6-B.dissolvedOxygenCoveragePercentage",
+        "expectedValue": 60,
+        "tolerance": 0.01
+      },
+      {
+        "field": "interpretation",
+        "expectedValue": "C6-B has a high covered score but insufficient coverage"
+      }
+    ],
+    "mustAbstain": false,
+    "forbiddenUnsupportedClaims": ["C6-B missing time was scored as zero"]
+  },
+  {
+    "id": "rag-comparison-08",
+    "category": "comparison",
+    "pondId": 1,
+    "question": "Which period scored lower for this pond, C3-50 or C5, and by how much?",
+    "expectedContextIds": [
+      "ctx:c3-50:pond-001:7d:p04",
+      "ctx:c5:pond-001:7d:p06"
+    ],
+    "expectedFacts": [
+      {
+        "field": "C3-50.finalScore",
+        "expectedValue": 88.989008,
+        "tolerance": 0.01
+      },
+      {
+        "field": "C5.finalScore",
+        "expectedValue": 14.634539,
+        "tolerance": 0.01
+      },
+      {
+        "field": "finalScoreDifference.C3-50MinusC5",
+        "expectedValue": 74.354469,
+        "tolerance": 0.02
+      },
+      {
+        "field": "ordering",
+        "expectedValue": "C3-50 > C5"
+      }
+    ],
+    "mustAbstain": false
+  },
+  {
+    "id": "rag-comparison-09",
+    "category": "comparison",
+    "pondId": 1,
+    "question": "Compare the final scores of the C3-25 temperature period and the seven-day C4 oxygen-event period.",
+    "expectedContextIds": [
+      "ctx:c3-25:pond-001:7d:p03",
+      "ctx:c4:pond-001:7d:p05"
+    ],
+    "expectedFacts": [
+      {
+        "field": "C3-25.finalScore",
+        "expectedValue": 94.494504,
+        "tolerance": 0.01
+      },
+      {
+        "field": "C4-7d.finalScore",
+        "expectedValue": 98.833214,
+        "tolerance": 0.01
+      },
+      {
+        "field": "finalScoreDifference.C4MinusC3-25",
+        "expectedValue": 4.33871,
+        "tolerance": 0.02
+      },
+      {
+        "field": "ordering",
+        "expectedValue": "C4-7d > C3-25"
+      }
+    ],
+    "mustAbstain": false
+  },
+  {
+    "id": "rag-comparison-10",
+    "category": "comparison",
+    "pondId": 1,
+    "question": "Which had the higher final score for this pond, C2 or the seven-day C4 period?",
+    "expectedContextIds": ["ctx:c2:pond-001:7d:p02", "ctx:c4:pond-001:7d:p05"],
+    "expectedFacts": [
+      {
+        "field": "C2.finalScore",
+        "expectedValue": 94.123996,
+        "tolerance": 0.01
+      },
+      {
+        "field": "C4-7d.finalScore",
+        "expectedValue": 98.833214,
+        "tolerance": 0.01
+      },
+      {
+        "field": "finalScoreDifference.C4MinusC2",
+        "expectedValue": 4.709219,
+        "tolerance": 0.02
+      },
+      {
+        "field": "ordering",
+        "expectedValue": "C4-7d > C2"
+      }
+    ],
+    "mustAbstain": false
+  },
+  {
+    "id": "rag-event-01",
+    "category": "event",
+    "pondId": 1,
+    "question": "When was the C3-25 unfavorable-temperature interval, and how long did it last?",
+    "expectedContextIds": ["ctx:c3-25:pond-001:7d:p03"],
+    "expectedFacts": [
+      {
+        "field": "unfavorableInterval.parameter",
+        "expectedValue": "temperature"
+      },
+      {
+        "field": "unfavorableInterval.start",
+        "expectedValue": "2026-01-15T00:00:00.000Z"
+      },
+      {
+        "field": "unfavorableInterval.end",
+        "expectedValue": "2026-01-16T18:00:00.000Z"
+      },
+      {
+        "field": "unfavorableInterval.durationSeconds",
+        "expectedValue": 151200,
+        "tolerance": 0
+      }
+    ],
+    "mustAbstain": false
+  },
+  {
+    "id": "rag-event-02",
+    "category": "event",
+    "pondId": 1,
+    "question": "When was the longer C3-50 unfavorable-temperature interval, and what pLow did it produce?",
+    "expectedContextIds": ["ctx:c3-50:pond-001:7d:p04"],
+    "expectedFacts": [
+      {
+        "field": "unfavorableInterval.parameter",
+        "expectedValue": "temperature"
+      },
+      {
+        "field": "unfavorableInterval.start",
+        "expectedValue": "2026-01-22T00:00:00.000Z"
+      },
+      {
+        "field": "unfavorableInterval.end",
+        "expectedValue": "2026-01-25T12:00:00.000Z"
+      },
+      {
+        "field": "unfavorableInterval.durationSeconds",
+        "expectedValue": 302400,
+        "tolerance": 0
+      },
+      {
+        "field": "parameterStats.temperature.pLow",
+        "expectedValue": 0.5,
+        "tolerance": 0.0001
+      }
+    ],
+    "mustAbstain": false
+  },
+  {
+    "id": "rag-event-03",
+    "category": "event",
+    "pondId": 1,
+    "question": "Identify the timing and raw oxygen value of the temporary C4 critical event.",
+    "expectedContextIds": ["ctx:c4:pond-001:7d:p05"],
+    "expectedFacts": [
+      {
+        "field": "unfavorableInterval.parameter",
+        "expectedValue": "dissolvedOxygen"
+      },
+      {
+        "field": "unfavorableInterval.start",
+        "expectedValue": "2026-02-03T06:00:00.000Z"
+      },
+      {
+        "field": "unfavorableInterval.end",
+        "expectedValue": "2026-02-03T12:00:00.000Z"
+      },
+      {
+        "field": "unfavorableInterval.durationSeconds",
+        "expectedValue": 21600,
+        "tolerance": 0
+      },
+      {
+        "field": "unfavorableInterval.rawValue",
+        "expectedValue": 2.5,
+        "tolerance": 0
+      }
+    ],
+    "mustAbstain": false,
+    "forbiddenUnsupportedClaims": [
+      "A specific equipment failure caused the event"
+    ]
+  },
+  {
+    "id": "rag-event-04",
+    "category": "event",
+    "pondId": 1,
+    "question": "What evidence-bounded follow-up is supported by the C4 low-oxygen event?",
+    "expectedContextIds": ["ctx:c4:pond-001:7d:p05"],
+    "expectedFacts": [
+      {
+        "field": "observedIssue",
+        "expectedValue": "dissolved oxygen was 2.5 mg/L for six hours"
+      },
+      {
+        "field": "supportedAction",
+        "expectedValue": "verify the oxygen readings and promptly inspect oxygen-management conditions"
+      },
+      {
+        "field": "actionLimit",
+        "expectedValue": "no treatment dose or causal diagnosis is supported by the context"
+      }
+    ],
+    "mustAbstain": false,
+    "forbiddenUnsupportedClaims": [
+      "Use a specific aerator runtime",
+      "Apply a specific chemical dose",
+      "The event was caused by a named failure"
+    ]
+  },
+  {
+    "id": "rag-event-05",
+    "category": "event",
+    "pondId": 1,
+    "question": "Which parameters were simultaneously unfavorable throughout C5, and for how long?",
+    "expectedContextIds": ["ctx:c5:pond-001:7d:p06"],
+    "expectedFacts": [
+      {
+        "field": "unfavorableParameters",
+        "expectedValue": "temperature, ph, salinity, dissolvedOxygen"
+      },
+      {
+        "field": "unfavorableDurationSeconds.eachParameter",
+        "expectedValue": 604800,
+        "tolerance": 0
+      },
+      {
+        "field": "pLow.eachParameter",
+        "expectedValue": 1,
+        "tolerance": 0.0001
+      },
+      {
+        "field": "finalScore",
+        "expectedValue": 14.634539,
+        "tolerance": 0.01
+      }
+    ],
+    "mustAbstain": false
+  },
+  {
+    "id": "rag-event-06",
+    "category": "event",
+    "pondId": 1,
+    "question": "What follow-up is justified by the simultaneous C5 deviations without assuming their cause?",
+    "expectedContextIds": ["ctx:c5:pond-001:7d:p06"],
+    "expectedFacts": [
+      {
+        "field": "observedIssue",
+        "expectedValue": "all four scored parameters were unfavorable for the full covered period"
+      },
+      {
+        "field": "supportedAction",
+        "expectedValue": "verify measurements and inspect each affected water-quality control process"
+      },
+      {
+        "field": "actionLimit",
+        "expectedValue": "the analytical context does not establish a cause or prescribe a treatment"
+      }
+    ],
+    "mustAbstain": false,
+    "forbiddenUnsupportedClaims": [
+      "A disease caused all four deviations",
+      "A guaranteed treatment will restore production"
+    ]
+  },
+  {
+    "id": "rag-event-07",
+    "category": "event",
+    "pondId": 1,
+    "question": "What low-oxygen interval dominated C6-A, and how should its irregular timing be interpreted?",
+    "expectedContextIds": ["ctx:c6-a:pond-001:100s:p07"],
+    "expectedFacts": [
+      {
+        "field": "unfavorableInterval.start",
+        "expectedValue": "2026-02-15T00:00:10.000Z"
+      },
+      {
+        "field": "unfavorableInterval.end",
+        "expectedValue": "2026-02-15T00:01:40.000Z"
+      },
+      {
+        "field": "unfavorableInterval.durationSeconds",
+        "expectedValue": 90,
+        "tolerance": 0
+      },
+      {
+        "field": "interpretation",
+        "expectedValue": "use duration weighting rather than a simple two-sample mean"
+      },
+      {
+        "field": "supportedAction",
+        "expectedValue": "inspect the irregular collection cadence and verify the prolonged low reading"
+      }
+    ],
+    "mustAbstain": false
+  },
+  {
+    "id": "rag-event-08",
+    "category": "event",
+    "pondId": 1,
+    "question": "Where was the missing interval in C6-B, and what data-quality action does it support?",
+    "expectedContextIds": ["ctx:c6-b:pond-001:100s:p08"],
+    "expectedFacts": [
+      {
+        "field": "missingInterval.start",
+        "expectedValue": "2026-02-16T00:00:30.000Z"
+      },
+      {
+        "field": "missingInterval.end",
+        "expectedValue": "2026-02-16T00:01:10.000Z"
+      },
+      {
+        "field": "missingInterval.durationSeconds",
+        "expectedValue": 40,
+        "tolerance": 0
+      },
+      {
+        "field": "supportedAction",
+        "expectedValue": "restore or inspect oxygen data collection before relying on the score"
+      },
+      {
+        "field": "coverageDecision",
+        "expectedValue": "insufficient"
+      }
+    ],
+    "mustAbstain": false,
+    "forbiddenUnsupportedClaims": [
+      "The missing interval proves oxygen was unfavorable"
+    ]
+  },
+  {
+    "id": "rag-event-09",
+    "category": "event",
+    "pondId": 1,
+    "question": "Did C1 contain any unfavorable scored interval, and is a corrective action indicated by that context?",
+    "expectedContextIds": ["ctx:c1:pond-001:7d:p01"],
+    "expectedFacts": [
+      {
+        "field": "unfavorableIntervalCount",
+        "expectedValue": 0,
+        "tolerance": 0
+      },
+      {
+        "field": "pLow.eachParameter",
+        "expectedValue": 0,
+        "tolerance": 0.0001
+      },
+      {
+        "field": "supportedAction",
+        "expectedValue": "no corrective action is indicated by the C1 analytical context"
+      }
+    ],
+    "mustAbstain": false,
+    "forbiddenUnsupportedClaims": ["No future unfavorable event can occur"]
+  },
+  {
+    "id": "rag-event-10",
+    "category": "event",
+    "pondId": 1,
+    "question": "Were any C2 parameter scores below the unfavorable threshold, and what follow-up is supported?",
+    "expectedContextIds": ["ctx:c2:pond-001:7d:p02"],
+    "expectedFacts": [
+      {
+        "field": "criticalThreshold",
+        "expectedValue": 50,
+        "tolerance": 0
+      },
+      {
+        "field": "pLow.eachParameter",
+        "expectedValue": 0,
+        "tolerance": 0.0001
+      },
+      {
+        "field": "supportedAction",
+        "expectedValue": "continue monitoring; no corrective treatment is established by this context"
+      }
+    ],
+    "mustAbstain": false,
+    "forbiddenUnsupportedClaims": [
+      "The moderate deviations guarantee no operational risk"
+    ]
+  },
+  {
+    "id": "rag-insufficient-01",
+    "category": "insufficient",
+    "pondId": 1,
+    "question": "Did this pond outperform a second pond during the C1 period?",
+    "expectedContextIds": [],
+    "expectedFacts": [
+      {
+        "field": "retrievalScope",
+        "expectedValue": "pond-scoped"
+      },
+      {
+        "field": "answerability",
+        "expectedValue": "insufficient: no authorized second-pond context is available"
+      }
+    ],
+    "mustAbstain": true,
+    "forbiddenUnsupportedClaims": [
+      "This pond outperformed another pond",
+      "Another pond had any specific score"
+    ]
+  },
+  {
+    "id": "rag-insufficient-02",
+    "category": "insufficient",
+    "pondId": 1,
+    "question": "What feed conversion ratio resulted from the C5 period?",
+    "expectedContextIds": ["ctx:c5:pond-001:7d:p06"],
+    "expectedFacts": [
+      {
+        "field": "availableEvidence",
+        "expectedValue": "C5 water-quality analysis only"
+      },
+      {
+        "field": "unavailableField",
+        "expectedValue": "feed conversion ratio"
+      },
+      {
+        "field": "answerability",
+        "expectedValue": "insufficient"
+      }
+    ],
+    "mustAbstain": true,
+    "forbiddenUnsupportedClaims": [
+      "Any numeric feed conversion ratio",
+      "The water-quality score determines feed conversion"
+    ]
+  },
+  {
+    "id": "rag-insufficient-03",
+    "category": "insufficient",
+    "pondId": 1,
+    "question": "How many shrimp died because of the six-hour C4 oxygen event?",
+    "expectedContextIds": ["ctx:c4:pond-001:7d:p05"],
+    "expectedFacts": [
+      {
+        "field": "availableEvidence",
+        "expectedValue": "a six-hour dissolved-oxygen event in C4"
+      },
+      {
+        "field": "unavailableField",
+        "expectedValue": "mortality count and causal attribution"
+      },
+      {
+        "field": "answerability",
+        "expectedValue": "insufficient"
+      }
+    ],
+    "mustAbstain": true,
+    "forbiddenUnsupportedClaims": [
+      "Any shrimp mortality count",
+      "The event caused mortality"
+    ]
+  },
+  {
+    "id": "rag-insufficient-04",
+    "category": "insufficient",
+    "pondId": 1,
+    "question": "Did rainfall cause the unfavorable temperature interval in C3-50?",
+    "expectedContextIds": ["ctx:c3-50:pond-001:7d:p04"],
+    "expectedFacts": [
+      {
+        "field": "availableEvidence",
+        "expectedValue": "C3-50 temperature values and timing"
+      },
+      {
+        "field": "unavailableField",
+        "expectedValue": "weather observations and causal evidence"
+      },
+      {
+        "field": "answerability",
+        "expectedValue": "insufficient"
+      }
+    ],
+    "mustAbstain": true,
+    "forbiddenUnsupportedClaims": [
+      "Rainfall occurred",
+      "Rainfall caused the temperature interval"
+    ]
+  },
+  {
+    "id": "rag-insufficient-05",
+    "category": "insufficient",
+    "pondId": 1,
+    "question": "Which disease explains the simultaneous C5 parameter deviations?",
+    "expectedContextIds": ["ctx:c5:pond-001:7d:p06"],
+    "expectedFacts": [
+      {
+        "field": "availableEvidence",
+        "expectedValue": "simultaneous C5 water-quality deviations"
+      },
+      {
+        "field": "unavailableField",
+        "expectedValue": "clinical or laboratory disease evidence"
+      },
+      {
+        "field": "answerability",
+        "expectedValue": "insufficient"
+      }
+    ],
+    "mustAbstain": true,
+    "forbiddenUnsupportedClaims": [
+      "Any named disease diagnosis",
+      "The score is a diagnostic test"
+    ]
+  },
+  {
+    "id": "rag-insufficient-06",
+    "category": "insufficient",
+    "pondId": 1,
+    "question": "Exactly how many minutes should an aerator run to correct the C4 event?",
+    "expectedContextIds": ["ctx:c4:pond-001:7d:p05"],
+    "expectedFacts": [
+      {
+        "field": "availableEvidence",
+        "expectedValue": "C4 oxygen value, event duration, and scores"
+      },
+      {
+        "field": "unavailableField",
+        "expectedValue": "aerator capacity, pond volume, and treatment protocol"
+      },
+      {
+        "field": "answerability",
+        "expectedValue": "insufficient for an exact runtime"
+      }
+    ],
+    "mustAbstain": true,
+    "forbiddenUnsupportedClaims": [
+      "Any exact aerator runtime",
+      "A guaranteed oxygen correction"
+    ]
+  },
+  {
+    "id": "rag-insufficient-07",
+    "category": "insufficient",
+    "pondId": 1,
+    "question": "What financial loss was caused by the C5 period?",
+    "expectedContextIds": ["ctx:c5:pond-001:7d:p06"],
+    "expectedFacts": [
+      {
+        "field": "availableEvidence",
+        "expectedValue": "C5 analytical score and water-quality facts"
+      },
+      {
+        "field": "unavailableField",
+        "expectedValue": "cost, price, biomass, and loss records"
+      },
+      {
+        "field": "answerability",
+        "expectedValue": "insufficient"
+      }
+    ],
+    "mustAbstain": true,
+    "forbiddenUnsupportedClaims": [
+      "Any monetary loss amount",
+      "The final score maps directly to financial loss"
+    ]
+  },
+  {
+    "id": "rag-insufficient-08",
+    "category": "insufficient",
+    "pondId": 1,
+    "question": "Was a faulty oxygen sensor the cause of the missing C6-B interval?",
+    "expectedContextIds": ["ctx:c6-b:pond-001:100s:p08"],
+    "expectedFacts": [
+      {
+        "field": "availableEvidence",
+        "expectedValue": "a forty-second missing oxygen interval in C6-B"
+      },
+      {
+        "field": "unavailableField",
+        "expectedValue": "sensor diagnostics and failure-cause evidence"
+      },
+      {
+        "field": "answerability",
+        "expectedValue": "insufficient"
+      }
+    ],
+    "mustAbstain": true,
+    "forbiddenUnsupportedClaims": [
+      "The sensor was faulty",
+      "Any specific hardware failure occurred"
+    ]
+  },
+  {
+    "id": "rag-insufficient-09",
+    "category": "insufficient",
+    "pondId": 1,
+    "question": "What will this pond's exact score be in the week after C2?",
+    "expectedContextIds": ["ctx:c2:pond-001:7d:p02"],
+    "expectedFacts": [
+      {
+        "field": "availableEvidence",
+        "expectedValue": "historical C2 analysis only"
+      },
+      {
+        "field": "unavailableField",
+        "expectedValue": "future measurements or a validated forecast"
+      },
+      {
+        "field": "answerability",
+        "expectedValue": "insufficient"
+      }
+    ],
+    "mustAbstain": true,
+    "forbiddenUnsupportedClaims": [
+      "Any exact future score",
+      "Past stability guarantees a future result"
+    ]
+  },
+  {
+    "id": "rag-insufficient-10",
+    "category": "insufficient",
+    "pondId": 1,
+    "question": "Do the C1 and C5 scores prove this model is biologically valid for shrimp health?",
+    "expectedContextIds": ["ctx:c1:pond-001:7d:p01", "ctx:c5:pond-001:7d:p06"],
+    "expectedFacts": [
+      {
+        "field": "availableEvidence",
+        "expectedValue": "numerical behavior of deterministic C1 and C5 scenarios"
+      },
+      {
+        "field": "claimBoundary",
+        "expectedValue": "numerical fidelity is not biological validation"
+      },
+      {
+        "field": "answerability",
+        "expectedValue": "insufficient to establish biological validity"
+      }
+    ],
+    "mustAbstain": true,
+    "forbiddenUnsupportedClaims": [
+      "The model is biologically validated",
+      "The score predicts mortality, growth, or production outcome"
+    ]
+  }
+]
