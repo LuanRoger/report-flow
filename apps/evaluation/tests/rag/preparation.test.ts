@@ -376,7 +376,7 @@ describe("controlled RAG safety and analysis", () => {
       smallCatalog,
       model
     );
-    const firstDocument = JSON.parse(documents[0]?.content ?? "null") as {
+    const firstDocument = documents[0]?.document as {
       configuration: { model: { modelVersion: string } };
       evidence: {
         parameters: {
@@ -385,6 +385,10 @@ describe("controlled RAG safety and analysis", () => {
       };
       identity: { contextId: string; scenarioId: string };
     };
+    expect(documents[0]?.content).toStartWith("Pond analysis context C6-A (");
+    expect(documents[0]?.content).toContain(
+      "This context contains the final pond score"
+    );
     expect(firstDocument.identity).toEqual(
       expect.objectContaining({
         contextId: "ctx:c6-a:pond-001:100s:p07",

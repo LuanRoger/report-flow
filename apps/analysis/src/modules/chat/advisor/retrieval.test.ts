@@ -115,15 +115,15 @@ describe("Advisor retrieval", () => {
         similarity,
       }))
     ).toEqual([
-      { analysisId: 1, rank: 1, similarity: null },
-      { analysisId: 2, rank: 2, similarity: 0.9 },
-      { analysisId: 3, rank: 3, similarity: 0.8 },
+      { analysisId: 2, rank: 1, similarity: 0.9 },
+      { analysisId: 3, rank: 2, similarity: 0.8 },
+      { analysisId: 1, rank: 3, similarity: null },
     ]);
     expect(findSemanticallyRelevantAnalysesForPondMock).toHaveBeenCalledWith(
       12,
       QUERY_EMBEDDING,
-      4,
-      0.5
+      5,
+      0
     );
   });
 

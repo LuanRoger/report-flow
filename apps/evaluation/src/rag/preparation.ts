@@ -573,6 +573,18 @@ const buildOracleEvidence = (
   ),
 });
 
+const buildRetrievalSummary = (
+  context: ControlledContextDefinition
+): string => {
+  const { periodLabel, scenario } = context;
+
+  return [
+    `Pond analysis context ${scenario.id} (${periodLabel}).`,
+    `Reference period: ${scenario.start} through ${scenario.end}.`,
+    "This context contains the final pond score, parameter scores, measurement statistics, data coverage, and unfavorable intervals for temperature, pH, salinity, and dissolved oxygen.",
+  ].join(" ");
+};
+
 export const buildApprovedContextDocuments = (
   analyses: readonly VerifiedControlledAnalysis[],
   catalog: ControlledContextCatalog,
@@ -645,7 +657,7 @@ export const buildApprovedContextDocuments = (
       },
       schemaVersion: 1,
     };
-    const content = canonicalJson(document);
+    const content = `${buildRetrievalSummary(analysis.context)}\n\n${canonicalJson(document)}`;
     return {
       analysisId: analysis.analysisId,
       content,

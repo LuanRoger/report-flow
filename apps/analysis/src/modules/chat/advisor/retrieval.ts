@@ -34,21 +34,19 @@ function mergeAnalysisCandidates(
 ): Map<number, AnalysisCandidate> {
   const candidates = new Map<number, AnalysisCandidate>();
 
-  for (const analysis of recentAnalyses) {
-    candidates.set(analysis.analysisId, { analysis, similarity: null });
-  }
-
   for (const analysis of semanticAnalyses) {
-    const existingCandidate = candidates.get(analysis.analysisId);
-    if (existingCandidate) {
-      existingCandidate.similarity = analysis.similarity;
-      continue;
-    }
-
     candidates.set(analysis.analysisId, {
       analysis,
       similarity: analysis.similarity,
     });
+  }
+
+  for (const analysis of recentAnalyses) {
+    if (candidates.has(analysis.analysisId)) {
+      continue;
+    }
+
+    candidates.set(analysis.analysisId, { analysis, similarity: null });
   }
 
   return candidates;

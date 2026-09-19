@@ -36,9 +36,9 @@ describe("Advisor retrieval schemas", () => {
         },
       ],
       config: {
-        minimumSimilarity: 0.5,
+        minimumSimilarity: 0,
         recentResultLimit: 2,
-        semanticResultLimit: 4,
+        semanticResultLimit: 5,
       },
       filters: { pondId: 12 },
       queryEmbeddingMs: 25,

@@ -9,9 +9,9 @@ export const ADVISOR_MODEL_CONFIG = {
 
 export const ADVISOR_RETRIEVAL_CONFIG = {
   contextSourceLimit: 5,
-  minimumSimilarity: 0.5,
+  minimumSimilarity: 0,
   recentResultLimit: 2,
-  semanticResultLimit: 4,
+  semanticResultLimit: 5,
   userMessageQueryLimit: 3,
 } as const;
 

@@ -220,10 +220,10 @@ export const buildEnvironmentManifest = async (
     },
     rag: {
       filters: ["pondId"],
-      minimumSimilarity: 0.5,
+      minimumSimilarity: 0,
       recentResultLimit: 2,
       reranker: null,
-      semanticResultLimit: 4,
+      semanticResultLimit: 5,
       similarityMetric: "cosine",
       topK: 5,
     },

@@ -6,7 +6,7 @@
     "build": "bun build src/index.ts --outdir dist --target bun",
     "dev": "bun run --watch src/index.ts",
     "env:load": "varlock load",
-    "start": "bun --cpu-prof --heap-prof src/index.js"
+    "start": "bun src/index.js"
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.60",
