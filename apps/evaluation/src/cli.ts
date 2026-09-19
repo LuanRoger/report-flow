@@ -1,10 +1,15 @@
 import { captureQueryPlans } from "./benchmark/query-plans.ts";
 import { runSequentialBenchmark } from "./benchmark/sequential.ts";
+import {
+  captureRagAnswers,
+  captureRagRetrieval,
+} from "./commands/capture-rag.ts";
 import { writeOracleArtifact } from "./commands/oracle.ts";
 import {
   preflightOptionsFromEnvironment,
   runPreflight,
 } from "./commands/preflight.ts";
+import { prepareRagCommand } from "./commands/prepare-rag.ts";
 import {
   scoreRagAnswerFile,
   scoreRagRetrievalFile,
@@ -47,6 +52,9 @@ Commands:
   validate:analysis          Compare HTTP analysis results with the oracle
   benchmark:sequential       Run warm-cache sequential analysis measurements
   benchmark:plans            Capture EXPLAIN ANALYZE and Timescale metadata
+  prepare:rag                Reset and prepare the controlled RAG knowledge base
+  capture:rag:retrieval      Run and score 120 live retrieval trials
+  capture:rag:answers        Run 120 live answers and write a review template
   evaluate:rag:retrieval     Score an existing retrieval capture JSON
   evaluate:rag:answers       Score an existing reviewed answer capture JSON
   report                     Build reports only from existing artifacts
@@ -274,6 +282,51 @@ const executePlanBenchmark = async (
   writeResult("benchmark:plans", result.passed);
 };
 
+const executeRagPreparation = async (
+  argumentsValue: ParsedArguments
+): Promise<void> => {
+  const result = await prepareRagCommand(argumentsValue);
+  writeResult("prepare:rag", result.passed);
+};
+
+const ragCaptureOptions = (
+  argumentsValue: ParsedArguments
+): Parameters<typeof captureRagRetrieval>[0] => ({
+  allowPaidModels: hasFlag(argumentsValue, "allow-paid-models"),
+  allowRemoteTarget: hasFlag(argumentsValue, "allow-remote-target"),
+  analysisApiUrl:
+    process.env.ANALYSIS_API_URL?.trim() || "http://localhost:3001",
+  apiKey: requireEnvironmentValue("ANALYSIS_API_KEY"),
+  requestTimeoutMs:
+    getOptionalOption(argumentsValue, "request-timeout-ms") === undefined
+      ? undefined
+      : parsePositiveIntegerOption(argumentsValue, "request-timeout-ms"),
+  runId: getRequiredOption(argumentsValue, "run-id"),
+});
+
+const assertRagCaptureArguments = (argumentsValue: ParsedArguments): void => {
+  assertOnlyArguments(argumentsValue, {
+    flags: ["allow-paid-models", "allow-remote-target"],
+    options: ["request-timeout-ms", "run-id"],
+  });
+};
+
+const executeRagRetrievalCapture = async (
+  argumentsValue: ParsedArguments
+): Promise<void> => {
+  assertRagCaptureArguments(argumentsValue);
+  const result = await captureRagRetrieval(ragCaptureOptions(argumentsValue));
+  writeResult("capture:rag:retrieval", result.score.passed);
+};
+
+const executeRagAnswerCapture = async (
+  argumentsValue: ParsedArguments
+): Promise<void> => {
+  assertRagCaptureArguments(argumentsValue);
+  const result = await captureRagAnswers(ragCaptureOptions(argumentsValue));
+  writeResult("capture:rag:answers", result.failedExecutionCount === 0);
+};
+
 const executeRagRetrieval = async (
   argumentsValue: ParsedArguments
 ): Promise<void> => {
@@ -311,11 +364,14 @@ const COMMANDS: Readonly<
 > = {
   "benchmark:plans": executePlanBenchmark,
   "benchmark:sequential": executeSequentialBenchmark,
+  "capture:rag:answers": executeRagAnswerCapture,
+  "capture:rag:retrieval": executeRagRetrievalCapture,
   "evaluate:rag:answers": executeRagAnswers,
   "evaluate:rag:retrieval": executeRagRetrieval,
   oracle: executeOracle,
   preflight: executePreflight,
   preload: executePreload,
+  "prepare:rag": executeRagPreparation,
   report: executeReport,
   "validate:analysis": executeAnalysisValidation,
   "validate:ingestion": executeIngestionValidation,

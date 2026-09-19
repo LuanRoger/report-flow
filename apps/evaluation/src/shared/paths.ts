@@ -11,6 +11,10 @@ export const ADVISOR_PROMPT_PATH = resolve(
 );
 
 export const MODEL_CONFIG_PATH = resolve(CONFIG_DIRECTORY, "model.json");
+export const RAG_CONTEXT_CATALOG_PATH = resolve(
+  CONFIG_DIRECTORY,
+  "rag/controlled-contexts.json"
+);
 
 export const SCORING_SCENARIO_PATHS = [
   resolve(CONFIG_DIRECTORY, "scenarios/c1-reference.json"),

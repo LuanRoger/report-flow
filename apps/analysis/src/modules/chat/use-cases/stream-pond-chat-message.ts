@@ -242,7 +242,7 @@ async function prepareAdvisorTurn(
 ): Promise<PreparedAdvisorTurn> {
   const history = await loadValidatedModelHistory(chatId);
   const retrievalQuery = buildRetrievalQuery(history);
-  const sources = await retrieveAdvisorSources(pondId, retrievalQuery);
+  const { sources } = await retrieveAdvisorSources(pondId, retrievalQuery);
   const systemPrompt = buildAdvisorSystemPrompt(sources);
   const modelMessages = await convertToModelMessages(
     toTextOnlyModelHistory(history)

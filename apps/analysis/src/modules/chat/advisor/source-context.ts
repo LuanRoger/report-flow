@@ -134,7 +134,7 @@ export function createAdvisorSource(
   return {
     analysisCreatedAt: analysis.analysisCreatedAt,
     analysisId: analysis.analysisId,
-    context: contextParts.join("\n"),
+    context: analysis.embeddingContent ?? contextParts.join("\n"),
     cycleId: analysis.cycleId,
     periodEnd: analysis.endTime,
     periodStart: analysis.startTime,

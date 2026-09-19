@@ -22,6 +22,7 @@ const RUN_DIRECTORIES = [
   "performance/sequential",
   "rag/answers",
   "rag/judgments",
+  "rag/preparation",
   "rag/retrieval",
   "reports",
   "seeds",

@@ -65,6 +65,10 @@ const parseExecution = (value: unknown, index: number): RetrievalExecution => {
   if (new Set(candidates.map(({ rank }) => rank)).size !== candidates.length) {
     throw new Error(`${path}.candidates ranks must be unique`);
   }
+  const topK = readPositiveInteger(record.topK, `${path}.topK`);
+  if (topK !== 5) {
+    throw new Error(`${path}.topK must equal 5`);
+  }
   return {
     candidates,
     caseId: asString(record.caseId, `${path}.caseId`),
@@ -77,7 +81,7 @@ const parseExecution = (value: unknown, index: number): RetrievalExecution => {
       record.retrievalMs,
       `${path}.retrievalMs`
     ),
-    topK: readPositiveInteger(record.topK, `${path}.topK`),
+    topK,
     trial: readPositiveInteger(record.trial, `${path}.trial`),
   };
 };

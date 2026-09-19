@@ -11,6 +11,10 @@ export async function getPondCycle(cycleId: number, pondId: number) {
 }
 
 export async function registerMesurement(data: CreateMeasurement) {
-  const result = await db.insert(measurements).values(data).returning();
-  return result[0];
+  try {
+    const result = await db.insert(measurements).values(data).returning();
+    return result[0];
+  } catch (error) {
+    console.log(error);
+  }
 }

@@ -99,7 +99,8 @@ CREATE TABLE analysis_embeddings (
     analysis_id INTEGER NOT NULL,
     content TEXT NOT NULL,
     embedding vector(1024) NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT analysis_embeddings_analysis_id_unique UNIQUE (analysis_id)
 );
 
 -- Create chat persistence tables. These remain regular PostgreSQL tables:
@@ -198,7 +199,6 @@ CREATE INDEX analysis_results_final_score_idx ON analysis_results (final_score);
 CREATE INDEX analysis_embeddings_hnsw_idx ON analysis_embeddings USING hnsw (embedding vector_cosine_ops);
 
 -- Standard B-tree indexes for filtering
-CREATE INDEX analysis_embeddings_analysis_idx ON analysis_embeddings (analysis_id);
 CREATE INDEX analysis_embeddings_created_at_idx ON analysis_embeddings (created_at);
 
 -- ============================================

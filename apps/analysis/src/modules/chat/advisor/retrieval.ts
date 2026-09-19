@@ -12,7 +12,21 @@ interface AnalysisCandidate {
   similarity: number | null;
 }
 
+export interface AdvisorRetrievalResult {
+  sources: AdvisorSource[];
+  timings: {
+    queryEmbeddingMs: number;
+    retrievalMs: number;
+  };
+}
+
+type MonotonicClock = () => number;
 type SemanticAdvisorAnalysis = AdvisorAnalysis & { similarity: number };
+
+const monotonicNow = (): number => performance.now();
+
+const elapsedMilliseconds = (startedAt: number, endedAt: number): number =>
+  Math.max(0, endedAt - startedAt);
 
 function mergeAnalysisCandidates(
   recentAnalyses: AdvisorAnalysis[],
@@ -64,14 +78,22 @@ function createRankedAdvisorSources(
 
 export async function retrieveAdvisorSources(
   pondId: number,
-  query: string
-): Promise<AdvisorSource[]> {
+  query: string,
+  clock: MonotonicClock = monotonicNow
+): Promise<AdvisorRetrievalResult> {
+  const retrievalStartedAt = clock();
+  const queryEmbeddingStartedAt = clock();
+  let queryEmbeddingMs = 0;
+  const queryEmbeddingPromise = generateEmbedding(query).finally(() => {
+    queryEmbeddingMs = elapsedMilliseconds(queryEmbeddingStartedAt, clock());
+  });
+  const recentAnalysesPromise = findRecentAnalysesForPond(
+    pondId,
+    ADVISOR_RETRIEVAL_CONFIG.recentResultLimit
+  );
   const [queryEmbedding, recentAnalyses] = await Promise.all([
-    generateEmbedding(query),
-    findRecentAnalysesForPond(
-      pondId,
-      ADVISOR_RETRIEVAL_CONFIG.recentResultLimit
-    ),
+    queryEmbeddingPromise,
+    recentAnalysesPromise,
   ]);
   const semanticAnalyses = await findSemanticallyRelevantAnalysesForPond(
     pondId,
@@ -80,6 +102,13 @@ export async function retrieveAdvisorSources(
     ADVISOR_RETRIEVAL_CONFIG.minimumSimilarity
   );
   const candidates = mergeAnalysisCandidates(recentAnalyses, semanticAnalyses);
+  const sources = createRankedAdvisorSources(candidates);
 
-  return createRankedAdvisorSources(candidates);
+  return {
+    sources,
+    timings: {
+      queryEmbeddingMs,
+      retrievalMs: elapsedMilliseconds(retrievalStartedAt, clock()),
+    },
+  };
 }

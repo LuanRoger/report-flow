@@ -2,6 +2,8 @@
 
 This workspace implements the reproducible, non-MQTT evaluation described in the root `EVALUATION.md` and `SPECIFICATIONS.md`.
 
+Use [`RUNBOOK.md`](RUNBOOK.md) for the complete, copy-ready execution sequence. This README documents the individual components and contracts.
+
 The independent numerical oracle deliberately does **not** import scoring code or constants from `apps/analysis`. Duplication of equations in `config/model.json` is intentional: expected results must remain independent of the implementation under test.
 
 ## Implemented components
@@ -19,12 +21,15 @@ The independent numerical oracle deliberately does **not** import scoring code o
 - guarded, bounded direct database preload;
 - five-warm-up/thirty-sample sequential analysis benchmark;
 - JSON `EXPLAIN (ANALYZE, BUFFERS)` and TimescaleDB metadata capture;
-- guarded k6 ingestion, 7-day analysis, and 30-day analysis profiles;
+- guarded k6 ingestion, 7-day analysis, and 30-day analysis profiles with a Bun `.env` launcher;
+- a guarded nine-context RAG knowledge-base preparation workflow;
+- authenticated live retrieval telemetry and 120-trial retrieval capture;
+- isolated 120-trial streamed answer capture and an unreviewed judgment template;
 - validation of the 40-case RAG gold set;
 - artifact-based Recall@5, fact, groundedness, abstention, and latency scoring;
 - artifact-only Markdown and JSON report generation.
 
-MQTT is deferred. Live RAG answer generation, human/model-assisted judgments, k6 repetitions, resource monitoring, and large database runs must be executed separately and must remain `not-executed` until artifacts exist.
+MQTT is deferred. Human/model-assisted RAG judgments, k6 repetitions, resource monitoring, and large database runs must still be executed explicitly and remain `not-executed` until artifacts exist.
 
 ## Frozen scoring contract
 
@@ -76,10 +81,13 @@ Operational commands read these variables:
 | `EVALUATION_DATABASE_URL` | all database stages | Required; never falls back to `DATABASE_URL` |
 | `INGEST_API_URL` | preflight and ingestion | Defaults to `http://localhost:3000` |
 | `INGEST_API_KEY` | ingestion | Required and never persisted |
-| `ANALYSIS_API_URL` | preflight, analysis, sequential | Defaults to `http://localhost:3001` |
-| `ANALYSIS_API_KEY` | analysis and sequential | Required and never persisted |
+| `ANALYSIS_API_URL` | preflight, analysis, sequential, RAG | Defaults to `http://localhost:3001` |
+| `ANALYSIS_API_KEY` | analysis, sequential, RAG | Required and never persisted |
+| `OPENAI_API_KEY` | `prepare:rag` | Required only for the explicitly authorized nine-embedding preparation stage |
 
-Both services must use the same database selected by `EVALUATION_DATABASE_URL`. Configure their own `DATABASE_URL` and `API_KEY` values through the repository's Varlock setup before starting them.
+Both services must use the same database selected by `EVALUATION_DATABASE_URL`. Configure their own `DATABASE_URL` and `API_KEY` values through the repository's Varlock setup before starting them. Live RAG also requires `OPENAI_API_KEY` in the analysis service process; preparation requires it in the evaluator process.
+
+Bun package scripts load an untracked `apps/evaluation/.env`. The k6 package scripts now use a Bun launcher and inherit that environment. Direct `k6 run` still does not parse `.env`.
 
 Start services in separate terminals:
 
@@ -133,13 +141,14 @@ results/<run-id>/
     resources/
     query-plans/
   rag/
+    preparation/
     retrieval/
     answers/
     judgments/
   reports/
 ```
 
-Stage artifacts use exclusive writes. A command fails instead of replacing an existing artifact. Raw result directories are ignored by Git and should be archived externally for official runs.
+Preflight creates a run directory once. Stage artifacts use exclusive writes and a command fails instead of replacing them; `manifest.json` is the only currently mutable evaluator artifact. Raw result directories are ignored by Git and should be archived externally for official runs.
 
 An official preflight requires a clean Git tree and reachable services. Exploratory database-only setup may explicitly skip service probes:
 
@@ -285,7 +294,7 @@ Each window preserves the complete JSON plan plus extracted planning/execution t
 
 ## k6 load profiles
 
-k6 is external and was not available in the initial implementation environment. Install it separately, then follow `k6/README.md`.
+k6 is an external executable. Install it separately, then follow `k6/README.md` and the matrix instructions in `RUNBOOK.md`.
 
 Package entry points are:
 
@@ -297,96 +306,85 @@ bun run benchmark:k6:analysis:30d
 
 The scripts refuse execution unless `K6_ALLOW_LOAD_TEST=true`, a run ID and API key are supplied, and remote targets are separately authorized. Analysis additionally requires an explicit attestation that embedding opt-out is honored and one oracle score per target pond.
 
-Run every load level three times and preserve each result with k6 `--summary-export` or an approved metrics backend. The scripts never reset the database.
+The package commands run k6 through Bun, so evaluation `.env` values are inherited. Forward export options after `--`, for example `bun run benchmark:k6:ingestion -- --summary-export=<path> --out json=<path>`.
+
+Run every load level three times and preserve each result with k6 `--summary-export` plus raw JSON/CSV metrics or an approved metrics backend. The scripts never reset the database. Dates and `K6_EXPECTED_FINAL_SCORES` must match the active preload; derive each score from the sequential benchmark rather than assuming `100`.
 
 ## RAG evaluation
 
-`gold/rag-cases.json` contains exactly 40 cases: 10 direct, 10 same-pond comparisons, 10 event/action, and 10 insufficient-information cases.
+`gold/rag-cases.json` contains exactly 40 cases: 10 direct, 10 same-pond comparisons, 10 event/action, and 10 insufficient-information cases. Use a dedicated RAG run and database state; unrelated analyses would contaminate recency retrieval.
 
-The scorer does not call OpenAI. It consumes immutable captures created by a separately approved retrieval or answer execution.
+Detailed setup, artifact, and review instructions are in `RUNBOOK.md`.
 
-### Retrieval capture
+### 1. Prepare the controlled knowledge base
+
+```bash
+bun run prepare:rag -- \
+  --run-id <rag-run-id> \
+  --confirm-reset \
+  --allow-paid-embeddings
+```
+
+Preparation resets all application tables and directly streams `2,488,387` deterministic measurements. It then creates nine production analyses, verifies them against the independent oracle, and makes nine paid `text-embedding-3-small` calls for approved 1,024-dimensional context embeddings.
+
+The resulting `controlled-kb.json` and `context-map.json` under `results/<rag-run-id>/rag/preparation/` are required by live capture. Do not hand-edit the generated map.
+
+### 2. Capture and score retrieval
+
+```bash
+bun run capture:rag:retrieval -- \
+  --run-id <rag-run-id> \
+  --allow-paid-models
+```
+
+This runs all 40 cases sequentially for trials `1`, `2`, and `3`, making 120 paid query-embedding calls through the production retriever. It preserves raw NDJSON, writes the complete capture, and calculates Recall@5 immediately:
+
+```text
+rag/retrieval/raw-capture.ndjson
+rag/retrieval/live-capture.json
+rag/retrieval/score-live-capture.json
+```
+
+An official retrieval capture is complete only when all 120 executions are present and every execution uses `topK = 5`. Mean Recall@5 uses the 90 answerable executions; insufficient-information cases are evaluated during answer review.
+
+The generic scorer remains available for a compatible externally produced capture:
 
 ```bash
 bun run evaluate:rag:retrieval -- \
-  --input <capture.json> \
-  --run-id <run-id>
+  --input <retrieval-capture.json> \
+  --run-id <rag-run-id>
 ```
 
-Input shape:
+### 3. Capture live answers
 
-```json
-{
-  "schemaVersion": 1,
-  "contextMap": [
-    { "contextId": "ctx:c1:pond-001:7d:p01", "analysisId": 101 }
-  ],
-  "executions": [
-    {
-      "caseId": "rag-direct-01",
-      "trial": 1,
-      "pondId": 1,
-      "queryEmbeddingMs": 120,
-      "retrievalMs": 15,
-      "topK": 5,
-      "candidates": [
-        {
-          "analysisId": 101,
-          "rank": 1,
-          "similarity": 0.92,
-          "sourceKey": "S1"
-        }
-      ]
-    }
-  ]
-}
+```bash
+bun run capture:rag:answers -- \
+  --run-id <rag-run-id> \
+  --allow-paid-models
 ```
 
-The map materializes stable symbolic context IDs to database analysis IDs. Mean Recall@5 uses only the 30 answerable cases; insufficient cases may still retrieve context before correctly abstaining.
+This clears the controlled pond chat before each trial, then runs 120 sequential production chat turns. The stage makes 120 query-embedding calls and 120 `gpt-5.6-luna` chat completions. It preserves raw SSE events, response text, sources, citations, provider errors, TTFT, and completion time:
 
-### Reviewed answer capture
+```text
+rag/answers/raw-capture.ndjson
+rag/answers/answer-review-template.json
+```
+
+The generated template is deliberately marked `UNREVIEWED`; capture does not invent observed facts, claim support, or abstention decisions.
+
+### 4. Review and score answers
+
+Review every execution against its retrieved approved contexts. Populate only facts actually present in the response, classify verifiable claims and their support, identify source context IDs, and set `explicitAbstention`. Use either documented human review or a clearly labeled model-assisted procedure; an LLM judgment is not objective ground truth.
+
+After saving the reviewed file, run:
 
 ```bash
 bun run evaluate:rag:answers -- \
-  --input <reviewed-capture.json> \
-  --run-id <run-id>
+  --input results/<rag-run-id>/rag/answers/answer-reviewed.json \
+  --run-id <rag-run-id>
 ```
 
-Input shape:
-
-```json
-{
-  "schemaVersion": 1,
-  "judge": {
-    "method": "human-review",
-    "model": null,
-    "promptChecksum": null
-  },
-  "executions": [
-    {
-      "caseId": "rag-direct-01",
-      "trial": 1,
-      "responseText": "...",
-      "explicitAbstention": false,
-      "observedFacts": { "finalScore": 100 },
-      "claims": [
-        {
-          "text": "...",
-          "verifiable": true,
-          "supported": true,
-          "sourceContextIds": ["ctx:c1:pond-001:7d:p01"]
-        }
-      ],
-      "ttftMs": 900,
-      "totalMs": 3500
-    }
-  ]
-}
-```
-
-Every case must have unique trials `1`, `2`, and `3`. The scorer reports deterministic fact checks, forbidden claims, claim-level groundedness, correct abstention, p95 TTFT, p95 completion, capture/gold checksums, and completeness.
-
-External-model execution remains a separate cost-bearing stage. Preserve model, prompts, provider errors, retries, raw streams, citations, context mapping, and judgments before scoring.
+The scorer requires exactly trials `1`, `2`, and `3` for every case and reports deterministic fact checks, forbidden claims, claim-level groundedness, correct abstention, p95 TTFT, p95 completion, checksums, and completeness. Preserve the review procedure, judge identity or model, prompt checksum, raw judgments, retries, and limitations with the official evidence.
 
 ## Reports
 

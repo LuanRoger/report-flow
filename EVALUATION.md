@@ -1172,7 +1172,7 @@ Analysis: http://localhost:3001
 
 Both services require bearer authentication using their configured `API_KEY`.
 
-There is currently no repository Docker Compose file. PostgreSQL with TimescaleDB and pgvector must be provisioned separately until reproducible infrastructure is added.
+A repository database Compose definition exists at `packages/database/compose.yaml`. Use only a disposable database whose name begins with `report_flow_eval`, and verify that TimescaleDB and pgvector are available before an official run.
 
 ### 19.2 Implemented evaluation commands
 
@@ -1197,31 +1197,38 @@ bun run validate:ingestion -- --scenarios all --run-id <run-id>
 # Execute analysis scenarios and compare with the oracle
 bun run validate:analysis -- --scenarios c1,c2,c3-25,c3-50,c4,c5,c6-a,c6-b --run-id <run-id>
 
-# Prepare one performance dataset through the guarded direct bulk-preload path
-bun run preload -- --ponds 1 --days 7 --run-id <run-id> --confirm-reset
+# Prepare the 30-day dataset required by the primary 7-day/30-day matrix
+bun run preload -- --dataset 1-pond-30-days --run-id <performance-run-id> --confirm-reset
 
-# Run five warm-ups and thirty sequential measurements per case
-bun run benchmark:sequential -- --matrix primary --run-id <run-id>
+# Run five warm-ups and thirty sequential measurements per window
+bun run benchmark:sequential -- --matrix primary --run-id <performance-run-id>
 
 # Capture representative TimescaleDB plans outside load tests
-bun run benchmark:plans -- --windows 7d,30d --run-id <run-id>
+bun run benchmark:plans -- --windows 7d,30d --run-id <performance-run-id>
 
-# Run guarded k6 profiles after configuring the documented K6_* variables
-bun run benchmark:k6:ingestion
-bun run benchmark:k6:analysis:7d
-bun run benchmark:k6:analysis:30d
+# Run guarded k6 profiles through Bun so apps/evaluation/.env is inherited.
+# Give every repetition unique --summary-export and --out paths after `--`.
+bun run benchmark:k6:ingestion -- <k6-options>
+bun run benchmark:k6:analysis:7d -- <k6-options>
+bun run benchmark:k6:analysis:30d -- <k6-options>
 
-# Score an existing retrieval capture without generating chat answers
-bun run evaluate:rag:retrieval -- --input <capture.json> --run-id <run-id>
+# Reset and prepare the controlled RAG database, analyses, context map, and embeddings
+bun run prepare:rag -- --run-id <rag-run-id> --confirm-reset --allow-paid-embeddings
 
-# Score an existing reviewed answer capture without calling a model
-bun run evaluate:rag:answers -- --input <reviewed-capture.json> --run-id <run-id>
+# Capture 40 cases x 3 trials from the production retriever and score Recall@5
+bun run capture:rag:retrieval -- --run-id <rag-run-id> --allow-paid-models
+
+# Capture 40 cases x 3 live streamed answers and create an unreviewed template
+bun run capture:rag:answers -- --run-id <rag-run-id> --allow-paid-models
+
+# After documented human or model-assisted review, score the reviewed answers
+bun run evaluate:rag:answers -- --input <reviewed-capture.json> --run-id <rag-run-id>
 
 # Aggregate existing raw artifacts without rerunning experiments
 bun run report -- --run-id <run-id>
 ```
 
-There is no default command that silently runs the 51.84-million-row preload or 120 external chat completions. Destructive preload requires `--confirm-reset` and a database name beginning with `report_flow_eval`. External answer generation remains a separately approved execution step; the implemented RAG commands score preserved captures only.
+There is no default command that silently runs the 51.84-million-row preload or external RAG calls. Destructive preload and RAG preparation require `--confirm-reset` and a database name beginning with `report_flow_eval`. Paid RAG stages require explicit `--allow-paid-embeddings` or `--allow-paid-models` authorization. The commands are implemented, but the live experiments remain `not-executed` until their complete artifacts are produced.
 
 ---
 
@@ -1233,7 +1240,7 @@ There is no default command that silently runs the 51.84-million-row preload or 
 - [x] Define typed configuration and artifact contracts.
 - [x] Add safe result-directory and database-reset guards.
 - [x] Implement environment-manifest collection.
-- [ ] Add repository-managed disposable TimescaleDB/pgvector infrastructure; the current environment is provisioned externally.
+- [x] Add repository-managed disposable TimescaleDB/pgvector infrastructure at `packages/database/compose.yaml`.
 - [x] Smoke-test the initial migration through live schema, enum, constraint, index, extension, and hypertable inspection.
 
 ### Phase 1 — Independent correctness foundation
@@ -1283,17 +1290,21 @@ There is no default command that silently runs the 51.84-million-row preload or 
 
 - [x] Implement guarded `k6` ingestion profiles.
 - [x] Implement guarded `k6` 7-day and 30-day analysis profiles.
-- [ ] Run three repetitions per load level; `k6` is not installed in the current environment.
+- [ ] Run three repetitions per load level and preserve unique summary/raw metric exports.
 - [ ] Collect synchronized service, database, and host resource metrics.
 
 ### Phase 7 — RAG evaluation
 
-- [ ] Build and persist the controlled analytical contexts and symbolic-to-analysis ID map.
+- [x] Implement guarded controlled knowledge-base preparation for nine oracle-verified analytical contexts and embeddings.
+- [x] Implement and persist the symbolic-to-analysis ID map.
 - [x] Create and structurally validate 40 gold questions.
-- [x] Implement symbolic context materialization and Recall@5 scoring for captured retrieval candidates.
-- [ ] Execute three isolated answer trials per question after explicit external-model approval.
+- [x] Implement live production-retrieval capture for three trials per question and Recall@5 scoring.
+- [x] Implement live streamed-answer capture for three isolated trials per question.
 - [x] Implement expected-fact, claim-groundedness, abstention, trial-completeness, and latency scoring for reviewed captures.
-- [ ] Preserve live raw streamed responses, citations, provider errors, and judgments.
+- [x] Implement preservation of raw streamed responses, citations, source metadata, timings, and provider errors.
+- [ ] Execute controlled preparation and all three retrieval trials per question after explicit paid-model approval.
+- [ ] Execute all three answer trials per question after explicit paid-model approval.
+- [ ] Complete and preserve documented human or model-assisted judgments.
 
 ### Phase 8 — Reporting
 
