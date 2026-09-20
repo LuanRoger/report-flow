@@ -233,7 +233,7 @@ bun run benchmark:plans -- \
 
 Repeat with the `10-ponds-*` and `50-ponds-*` profiles. Benchmarking pond 1 while increasing background pond count measures the selected query against a larger hypertable. Benchmark all ponds only if that is a separately documented experiment.
 
-The `50-ponds-30-days` profile contains `51,840,000` rows. Estimate disk and runtime with smaller datasets first.
+The `50-ponds-30-days` profile contains `1,728,000` rows. Performance analysis uses the five-minute preload cadence with a 300-second continuity cap. Estimate disk and runtime with smaller datasets first.
 
 ## 10. k6 concurrent load
 

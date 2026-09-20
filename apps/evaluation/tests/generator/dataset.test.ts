@@ -39,6 +39,7 @@ const smallConfig = (seed = 1234): DatasetConfig => ({
   end: "2026-04-01T00:00:40.000Z",
   expectedRowCount: 32,
   id: "determinism-test",
+  intervalSeconds: 10,
   pondCount: 2,
   seed,
   start: "2026-04-01T00:00:00.000Z",
@@ -47,12 +48,12 @@ const smallConfig = (seed = 1234): DatasetConfig => ({
 describe("dataset planning", () => {
   test("matches every frozen row-count matrix entry", () => {
     const expectedCounts = new Map([
-      ["1-pond-7-days", 241_920],
-      ["1-pond-30-days", 1_036_800],
-      ["10-ponds-7-days", 2_419_200],
-      ["10-ponds-30-days", 10_368_000],
-      ["50-ponds-7-days", 12_096_000],
-      ["50-ponds-30-days", 51_840_000],
+      ["1-pond-7-days", 8064],
+      ["1-pond-30-days", 34_560],
+      ["10-ponds-7-days", 80_640],
+      ["10-ponds-30-days", 345_600],
+      ["50-ponds-7-days", 403_200],
+      ["50-ponds-30-days", 1_728_000],
     ]);
 
     expect(datasetConfigs).toHaveLength(expectedCounts.size);

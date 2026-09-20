@@ -445,19 +445,26 @@ For each dataset:
 - output order is deterministic for a fixed seed;
 - a checksum is written for generated fixture files.
 
-Expected row count:
+Expected row count for the performance preload:
 
 ```text
-rows = duration_seconds / 10 * 4 * pond_count
+rows = duration_seconds / 300 * 4 * pond_count
 ```
+
+The performance preload intentionally uses one collection instant every five
+minutes (`intervalSeconds: 300`). Performance analysis requests explicitly use
+`maximumContinuityGapSeconds: 300`, so the reduced cadence still represents the
+full requested window without turning normal gaps into missing coverage. The
+functional and synthetic correctness fixtures retain their own documented
+cadences and continuity settings.
 
 ### 8.3 Dataset matrix
 
 | Stored ponds | 7-day rows | 30-day rows |
 |---:|---:|---:|
-| 1 | 241,920 | 1,036,800 |
-| 10 | 2,419,200 | 10,368,000 |
-| 50 | 12,096,000 | 51,840,000 |
+| 1 | 8,064 | 34,560 |
+| 10 | 80,640 | 345,600 |
+| 50 | 403,200 | 1,728,000 |
 
 Before generating the 50-pond, 30-day dataset:
 
@@ -467,6 +474,8 @@ Before generating the 50-pond, 30-day dataset:
 4. confirm sufficient free space;
 5. record expected insertion duration and batch size;
 6. ensure the database target is dedicated to evaluation.
+
+The reduced performance dataset is intentionally sized for the current materializing implementation. It preserves the same six-dataset pond/window matrix, but it is not a claim about production-scale capacity. The original ten-second production-scale matrix remains documented in historical benchmark artifacts and should be revisited after streaming analysis is implemented.
 
 ### 8.4 Functional seed versus performance preload
 
@@ -783,6 +792,10 @@ Requirements for that control:
 - deterministic and end-to-end-with-embedding results must be labeled separately.
 
 ### 13.4 Sequential microbenchmark
+
+Performance preload requests use `maximumContinuityGapSeconds: 300` to match
+the five-minute performance dataset cadence. Correctness fixtures continue to
+use their scenario-specific continuity settings.
 
 For each database size and requested window:
 

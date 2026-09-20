@@ -3,9 +3,9 @@ import { resolveBenchmarkWindow } from "../../src/benchmark/windows.ts";
 
 const bounds = {
   firstRecordedAt: "2026-02-01T00:00:00.000Z",
-  lastRecordedAt: "2026-03-02T23:59:50.000Z",
+  lastRecordedAt: "2026-03-02T23:55:00.000Z",
   pondId: 1,
-  rowCount: 1_036_800,
+  rowCount: 8640,
   sourceFiles: ["evaluation:1-pond-30-days"],
 };
 

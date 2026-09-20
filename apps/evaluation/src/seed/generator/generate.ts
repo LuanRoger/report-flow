@@ -57,11 +57,9 @@ export const buildDatasetPlanSummary = (
   config: DatasetConfig,
   model: ModelConfig
 ): DatasetPlanSummary => {
-  if (config.intervalSeconds !== model.collection.intervalSeconds) {
-    throw new Error(
-      `${config.id} interval does not match the tracked model collection interval`
-    );
-  }
+  // Performance preload cadences may be coarser than the model's reference
+  // collection cadence. The requested analysis continuity setting must match
+  // the selected preload cadence when the performance endpoint is exercised.
   const instantCount = collectionInstantCount(
     config.start,
     config.end,

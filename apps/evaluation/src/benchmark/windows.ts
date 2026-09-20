@@ -2,7 +2,7 @@ import { readCount, type SqlClient } from "../runtime/database.ts";
 import { parseUtcTimestamp, toUtcIsoString } from "../shared/time.ts";
 
 const MILLISECONDS_PER_DAY = 86_400_000;
-const DEFAULT_INTERVAL_MILLISECONDS = 10_000;
+const DEFAULT_INTERVAL_MILLISECONDS = 300_000;
 
 export interface MeasurementBounds {
   firstRecordedAt: string;

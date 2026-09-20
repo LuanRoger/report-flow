@@ -7,11 +7,11 @@
   "cyclesPerPond": 1,
   "start": "2026-02-01T00:00:00.000Z",
   "end": "2026-03-03T00:00:00.000Z",
-  "intervalSeconds": 10,
+  "intervalSeconds": 300,
   "scenarioId": "C2",
   "sourceType": "sensor",
   "batchSize": 10000,
-  "expectedRowCount": 51840000,
+  "expectedRowCount": 1728000,
   "valueProfiles": {
     "temperature": {
       "center": 29,

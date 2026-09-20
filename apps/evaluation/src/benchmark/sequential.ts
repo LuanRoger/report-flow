@@ -100,6 +100,8 @@ export interface SequentialBenchmarkResult {
   startedAt: string;
 }
 
+const PERFORMANCE_CONTINUITY_GAP_SECONDS = 300;
+
 const callAnalysis = async (
   target: ReturnType<typeof sanitizeHttpBaseUrl>,
   options: SequentialBenchmarkOptions,
@@ -111,7 +113,7 @@ const callAnalysis = async (
       endDate: window.end,
       generateAiSummary: false,
       generateEmbedding: false,
-      maximumContinuityGapSeconds: 20,
+      maximumContinuityGapSeconds: PERFORMANCE_CONTINUITY_GAP_SECONDS,
       startDate: window.start,
       window: "custom",
     },
@@ -178,7 +180,11 @@ const measureCase = async (
       recordedAt,
       value,
     })),
-    { end: window.end, start: window.start },
+    {
+      end: window.end,
+      maximumContinuityGapSeconds: PERFORMANCE_CONTINUITY_GAP_SECONDS,
+      start: window.start,
+    },
     model
   );
   if (oracle.finalScore === null) {

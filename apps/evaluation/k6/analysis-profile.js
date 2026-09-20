@@ -82,6 +82,7 @@ export const createAnalysisProfile = ({
     endDate,
     generateAiSummary: false,
     generateEmbedding: false,
+    maximumContinuityGapSeconds: 300,
     startDate,
     window: "custom",
   });

@@ -264,7 +264,7 @@ bun run preload -- \
 
 The seed is frozen in each dataset configuration. The command streams generator output into batches capped at 7,500 rows/60,000 bindings, hashes every canonical row, and verifies totals, per-parameter counts, first/last timestamps, and duplicate identities.
 
-The `50-ponds-30-days` profile contains `51,840,000` rows. Estimate time and disk from smaller runs before executing it.
+The `50-ponds-30-days` profile contains `1,728,000` rows. The performance datasets use a five-minute cadence and explicitly run analysis with a 300-second continuity cap; estimate time and disk from smaller runs before executing the largest profile.
 
 ## Sequential benchmark
 
