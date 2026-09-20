@@ -26,7 +26,7 @@ describe("Advisor source context", () => {
       0.9
     );
 
-    expect(source.context).toBe("Approved retrieval context");
+    expect(source.context).toBe("[S1]\nApproved retrieval context");
   });
 
   test("reconstructs context when approved content is unavailable", () => {
