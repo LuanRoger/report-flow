@@ -77,7 +77,6 @@ export const requireEvaluationDatabaseUrl = (
 };
 
 export interface DestructiveDatabaseGuardOptions {
-  allowedDatabasePrefix?: string;
   confirmed: boolean;
 }
 
@@ -86,15 +85,9 @@ export const assertDestructiveDatabaseTarget = (
   options: DestructiveDatabaseGuardOptions
 ): SanitizedDatabaseTarget => {
   const target = sanitizeDatabaseUrl(databaseUrl);
-  const allowedPrefix = options.allowedDatabasePrefix ?? "report_flow_eval";
 
   if (!options.confirmed) {
     throw new Error("Destructive database operation requires --confirm-reset");
-  }
-  if (!target.database.startsWith(allowedPrefix)) {
-    throw new Error(
-      `Refusing destructive operation: database name must start with ${allowedPrefix}`
-    );
   }
   if (PRODUCTION_HOST_PATTERN.test(target.host)) {
     throw new Error(

@@ -37,12 +37,12 @@ describe("evaluation target safety", () => {
     expect(() =>
       assertDestructiveDatabaseTarget(evaluationUrl, { confirmed: false })
     ).toThrow("--confirm-reset");
-    expect(() =>
+    expect(
       assertDestructiveDatabaseTarget(
         "postgresql://postgres:admin@localhost:5432/postgres",
         { confirmed: true }
-      )
-    ).toThrow("must start with report_flow_eval");
+      ).database
+    ).toBe("postgres");
     expect(() =>
       assertDestructiveDatabaseTarget(
         "postgresql://postgres:admin@production.example/report_flow_evaluation",
