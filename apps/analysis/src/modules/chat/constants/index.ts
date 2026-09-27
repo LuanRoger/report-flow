@@ -1,7 +1,7 @@
 export const ADVISOR_MODEL_CONFIG = {
   historyMessageLimit: 30,
   maxOutputTokens: 1600,
-  model: "gpt-5.6-luna",
+  model: "gpt-6-luna",
   reasoningEffort: "low",
   reasoningSummary: "auto",
   streamRetryLimit: 2,
