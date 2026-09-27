@@ -33,7 +33,7 @@ export default function PondsCyclesSelectorShell({
   const { cycleId: selectedCycleId, pondId: selectedPondId } = pondData;
 
   const updatePondId = useCallback((pondId: string) => {
-    setPondData({ pondId: Number.parseInt(pondId, 10) });
+    setPondData({ cycleId: null, pondId: Number.parseInt(pondId, 10) });
   }, []);
   const updateCycleId = useCallback((cycleId: string) => {
     setPondData({ cycleId: Number.parseInt(cycleId, 10) });
