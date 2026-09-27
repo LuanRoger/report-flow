@@ -1,4 +1,4 @@
-import { Activity } from "lucide-react";
+import { Waves } from "lucide-react";
 import { Suspense } from "react";
 import PondsCyclesSelector from "@/components/ponds-cycles-selector";
 import {
@@ -9,33 +9,46 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
-import LiveDashboard from "./components/live-dashboard";
+import AnalysisList from "./components/analysis-list";
 import { loadSearchParams } from "./query";
 
 const SelectorFallback = () => <Skeleton className="h-8 w-56" />;
 
-export default async function LivePage({ searchParams }: PageProps<"/live">) {
+const ListFallback = () => (
+  <div className="space-y-3" role="status">
+    <div className="space-y-2">
+      <Skeleton className="h-6 w-56" />
+      <Skeleton className="h-4 w-72 max-w-full" />
+    </div>
+    <Skeleton className="h-80 rounded-xl" />
+    <span className="sr-only">Carregando análises</span>
+  </div>
+);
+
+export default async function AnalysisPage({
+  searchParams,
+}: PageProps<"/analysis">) {
   const { pondId } = await loadSearchParams(searchParams);
-  const canShowLiveDashboard = pondId !== null && pondId >= 1;
+  const hasValidPond = pondId !== null && pondId >= 1;
 
   return (
     <div className="space-y-6">
       <header className="space-y-1">
         <h1 className="font-heading font-semibold text-2xl tracking-tight">
-          Monitoramento ao vivo
+          Análises
         </h1>
         <p className="text-muted-foreground text-sm">
-          Acompanhe as condições mais recentes da água de um viveiro.
+          Consulte o histórico de qualidade da água de um viveiro.
         </p>
       </header>
 
-      <section aria-labelledby="live-pond-selection" className="space-y-2">
+      <section aria-labelledby="pond-selection-heading" className="space-y-2">
         <div>
-          <h2 className="font-medium text-sm" id="live-pond-selection">
+          <h2 className="font-medium text-sm" id="pond-selection-heading">
             Viveiro
           </h2>
           <p className="text-muted-foreground text-sm">
-            Selecione um viveiro para iniciar o monitoramento.
+            Selecione um viveiro para carregar suas análises.
           </p>
         </div>
         <Suspense fallback={<SelectorFallback />}>
@@ -43,18 +56,19 @@ export default async function LivePage({ searchParams }: PageProps<"/live">) {
         </Suspense>
       </section>
 
-      {canShowLiveDashboard ? (
-        <LiveDashboard pondId={pondId} />
+      {hasValidPond ? (
+        <Suspense fallback={<ListFallback />} key={pondId}>
+          <AnalysisList pondId={pondId} />
+        </Suspense>
       ) : (
         <Empty className="min-h-72 border">
           <EmptyHeader>
             <EmptyMedia variant="icon">
-              <Activity />
+              <Waves />
             </EmptyMedia>
             <EmptyTitle>Selecione um viveiro</EmptyTitle>
             <EmptyDescription>
-              Os gráficos com as medições mais recentes aparecerão aqui após a
-              seleção.
+              As análises registradas aparecerão aqui após a seleção.
             </EmptyDescription>
           </EmptyHeader>
         </Empty>

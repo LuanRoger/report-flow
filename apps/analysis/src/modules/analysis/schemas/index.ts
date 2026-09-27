@@ -198,6 +198,15 @@ export const getAnalysisById200ResponseSchema = z.object({
   temperatureScore: z.number().min(1).max(100),
 });
 
+export const analysisListItemSchema = getAnalysisById200ResponseSchema.omit({
+  aiSummary: true,
+  metadata: true,
+});
+
+export const getAnalysesByPond200ResponseSchema = z.array(
+  analysisListItemSchema
+);
+
 export const performAnalysisByPond200ResponseSchema =
   analysisExecutionResponseSchema;
 export const performAnalysisByCycle200ResponseSchema =

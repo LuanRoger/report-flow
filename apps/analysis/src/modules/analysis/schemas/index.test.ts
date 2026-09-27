@@ -3,6 +3,7 @@ import {
   analysisBodySchema,
   analysisGenerationOptionsSchema,
   executionTimingsSchema,
+  getAnalysesByPond200ResponseSchema,
 } from ".";
 
 describe("Analysis request schemas", () => {
@@ -78,5 +79,26 @@ describe("Analysis request schemas", () => {
         window: "custom",
       }).success
     ).toBe(false);
+  });
+
+  test("validates compact analysis list items", () => {
+    const result = getAnalysesByPond200ResponseSchema.parse([
+      {
+        createdAt: "2026-09-27T12:00:00.000Z",
+        cycleId: null,
+        dissolvedOxygenScore: 88,
+        endTime: "2026-09-27T12:00:00.000Z",
+        finalScore: 84,
+        id: 42,
+        phScore: 83,
+        pondId: 7,
+        salinityScore: 79,
+        startTime: "2026-09-20T12:00:00.000Z",
+        temperatureScore: 86,
+      },
+    ]);
+
+    expect(result[0]?.createdAt).toBeInstanceOf(Date);
+    expect(result[0]?.id).toBe(42);
   });
 });

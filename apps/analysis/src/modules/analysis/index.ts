@@ -4,6 +4,7 @@ import z from "zod";
 import {
   analysisBodySchema,
   analysisGenerationOptionsSchema,
+  getAnalysesByPond200ResponseSchema,
   getAnalysisById200ResponseSchema,
   idParamSchema,
   performAnalysisByCycle200ResponseSchema,
@@ -12,6 +13,7 @@ import {
 import {
   deleteAnalysisById,
   generateReportForAnalysis,
+  getAnalysesByPond,
   getAnalysisById,
   performAnalysisByCycle,
   performAnalysisByPond,
@@ -43,6 +45,26 @@ export const analysesReportModule = new Elysia({ prefix: "/report" })
 
 export const analysesModule = new Elysia({ prefix: "/analyses" })
   .use(analysesReportModule)
+  .get(
+    "/ponds/:id",
+    async ({ status, params: { id } }) => {
+      const result = await getAnalysesByPond(id);
+      const response = getAnalysesByPond200ResponseSchema.parse(result);
+      return status("OK", response);
+    },
+    {
+      detail: {
+        description: "List analyses for a pond",
+        operationId: "getAnalysesByPond",
+      },
+      params: idParamSchema,
+      response: {
+        200: getAnalysesByPond200ResponseSchema,
+        404: z.string(),
+        500: z.string(),
+      },
+    }
+  )
   .get(
     "/:id",
     async ({ status, params: { id } }) => {

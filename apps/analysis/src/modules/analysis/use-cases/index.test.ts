@@ -69,6 +69,7 @@ const storeAnalysisResultMock = mock(
 
 mock.module("../repository", () => ({
   deleteAnalysisById: mock(async () => undefined),
+  getAnalysesForPond: mock(async () => []),
   getAnalysisById: mock(async () => undefined),
   getMeasurementsForCycle: getMeasurementsForCycleMock,
   getMeasurementsForPond: mock(async () => measurements),

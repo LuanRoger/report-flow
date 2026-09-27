@@ -84,7 +84,19 @@ export async function getAnalysisById(
 
 export async function getAnalysesForPond(pondId: number) {
   return await db
-    .select()
+    .select({
+      createdAt: analysisResults.createdAt,
+      cycleId: analysisResults.cycleId,
+      dissolvedOxygenScore: analysisResults.dissolvedOxygenScore,
+      endTime: analysisResults.endTime,
+      finalScore: analysisResults.finalScore,
+      id: analysisResults.id,
+      phScore: analysisResults.phScore,
+      pondId: analysisResults.pondId,
+      salinityScore: analysisResults.salinityScore,
+      startTime: analysisResults.startTime,
+      temperatureScore: analysisResults.temperatureScore,
+    })
     .from(analysisResults)
     .where(eq(analysisResults.pondId, pondId))
     .orderBy(desc(analysisResults.createdAt))
