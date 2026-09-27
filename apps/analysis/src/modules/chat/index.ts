@@ -1,6 +1,8 @@
 import Elysia from "elysia";
 import z from "zod";
 import {
+  advisorRetrievalRequestSchema,
+  advisorRetrievalResponseSchema,
   clearPondChatHistorySchema,
   pondChatHistorySchema,
   pondChatParamsSchema,
@@ -12,6 +14,7 @@ import {
   getOrCreatePondChat,
   getPondChatHistory,
 } from "./use-cases/pond-chat";
+import { retrievePondAdvisorSources } from "./use-cases/retrieve-pond-advisor-sources";
 import { streamPondChatMessage } from "./use-cases/stream-pond-chat-message";
 
 export const chatsModule = new Elysia({ prefix: "/chats" })
@@ -31,6 +34,28 @@ export const chatsModule = new Elysia({ prefix: "/chats" })
       response: {
         200: pondChatSchema,
         404: z.string(),
+        500: z.string(),
+      },
+    }
+  )
+  .post(
+    "/ponds/:pondId/retrieval",
+    async ({ body: { query }, params: { pondId }, status }) => {
+      const result = await retrievePondAdvisorSources(pondId, query);
+
+      return status("OK", result);
+    },
+    {
+      body: advisorRetrievalRequestSchema,
+      detail: {
+        description:
+          "Retrieve advisor source candidates and timing telemetry without generating a response. Query embedding overlaps the recent-analysis lookup and is included in retrievalMs.",
+        operationId: "retrievePondAdvisorSources",
+        security: [{ bearerAuth: [] }],
+      },
+      params: pondChatParamsSchema,
+      response: {
+        200: advisorRetrievalResponseSchema,
         500: z.string(),
       },
     }

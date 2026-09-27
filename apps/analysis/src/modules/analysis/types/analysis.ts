@@ -5,6 +5,8 @@ export type AnalysisTimeWindow = "7d" | "30d" | "90d" | "custom";
 export interface AnalysisQueryParams {
   endDate?: string;
   generateAiSummary?: boolean;
+  generateEmbedding?: boolean;
+  maximumContinuityGapSeconds?: number;
   pondId: string;
   startDate?: string;
   window?: string;

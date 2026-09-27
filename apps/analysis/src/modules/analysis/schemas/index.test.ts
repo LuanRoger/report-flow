@@ -1,21 +1,67 @@
 import { describe, expect, test } from "bun:test";
-import { analysisBodySchema, analysisGenerationOptionsSchema } from ".";
+import {
+  analysisBodySchema,
+  analysisGenerationOptionsSchema,
+  executionTimingsSchema,
+} from ".";
 
 describe("Analysis request schemas", () => {
-  test("enables AI summaries by default", () => {
+  test("enables external artifacts by default", () => {
     expect(analysisGenerationOptionsSchema.parse({})).toEqual({
       generateAiSummary: true,
+      generateEmbedding: true,
+      maximumContinuityGapSeconds: 20,
     });
     expect(analysisBodySchema.parse({})).toEqual({
       generateAiSummary: true,
+      generateEmbedding: true,
+      maximumContinuityGapSeconds: 20,
       window: "7d",
     });
   });
 
-  test("allows callers to disable AI summaries", () => {
+  test("allows callers to disable external artifacts", () => {
     expect(
-      analysisBodySchema.parse({ generateAiSummary: false }).generateAiSummary
+      analysisBodySchema.parse({
+        generateAiSummary: false,
+        generateEmbedding: false,
+      })
+    ).toMatchObject({
+      generateAiSummary: false,
+      generateEmbedding: false,
+    });
+  });
+
+  test("accepts a positive continuity-gap override", () => {
+    expect(
+      analysisBodySchema.parse({ maximumContinuityGapSeconds: 90 })
+        .maximumContinuityGapSeconds
+    ).toBe(90);
+    expect(
+      analysisBodySchema.safeParse({ maximumContinuityGapSeconds: 0 }).success
     ).toBe(false);
+  });
+
+  test("represents skipped timing phases explicitly", () => {
+    const timings = {
+      databaseQueryMs: 3,
+      deterministicScoreMs: 2,
+      embeddingMs: 0,
+      includedPhases: {
+        databaseQuery: true,
+        deterministicScore: true,
+        embedding: false,
+        persistence: true,
+        serialization: false,
+        summary: false,
+      },
+      overheadMs: 1,
+      persistenceMs: 4,
+      summaryMs: 0,
+      totalMs: 10,
+    } as const;
+
+    expect(executionTimingsSchema.parse(timings)).toEqual(timings);
   });
 
   test("requires complete and ordered custom windows", () => {

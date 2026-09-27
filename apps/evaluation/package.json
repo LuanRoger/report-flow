@@ -1,0 +1,35 @@
+{
+  "name": "evaluation",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "benchmark:k6:analysis:30d": "bun run src/k6/runner.ts analysis-30d",
+    "benchmark:k6:analysis:7d": "bun run src/k6/runner.ts analysis-7d",
+    "benchmark:k6:ingestion": "bun run src/k6/runner.ts ingestion",
+    "benchmark:plans": "bun run src/cli.ts benchmark:plans",
+    "benchmark:sequential": "bun run src/cli.ts benchmark:sequential",
+    "build": "bun build src/cli.ts --outdir dist --target bun",
+    "capture:rag:answers": "bun run src/cli.ts capture:rag:answers",
+    "capture:rag:retrieval": "bun run src/cli.ts capture:rag:retrieval",
+    "check": "ultracite check package.json tsconfig.json README.md RUNBOOK.md config gold k6 src tests",
+    "evaluate:rag:answers": "bun run src/cli.ts evaluate:rag:answers",
+    "evaluate:rag:retrieval": "bun run src/cli.ts evaluate:rag:retrieval",
+    "fix": "ultracite fix package.json tsconfig.json README.md RUNBOOK.md config gold k6 src tests",
+    "oracle": "bun run src/cli.ts oracle",
+    "oracle:generate": "bun run src/oracle/generate.ts",
+    "preflight": "bun run src/cli.ts preflight",
+    "preload": "bun run src/cli.ts preload",
+    "prepare:rag": "bun run src/cli.ts prepare:rag",
+    "report": "bun run src/cli.ts report",
+    "seed:generate": "bun run src/seed/generator/cli.ts",
+    "seed:summarize": "bun run src/seed/generator/summarize.ts",
+    "test": "bun test ./tests",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "validate:analysis": "bun run src/cli.ts validate:analysis",
+    "validate:ingestion": "bun run src/cli.ts validate:ingestion"
+  },
+  "devDependencies": {
+    "@types/bun": "catalog:",
+    "typescript": "catalog:"
+  }
+}

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { ANALYSIS_TIME_WINDOWS } from "../constants";
+import { MAXIMUM_CONTINUITY_GAP_SECONDS } from "../utils/normalization";
 
 export const idParamSchema = z.object({
   id: z.coerce.number().min(1, { error: "ID is required" }),
@@ -7,6 +8,13 @@ export const idParamSchema = z.object({
 
 export const analysisGenerationOptionsSchema = z.object({
   generateAiSummary: z.boolean().optional().default(true),
+  generateEmbedding: z.boolean().optional().default(true),
+  maximumContinuityGapSeconds: z
+    .number()
+    .positive()
+    .optional()
+    .default(MAXIMUM_CONTINUITY_GAP_SECONDS)
+    .describe("Maximum measurement continuity gap used by temporal scoring"),
 });
 
 export const analysisBodySchema = analysisGenerationOptionsSchema
@@ -117,7 +125,10 @@ export const parameterStatsSchema = z.object({
 export const metadataSchema = z.object({
   criticalThreshold: z.number().min(1).max(100),
   executionStats: executionStatsSchema,
-  maximumContinuityGapSeconds: z.number().positive(),
+  maximumContinuityGapSeconds: z
+    .number()
+    .positive()
+    .describe("Actual maximum continuity gap used by temporal scoring"),
   minimumCoveragePercentage: z.number().min(0).max(100),
   parameterStats: z.record(parameterCodeSchema, parameterStatsSchema),
   parameterWeights: parameterWeightsSchema,
@@ -133,6 +144,42 @@ export const scoreResultSchema = z.object({
   parameterScores: parametersScores,
   pondId: z.number(),
   startDate: z.coerce.date(),
+});
+
+export const executionPhaseFlagsSchema = z
+  .object({
+    databaseQuery: z.literal(true),
+    deterministicScore: z.literal(true),
+    embedding: z.boolean(),
+    persistence: z.literal(true),
+    serialization: z.literal(false),
+    summary: z.boolean(),
+  })
+  .describe("Phases executed and included in the measured phase total");
+
+export const executionTimingsSchema = z.object({
+  databaseQueryMs: z.number().nonnegative(),
+  deterministicScoreMs: z.number().nonnegative(),
+  embeddingMs: z.number().nonnegative(),
+  includedPhases: executionPhaseFlagsSchema,
+  overheadMs: z
+    .number()
+    .nonnegative()
+    .describe(
+      "Total time minus the durations of phases marked true in includedPhases"
+    ),
+  persistenceMs: z.number().nonnegative(),
+  summaryMs: z.number().nonnegative(),
+  totalMs: z
+    .number()
+    .nonnegative()
+    .describe(
+      "Monotonic handler time through persistence; response serialization is excluded"
+    ),
+});
+
+export const analysisExecutionResponseSchema = scoreResultSchema.extend({
+  executionTimings: executionTimingsSchema,
 });
 
 export const getAnalysisById200ResponseSchema = z.object({
@@ -151,5 +198,7 @@ export const getAnalysisById200ResponseSchema = z.object({
   temperatureScore: z.number().min(1).max(100),
 });
 
-export const performAnalysisByPond200ResponseSchema = scoreResultSchema;
-export const performAnalysisByCycle200ResponseSchema = scoreResultSchema;
+export const performAnalysisByPond200ResponseSchema =
+  analysisExecutionResponseSchema;
+export const performAnalysisByCycle200ResponseSchema =
+  analysisExecutionResponseSchema;

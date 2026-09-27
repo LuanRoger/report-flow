@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "kind": "scoring",
+  "id": "C6-A",
+  "description": "Irregular oxygen readings distinguish duration weighting from sample averaging.",
+  "seed": 1061,
+  "pondId": 1,
+  "cycleId": 1,
+  "start": "2026-01-08T00:00:00.000Z",
+  "end": "2026-01-08T00:01:40.000Z",
+  "intervalSeconds": 10,
+  "maximumContinuityGapSeconds": 90,
+  "sourceType": "manual",
+  "documentedCadenceException": "Oxygen has readings only at offsets 0 and 10 seconds; its second reading represents 90 seconds under this scenario-specific continuity cap.",
+  "series": {
+    "temperature": {
+      "mode": "cadence",
+      "segments": [
+        {
+          "startOffsetSeconds": 0,
+          "value": 30
+        }
+      ]
+    },
+    "ph": {
+      "mode": "cadence",
+      "segments": [
+        {
+          "startOffsetSeconds": 0,
+          "value": 8
+        }
+      ]
+    },
+    "salinity": {
+      "mode": "cadence",
+      "segments": [
+        {
+          "startOffsetSeconds": 0,
+          "value": 20
+        }
+      ]
+    },
+    "dissolvedOxygen": {
+      "mode": "explicit",
+      "readings": [
+        {
+          "offsetSeconds": 0,
+          "value": 5
+        },
+        {
+          "offsetSeconds": 10,
+          "value": 3
+        }
+      ]
+    }
+  }
+}

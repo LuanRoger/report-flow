@@ -17,6 +17,7 @@ import {
   performAnalysisByPond,
   storeAnalysisScoreResult,
 } from "./use-cases";
+import { createAnalysisExecutionTimer } from "./utils/execution-timing";
 
 export const analysesReportModule = new Elysia({ prefix: "/report" })
   .use(html())
@@ -65,14 +66,23 @@ export const analysesModule = new Elysia({ prefix: "/analyses" })
   .post(
     "/ponds/:id",
     async ({ body, params: { id }, status }) => {
-      const result = await performAnalysisByPond(id, body);
-      await storeAnalysisScoreResult(result);
-      return status("OK", result);
+      const executionTimer = createAnalysisExecutionTimer(body);
+      const result = await performAnalysisByPond(id, body, executionTimer);
+      await storeAnalysisScoreResult(result, undefined, {
+        executionTimer,
+        generateEmbedding: body.generateEmbedding,
+      });
+
+      return status("OK", {
+        ...result,
+        executionTimings: executionTimer.finish(),
+      });
     },
     {
       body: analysisBodySchema,
       detail: {
-        description: "Perform analysis by pond",
+        description:
+          "Perform pond analysis with configurable continuity-gap and artifact generation options",
         operationId: "performAnalysisByPond",
       },
       params: idParamSchema,
@@ -87,17 +97,24 @@ export const analysesModule = new Elysia({ prefix: "/analyses" })
   .post(
     "/cycles/:id",
     async ({ body, params: { id }, status }) => {
-      const result = await performAnalysisByCycle(
-        id,
-        body ?? { generateAiSummary: true }
-      );
-      await storeAnalysisScoreResult(result, id);
-      return status("OK", result);
+      const options = body ?? analysisGenerationOptionsSchema.parse({});
+      const executionTimer = createAnalysisExecutionTimer(options);
+      const result = await performAnalysisByCycle(id, options, executionTimer);
+      await storeAnalysisScoreResult(result, id, {
+        executionTimer,
+        generateEmbedding: options.generateEmbedding,
+      });
+
+      return status("OK", {
+        ...result,
+        executionTimings: executionTimer.finish(),
+      });
     },
     {
       body: z.optional(analysisGenerationOptionsSchema),
       detail: {
-        description: "Perform analysis by cycle",
+        description:
+          "Perform cycle analysis with configurable continuity-gap and artifact generation options",
         operationId: "performAnalysisByCycle",
       },
       params: idParamSchema,

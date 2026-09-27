@@ -1,6 +1,9 @@
 import { messageRoles, messageStatuses } from "database";
 import z from "zod";
-import { CHAT_MESSAGE_CONSTRAINTS } from "../constants";
+import {
+  ADVISOR_RETRIEVAL_CONFIG,
+  CHAT_MESSAGE_CONSTRAINTS,
+} from "../constants";
 
 export const persistedMessagePartSchema = z
   .object({
@@ -42,6 +45,67 @@ export const submitPondChatMessageSchema = z
 export const pondChatParamsSchema = z.object({
   pondId: z.coerce.number().int().positive(),
 });
+
+export const advisorRetrievalRequestSchema = z
+  .object({
+    query: z
+      .string()
+      .trim()
+      .min(1)
+      .max(CHAT_MESSAGE_CONSTRAINTS.characterLimit),
+  })
+  .strict();
+
+const advisorRetrievalCandidateSchema = z
+  .object({
+    analysisId: z.number().int().positive(),
+    rank: z.number().int().positive(),
+    similarity: z.number().nullable(),
+    sourceKey: z.string().min(1),
+  })
+  .strict();
+
+export const advisorRetrievalResponseSchema = z
+  .object({
+    candidates: z.array(advisorRetrievalCandidateSchema),
+    config: z
+      .object({
+        minimumSimilarity: z.literal(
+          ADVISOR_RETRIEVAL_CONFIG.minimumSimilarity
+        ),
+        recentResultLimit: z.literal(
+          ADVISOR_RETRIEVAL_CONFIG.recentResultLimit
+        ),
+        semanticResultLimit: z.literal(
+          ADVISOR_RETRIEVAL_CONFIG.semanticResultLimit
+        ),
+      })
+      .strict(),
+    filters: z
+      .object({
+        pondId: z.number().int().positive(),
+      })
+      .strict(),
+    queryEmbeddingMs: z
+      .number()
+      .nonnegative()
+      .describe(
+        "Embedding duration; overlaps the concurrent recent-analysis query and is included in retrievalMs"
+      ),
+    retrievalMs: z
+      .number()
+      .nonnegative()
+      .describe(
+        "Total monotonic wall time for retrieval, including query embedding"
+      ),
+    schemaVersion: z.literal(1),
+    topK: z.literal(ADVISOR_RETRIEVAL_CONFIG.contextSourceLimit),
+  })
+  .strict();
+
+export type AdvisorRetrievalResponse = z.infer<
+  typeof advisorRetrievalResponseSchema
+>;
 
 export const pondChatSchema = z.object({
   createdAt: z.coerce.date(),

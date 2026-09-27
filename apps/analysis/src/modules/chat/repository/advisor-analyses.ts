@@ -14,6 +14,7 @@ export interface AdvisorAnalysis {
   analysisId: number;
   cycleId: number | null;
   dissolvedOxygenScore: number;
+  embeddingContent: string | null;
   endTime: Date;
   finalScore: number;
   metadata: Metadata | undefined;
@@ -29,6 +30,7 @@ const advisorAnalysisSelection = {
   analysisId: analysisResults.id,
   cycleId: analysisResults.cycleId,
   dissolvedOxygenScore: analysisResults.dissolvedOxygenScore,
+  embeddingContent: analysisEmbeddings.content,
   endTime: analysisResults.endTime,
   finalScore: analysisResults.finalScore,
   metadata: analysisResults.metadata,
@@ -72,6 +74,10 @@ export async function findRecentAnalysesForPond(
     .leftJoin(
       analysisAiSummaries,
       eq(analysisAiSummaries.analysisId, analysisResults.id)
+    )
+    .leftJoin(
+      analysisEmbeddings,
+      eq(analysisEmbeddings.analysisId, analysisResults.id)
     )
     .where(eq(analysisResults.pondId, pondId))
     .orderBy(desc(analysisResults.createdAt), desc(analysisResults.id))

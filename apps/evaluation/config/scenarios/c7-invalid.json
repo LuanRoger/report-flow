@@ -1,0 +1,264 @@
+{
+  "schemaVersion": 1,
+  "kind": "invalidPayloads",
+  "id": "C7",
+  "description": "Invalid runtime HTTP payload, relationship, and measurement-identity fixtures. The runtime contract intentionally has no farmId.",
+  "endpoint": "POST /ingest/manual",
+  "validControl": {
+    "pondId": 1,
+    "cycleId": 1,
+    "recordedAt": "2026-01-10T00:00:00.000Z",
+    "parameterCode": "temperature",
+    "value": 30,
+    "unit": "°C",
+    "sourceType": "manual"
+  },
+  "cases": [
+    {
+      "id": "missing-pond-id",
+      "category": "schema",
+      "body": {
+        "cycleId": 1,
+        "recordedAt": "2026-01-10T00:00:00.000Z",
+        "parameterCode": "temperature",
+        "value": 30,
+        "unit": "°C",
+        "sourceType": "manual"
+      },
+      "expectedPersistenceDelta": 0
+    },
+    {
+      "id": "missing-cycle-id",
+      "category": "schema",
+      "body": {
+        "pondId": 1,
+        "recordedAt": "2026-01-10T00:00:00.000Z",
+        "parameterCode": "temperature",
+        "value": 30,
+        "unit": "°C",
+        "sourceType": "manual"
+      },
+      "expectedPersistenceDelta": 0
+    },
+    {
+      "id": "missing-recorded-at",
+      "category": "schema",
+      "body": {
+        "pondId": 1,
+        "cycleId": 1,
+        "parameterCode": "temperature",
+        "value": 30,
+        "unit": "°C",
+        "sourceType": "manual"
+      },
+      "expectedPersistenceDelta": 0
+    },
+    {
+      "id": "malformed-recorded-at",
+      "category": "schema",
+      "body": {
+        "pondId": 1,
+        "cycleId": 1,
+        "recordedAt": "not-a-date",
+        "parameterCode": "temperature",
+        "value": 30,
+        "unit": "°C",
+        "sourceType": "manual"
+      },
+      "expectedPersistenceDelta": 0
+    },
+    {
+      "id": "missing-parameter-code",
+      "category": "schema",
+      "body": {
+        "pondId": 1,
+        "cycleId": 1,
+        "recordedAt": "2026-01-10T00:00:00.000Z",
+        "value": 30,
+        "unit": "°C",
+        "sourceType": "manual"
+      },
+      "expectedPersistenceDelta": 0
+    },
+    {
+      "id": "unsupported-parameter-code",
+      "category": "schema",
+      "body": {
+        "pondId": 1,
+        "cycleId": 1,
+        "recordedAt": "2026-01-10T00:00:00.000Z",
+        "parameterCode": "turbidity",
+        "value": 10,
+        "unit": "NTU",
+        "sourceType": "manual"
+      },
+      "expectedPersistenceDelta": 0
+    },
+    {
+      "id": "missing-value",
+      "category": "schema",
+      "body": {
+        "pondId": 1,
+        "cycleId": 1,
+        "recordedAt": "2026-01-10T00:00:00.000Z",
+        "parameterCode": "temperature",
+        "unit": "°C",
+        "sourceType": "manual"
+      },
+      "expectedPersistenceDelta": 0
+    },
+    {
+      "id": "nonnumeric-value",
+      "category": "schema",
+      "body": {
+        "pondId": 1,
+        "cycleId": 1,
+        "recordedAt": "2026-01-10T00:00:00.000Z",
+        "parameterCode": "temperature",
+        "value": "thirty",
+        "unit": "°C",
+        "sourceType": "manual"
+      },
+      "expectedPersistenceDelta": 0
+    },
+    {
+      "id": "missing-source-type",
+      "category": "schema",
+      "body": {
+        "pondId": 1,
+        "cycleId": 1,
+        "recordedAt": "2026-01-10T00:00:00.000Z",
+        "parameterCode": "temperature",
+        "value": 30,
+        "unit": "°C"
+      },
+      "expectedPersistenceDelta": 0
+    },
+    {
+      "id": "invalid-unit",
+      "category": "schema",
+      "body": {
+        "pondId": 1,
+        "cycleId": 1,
+        "recordedAt": "2026-01-10T00:00:00.000Z",
+        "parameterCode": "temperature",
+        "value": 30,
+        "unit": "NTU",
+        "sourceType": "manual"
+      },
+      "expectedPersistenceDelta": 0
+    },
+    {
+      "id": "incompatible-field-types",
+      "category": "schema",
+      "body": {
+        "pondId": "pond-001",
+        "cycleId": true,
+        "recordedAt": 1768003200000,
+        "parameterCode": ["temperature"],
+        "value": 30,
+        "unit": "°C",
+        "sourceType": 1
+      },
+      "expectedPersistenceDelta": 0
+    },
+    {
+      "id": "malformed-json",
+      "category": "transport",
+      "rawBody": "{\"pondId\":1,",
+      "expectedPersistenceDelta": 0
+    },
+    {
+      "id": "nonexistent-pond",
+      "category": "relationship",
+      "setup": {
+        "knownPondIds": [1],
+        "knownCycleOwnership": [
+          {
+            "cycleId": 1,
+            "pondId": 1
+          }
+        ]
+      },
+      "body": {
+        "pondId": 999999,
+        "cycleId": 1,
+        "recordedAt": "2026-01-10T00:00:00.000Z",
+        "parameterCode": "temperature",
+        "value": 30,
+        "unit": "°C",
+        "sourceType": "manual"
+      },
+      "expectedPersistenceDelta": 0
+    },
+    {
+      "id": "cycle-pond-mismatch",
+      "category": "relationship",
+      "setup": {
+        "knownPondIds": [1, 2],
+        "knownCycleOwnership": [
+          {
+            "cycleId": 2,
+            "pondId": 2
+          }
+        ]
+      },
+      "body": {
+        "pondId": 1,
+        "cycleId": 2,
+        "recordedAt": "2026-01-10T00:00:00.000Z",
+        "parameterCode": "temperature",
+        "value": 30,
+        "unit": "°C",
+        "sourceType": "manual"
+      },
+      "expectedPersistenceDelta": 0
+    },
+    {
+      "id": "duplicate-measurement-identity",
+      "category": "identity",
+      "requests": [
+        {
+          "pondId": 1,
+          "cycleId": 1,
+          "recordedAt": "2026-01-10T00:00:00.000Z",
+          "parameterCode": "temperature",
+          "value": 30,
+          "unit": "°C",
+          "sourceType": "manual"
+        },
+        {
+          "pondId": 1,
+          "cycleId": 1,
+          "recordedAt": "2026-01-10T00:00:00.000Z",
+          "parameterCode": "temperature",
+          "value": 30,
+          "unit": "°C",
+          "sourceType": "manual"
+        }
+      ],
+      "expectedPersistenceDelta": 1,
+      "expectedSecondRequest": "rejectWithoutDuplicateRow"
+    }
+  ],
+  "acceptedControls": [
+    {
+      "id": "finite-unusual-value",
+      "body": {
+        "pondId": 1,
+        "cycleId": 1,
+        "recordedAt": "2026-01-10T00:00:10.000Z",
+        "parameterCode": "temperature",
+        "value": -25,
+        "unit": "°C",
+        "sourceType": "manual"
+      },
+      "expectedPersistenceDelta": 1
+    }
+  ],
+  "transportNotes": [
+    "Standard JSON cannot represent NaN or positive or negative infinity.",
+    "The current numeric runtime contract has no farmId, so missing farmId is not an invalid case.",
+    "Duplicate rejection verifies measurement identity, not idempotent response semantics."
+  ]
+}

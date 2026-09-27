@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "kind": "scoring",
+  "id": "C4",
+  "description": "A one-day reference window containing an exact six-hour oxygen collapse.",
+  "seed": 104,
+  "pondId": 1,
+  "cycleId": 1,
+  "start": "2026-01-05T00:00:00.000Z",
+  "end": "2026-01-06T00:00:00.000Z",
+  "intervalSeconds": 10,
+  "sourceType": "manual",
+  "series": {
+    "temperature": {
+      "mode": "cadence",
+      "segments": [
+        {
+          "startOffsetSeconds": 0,
+          "value": 30
+        }
+      ]
+    },
+    "ph": {
+      "mode": "cadence",
+      "segments": [
+        {
+          "startOffsetSeconds": 0,
+          "value": 8
+        }
+      ]
+    },
+    "salinity": {
+      "mode": "cadence",
+      "segments": [
+        {
+          "startOffsetSeconds": 0,
+          "value": 20
+        }
+      ]
+    },
+    "dissolvedOxygen": {
+      "mode": "cadence",
+      "segments": [
+        {
+          "startOffsetSeconds": 0,
+          "value": 5
+        },
+        {
+          "startOffsetSeconds": 32400,
+          "value": 2.5
+        },
+        {
+          "startOffsetSeconds": 54000,
+          "value": 5
+        }
+      ]
+    }
+  }
+}

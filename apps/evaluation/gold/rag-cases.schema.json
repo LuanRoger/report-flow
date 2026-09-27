@@ -1,0 +1,171 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://report-flow.local/evaluation/rag-cases.schema.json",
+  "title": "Report Flow RAG gold cases",
+  "description": "Exactly 40 pond-scoped evaluation cases split equally across direct, comparison, event, and insufficient categories.",
+  "type": "array",
+  "minItems": 40,
+  "maxItems": 40,
+  "items": {
+    "$ref": "#/$defs/ragGoldCase"
+  },
+  "allOf": [
+    {
+      "contains": {
+        "type": "object",
+        "required": ["category"],
+        "properties": {
+          "category": {
+            "const": "direct"
+          }
+        }
+      },
+      "minContains": 10,
+      "maxContains": 10
+    },
+    {
+      "contains": {
+        "type": "object",
+        "required": ["category"],
+        "properties": {
+          "category": {
+            "const": "comparison"
+          }
+        }
+      },
+      "minContains": 10,
+      "maxContains": 10
+    },
+    {
+      "contains": {
+        "type": "object",
+        "required": ["category"],
+        "properties": {
+          "category": {
+            "const": "event"
+          }
+        }
+      },
+      "minContains": 10,
+      "maxContains": 10
+    },
+    {
+      "contains": {
+        "type": "object",
+        "required": ["category"],
+        "properties": {
+          "category": {
+            "const": "insufficient"
+          }
+        }
+      },
+      "minContains": 10,
+      "maxContains": 10
+    }
+  ],
+  "$defs": {
+    "expectedFact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["field", "expectedValue"],
+      "properties": {
+        "field": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expectedValue": {
+          "type": ["string", "number"]
+        },
+        "tolerance": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "ragGoldCase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "category",
+        "pondId",
+        "question",
+        "expectedContextIds",
+        "expectedFacts",
+        "mustAbstain"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^rag-(direct|comparison|event|insufficient)-[0-9]{2}$"
+        },
+        "category": {
+          "enum": ["direct", "comparison", "event", "insufficient"]
+        },
+        "pondId": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "question": {
+          "type": "string",
+          "minLength": 10
+        },
+        "expectedContextIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^ctx:[a-z0-9][a-z0-9:._-]*$"
+          }
+        },
+        "expectedFacts": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/expectedFact"
+          }
+        },
+        "mustAbstain": {
+          "type": "boolean"
+        },
+        "forbiddenUnsupportedClaims": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "category": {
+                "const": "insufficient"
+              }
+            },
+            "required": ["category"]
+          },
+          "then": {
+            "properties": {
+              "mustAbstain": {
+                "const": true
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "mustAbstain": {
+                "const": false
+              },
+              "expectedContextIds": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

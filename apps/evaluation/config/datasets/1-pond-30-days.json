@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "generatorVersion": "evaluation-seed-v1",
+  "id": "1-pond-30-days",
+  "seed": 20260130,
+  "pondCount": 1,
+  "cyclesPerPond": 1,
+  "start": "2026-02-01T00:00:00.000Z",
+  "end": "2026-03-03T00:00:00.000Z",
+  "intervalSeconds": 300,
+  "scenarioId": "C2",
+  "sourceType": "sensor",
+  "batchSize": 10000,
+  "expectedRowCount": 34560,
+  "valueProfiles": {
+    "temperature": {
+      "center": 29,
+      "jitter": 0.25
+    },
+    "ph": {
+      "center": 7.75,
+      "jitter": 0.05
+    },
+    "salinity": {
+      "center": 17.5,
+      "jitter": 0.5
+    },
+    "dissolvedOxygen": {
+      "center": 4.5,
+      "jitter": 0.1
+    }
+  }
+}

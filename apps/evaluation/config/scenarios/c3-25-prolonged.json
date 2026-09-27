@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "kind": "scoring",
+  "id": "C3-25",
+  "description": "Temperature is unfavorable for exactly the first quarter of the window.",
+  "seed": 10325,
+  "pondId": 1,
+  "cycleId": 1,
+  "start": "2026-01-03T00:00:00.000Z",
+  "end": "2026-01-03T00:06:40.000Z",
+  "intervalSeconds": 10,
+  "sourceType": "manual",
+  "series": {
+    "temperature": {
+      "mode": "cadence",
+      "segments": [
+        {
+          "startOffsetSeconds": 0,
+          "value": 26
+        },
+        {
+          "startOffsetSeconds": 100,
+          "value": 30
+        }
+      ]
+    },
+    "ph": {
+      "mode": "cadence",
+      "segments": [
+        {
+          "startOffsetSeconds": 0,
+          "value": 8
+        }
+      ]
+    },
+    "salinity": {
+      "mode": "cadence",
+      "segments": [
+        {
+          "startOffsetSeconds": 0,
+          "value": 20
+        }
+      ]
+    },
+    "dissolvedOxygen": {
+      "mode": "cadence",
+      "segments": [
+        {
+          "startOffsetSeconds": 0,
+          "value": 5
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,673 @@
+{
+  "invalidPayloadFixtures": {
+    "acceptedControlCount": 1,
+    "caseIds": [
+      "missing-pond-id",
+      "missing-cycle-id",
+      "missing-recorded-at",
+      "malformed-recorded-at",
+      "missing-parameter-code",
+      "unsupported-parameter-code",
+      "missing-value",
+      "nonnumeric-value",
+      "missing-source-type",
+      "invalid-unit",
+      "incompatible-field-types",
+      "malformed-json",
+      "nonexistent-pond",
+      "cycle-pond-mismatch",
+      "duplicate-measurement-identity"
+    ],
+    "configChecksum": "sha256:c75fbc38261c190c1e6972e097846ca994716d80c2f05c1fb91c06d693ccf9bf",
+    "invalidCaseCount": 15,
+    "scenarioId": "C7"
+  },
+  "modelConfig": {
+    "collection": {
+      "intervalSeconds": 10,
+      "timezone": "UTC",
+      "windowConvention": "[start,end)"
+    },
+    "formulas": {
+      "dissolvedOxygen": "1 + 99 * max(0, 1 - abs(x - 5) / 2)",
+      "gaussian": "1 + 99 * exp(-((x - mu)^2) / (2 * sigma^2))",
+      "pLow": "unfavorableCoveredDuration / coveredDuration",
+      "pondScore": "sum(parameterWeight * parameterTemporalScore)"
+    },
+    "limitations": [
+      "The score is an evaluation model, not a biologically validated shrimp-health index.",
+      "The symmetric dissolved-oxygen function intentionally penalizes values above 5 mg/L.",
+      "The universal threshold and configured weights are tracked model assumptions, not biologically calibrated constants."
+    ],
+    "modelVersion": "tcc-frozen-evaluation-v1",
+    "normalization": {
+      "dissolvedOxygen": {
+        "halfWidth": 2,
+        "kind": "symmetricTriangle",
+        "reference": 5
+      },
+      "ph": {
+        "kind": "gaussian",
+        "mu": 8,
+        "sigma": 0.75
+      },
+      "salinity": {
+        "kind": "gaussian",
+        "mu": 20,
+        "sigma": 7.5
+      },
+      "temperature": {
+        "kind": "gaussian",
+        "mu": 30,
+        "sigma": 3
+      }
+    },
+    "runtimeParameterCodes": [
+      "temperature",
+      "ph",
+      "salinity",
+      "dissolvedOxygen"
+    ],
+    "schemaVersion": 1,
+    "scoreRange": {
+      "maximum": 100,
+      "minimum": 1
+    },
+    "temporal": {
+      "defaultMaximumContinuityGapSeconds": 20,
+      "finalScoreAvailabilityRule": "allParametersHaveTemporalScores",
+      "formula": "(durationWeightedMean + (100 - 99 * pLow)) / 2",
+      "minimumCoveragePerParameter": 0.7,
+      "missingDataTreatment": "excludeFromScoreDenominators",
+      "sufficiencyRule": "allParameters",
+      "thresholdComparison": "score < unfavorableThreshold"
+    },
+    "unfavorableThreshold": 50,
+    "units": {
+      "dissolvedOxygen": "mg/L",
+      "ph": "pH",
+      "salinity": "ppt",
+      "temperature": "°C"
+    },
+    "weights": {
+      "dissolvedOxygen": 0.33,
+      "ph": 0.22,
+      "salinity": 0.17,
+      "temperature": 0.28
+    },
+    "weightSumTolerance": 1e-12
+  },
+  "modelConfigChecksum": "sha256:868bde0d63b1b470f766274534a4ec32bb2fd37156e926d63ea6e8ba3977c91b",
+  "modelVersion": "tcc-frozen-evaluation-v1",
+  "oracleVersion": "independent-oracle-v1",
+  "scenarios": [
+    {
+      "expectedRowCount": 40,
+      "finalScore": 100,
+      "fixtureChecksum": "sha256:0120e8ee6a5980eeb4c7514a18ff037f188569ed0b266838c73875c55430ebc7",
+      "generatedRowCount": 40,
+      "hasSufficientCoverage": true,
+      "insufficientParameters": [],
+      "maximumContinuityGapSeconds": 20,
+      "overallCoverage": 1,
+      "parameters": {
+        "dissolvedOxygen": {
+          "coverage": 1,
+          "coveredDurationSeconds": 100,
+          "durationWeightedMean": 100,
+          "insufficiencyReason": null,
+          "missingDurationSeconds": 0,
+          "pLow": 0,
+          "readingCount": 10,
+          "representedIntervalCount": 10,
+          "status": "sufficient",
+          "temporalScore": 100,
+          "unfavorableDurationSeconds": 0
+        },
+        "ph": {
+          "coverage": 1,
+          "coveredDurationSeconds": 100,
+          "durationWeightedMean": 100,
+          "insufficiencyReason": null,
+          "missingDurationSeconds": 0,
+          "pLow": 0,
+          "readingCount": 10,
+          "representedIntervalCount": 10,
+          "status": "sufficient",
+          "temporalScore": 100,
+          "unfavorableDurationSeconds": 0
+        },
+        "salinity": {
+          "coverage": 1,
+          "coveredDurationSeconds": 100,
+          "durationWeightedMean": 100,
+          "insufficiencyReason": null,
+          "missingDurationSeconds": 0,
+          "pLow": 0,
+          "readingCount": 10,
+          "representedIntervalCount": 10,
+          "status": "sufficient",
+          "temporalScore": 100,
+          "unfavorableDurationSeconds": 0
+        },
+        "temperature": {
+          "coverage": 1,
+          "coveredDurationSeconds": 100,
+          "durationWeightedMean": 100,
+          "insufficiencyReason": null,
+          "missingDurationSeconds": 0,
+          "pLow": 0,
+          "readingCount": 10,
+          "representedIntervalCount": 10,
+          "status": "sufficient",
+          "temporalScore": 100,
+          "unfavorableDurationSeconds": 0
+        }
+      },
+      "scenarioConfigChecksum": "sha256:51fc2f06256672c055fe1f0a02ecb6a5e8c4818ad01a75eb82fc438864454c03",
+      "scenarioDescription": "Stable reference values at every ten-second collection instant.",
+      "scenarioId": "C1",
+      "status": "sufficient",
+      "transitionTimestamps": {}
+    },
+    {
+      "expectedRowCount": 40,
+      "finalScore": 94.12399578629288,
+      "fixtureChecksum": "sha256:27988e8600e02a8f4fde2c673063a30829ad5f3ebbff3724fc75cd579dc83a8d",
+      "generatedRowCount": 40,
+      "hasSufficientCoverage": true,
+      "insufficientParameters": [],
+      "maximumContinuityGapSeconds": 20,
+      "overallCoverage": 1,
+      "parameters": {
+        "dissolvedOxygen": {
+          "coverage": 1,
+          "coveredDurationSeconds": 100,
+          "durationWeightedMean": 75.25,
+          "insufficiencyReason": null,
+          "missingDurationSeconds": 0,
+          "pLow": 0,
+          "readingCount": 10,
+          "representedIntervalCount": 10,
+          "status": "sufficient",
+          "temporalScore": 87.625,
+          "unfavorableDurationSeconds": 0
+        },
+        "ph": {
+          "coverage": 1,
+          "coveredDurationSeconds": 100,
+          "durationWeightedMean": 94.64998742176978,
+          "insufficiencyReason": null,
+          "missingDurationSeconds": 0,
+          "pLow": 0,
+          "readingCount": 10,
+          "representedIntervalCount": 10,
+          "status": "sufficient",
+          "temporalScore": 97.32499371088488,
+          "unfavorableDurationSeconds": 0
+        },
+        "salinity": {
+          "coverage": 1,
+          "coveredDurationSeconds": 100,
+          "durationWeightedMean": 94.64998742176978,
+          "insufficiencyReason": null,
+          "missingDurationSeconds": 0,
+          "pLow": 0,
+          "readingCount": 10,
+          "representedIntervalCount": 10,
+          "status": "sufficient",
+          "temporalScore": 97.32499371088488,
+          "unfavorableDurationSeconds": 0
+        },
+        "temperature": {
+          "coverage": 1,
+          "coveredDurationSeconds": 100,
+          "durationWeightedMean": 94.64998742176978,
+          "insufficiencyReason": null,
+          "missingDurationSeconds": 0,
+          "pLow": 0,
+          "readingCount": 10,
+          "representedIntervalCount": 10,
+          "status": "sufficient",
+          "temporalScore": 97.32499371088488,
+          "unfavorableDurationSeconds": 0
+        }
+      },
+      "scenarioConfigChecksum": "sha256:d797ac39c3c3f10266aa741068faed66c0bba432aa12f40b0edf8751aef5373d",
+      "scenarioDescription": "Stable moderate deviations from each model reference value.",
+      "scenarioId": "C2",
+      "status": "sufficient",
+      "transitionTimestamps": {}
+    },
+    {
+      "expectedRowCount": 160,
+      "finalScore": 94.4945040866074,
+      "fixtureChecksum": "sha256:b4885d0d1336b44369d5169758e0034c4bb8fd4eef2408d9d2fa343b8afa2298",
+      "generatedRowCount": 160,
+      "hasSufficientCoverage": true,
+      "insufficientParameters": [],
+      "maximumContinuityGapSeconds": 20,
+      "overallCoverage": 1,
+      "parameters": {
+        "dissolvedOxygen": {
+          "coverage": 1,
+          "coveredDurationSeconds": 400,
+          "durationWeightedMean": 100,
+          "insufficiencyReason": null,
+          "missingDurationSeconds": 0,
+          "pLow": 0,
+          "readingCount": 40,
+          "representedIntervalCount": 40,
+          "status": "sufficient",
+          "temporalScore": 100,
+          "unfavorableDurationSeconds": 0
+        },
+        "ph": {
+          "coverage": 1,
+          "coveredDurationSeconds": 400,
+          "durationWeightedMean": 100,
+          "insufficiencyReason": null,
+          "missingDurationSeconds": 0,
+          "pLow": 0,
+          "readingCount": 40,
+          "representedIntervalCount": 40,
+          "status": "sufficient",
+          "temporalScore": 100,
+          "unfavorableDurationSeconds": 0
+        },
+        "salinity": {
+          "coverage": 1,
+          "coveredDurationSeconds": 400,
+          "durationWeightedMean": 100,
+          "insufficiencyReason": null,
+          "missingDurationSeconds": 0,
+          "pLow": 0,
+          "readingCount": 40,
+          "representedIntervalCount": 40,
+          "status": "sufficient",
+          "temporalScore": 100,
+          "unfavorableDurationSeconds": 0
+        },
+        "temperature": {
+          "coverage": 1,
+          "coveredDurationSeconds": 400,
+          "durationWeightedMean": 85.42502919005288,
+          "insufficiencyReason": null,
+          "missingDurationSeconds": 0,
+          "pLow": 0.25,
+          "readingCount": 40,
+          "representedIntervalCount": 40,
+          "status": "sufficient",
+          "temporalScore": 80.33751459502645,
+          "unfavorableDurationSeconds": 100
+        }
+      },
+      "scenarioConfigChecksum": "sha256:12dd2e1954ac8b88f6a20fce38327e1919e1823dafcd2f6b8662eaf8a3d4b090",
+      "scenarioDescription": "Temperature is unfavorable for exactly the first quarter of the window.",
+      "scenarioId": "C3-25",
+      "status": "sufficient",
+      "transitionTimestamps": {
+        "temperature": [
+          "2026-01-03T00:01:40.000Z"
+        ]
+      }
+    },
+    {
+      "expectedRowCount": 160,
+      "finalScore": 88.98900817321481,
+      "fixtureChecksum": "sha256:c57e637dc573a592372929cc16cffd8e4da3cd915c69b470e11e055d75b945c1",
+      "generatedRowCount": 160,
+      "hasSufficientCoverage": true,
+      "insufficientParameters": [],
+      "maximumContinuityGapSeconds": 20,
+      "overallCoverage": 1,
+      "parameters": {
+        "dissolvedOxygen": {
+          "coverage": 1,
+          "coveredDurationSeconds": 400,
+          "durationWeightedMean": 100,
+          "insufficiencyReason": null,
+          "missingDurationSeconds": 0,
+          "pLow": 0,
+          "readingCount": 40,
+          "representedIntervalCount": 40,
+          "status": "sufficient",
+          "temporalScore": 100,
+          "unfavorableDurationSeconds": 0
+        },
+        "ph": {
+          "coverage": 1,
+          "coveredDurationSeconds": 400,
+          "durationWeightedMean": 100,
+          "insufficiencyReason": null,
+          "missingDurationSeconds": 0,
+          "pLow": 0,
+          "readingCount": 40,
+          "representedIntervalCount": 40,
+          "status": "sufficient",
+          "temporalScore": 100,
+          "unfavorableDurationSeconds": 0
+        },
+        "salinity": {
+          "coverage": 1,
+          "coveredDurationSeconds": 400,
+          "durationWeightedMean": 100,
+          "insufficiencyReason": null,
+          "missingDurationSeconds": 0,
+          "pLow": 0,
+          "readingCount": 40,
+          "representedIntervalCount": 40,
+          "status": "sufficient",
+          "temporalScore": 100,
+          "unfavorableDurationSeconds": 0
+        },
+        "temperature": {
+          "coverage": 1,
+          "coveredDurationSeconds": 400,
+          "durationWeightedMean": 70.85005838010578,
+          "insufficiencyReason": null,
+          "missingDurationSeconds": 0,
+          "pLow": 0.5,
+          "readingCount": 40,
+          "representedIntervalCount": 40,
+          "status": "sufficient",
+          "temporalScore": 60.67502919005289,
+          "unfavorableDurationSeconds": 200
+        }
+      },
+      "scenarioConfigChecksum": "sha256:1e19a91003b80f7ddd62ecc15ea614fc4244f2116102535b57dd176ebae8c79a",
+      "scenarioDescription": "Temperature is unfavorable for exactly the first half of the window.",
+      "scenarioId": "C3-50",
+      "status": "sufficient",
+      "transitionTimestamps": {
+        "temperature": [
+          "2026-01-04T00:03:20.000Z"
+        ]
+      }
+    },
+    {
+      "expectedRowCount": 34560,
+      "finalScore": 91.8325,
+      "fixtureChecksum": "sha256:7e1fe71ab2953782bfd325814b5ea0c26e88eda1d18831912903a6205b2d7748",
+      "generatedRowCount": 34560,
+      "hasSufficientCoverage": true,
+      "insufficientParameters": [],
+      "maximumContinuityGapSeconds": 20,
+      "overallCoverage": 1,
+      "parameters": {
+        "dissolvedOxygen": {
+          "coverage": 1,
+          "coveredDurationSeconds": 86400,
+          "durationWeightedMean": 75.25,
+          "insufficiencyReason": null,
+          "missingDurationSeconds": 0,
+          "pLow": 0.25,
+          "readingCount": 8640,
+          "representedIntervalCount": 8640,
+          "status": "sufficient",
+          "temporalScore": 75.25,
+          "unfavorableDurationSeconds": 21600
+        },
+        "ph": {
+          "coverage": 1,
+          "coveredDurationSeconds": 86400,
+          "durationWeightedMean": 100,
+          "insufficiencyReason": null,
+          "missingDurationSeconds": 0,
+          "pLow": 0,
+          "readingCount": 8640,
+          "representedIntervalCount": 8640,
+          "status": "sufficient",
+          "temporalScore": 100,
+          "unfavorableDurationSeconds": 0
+        },
+        "salinity": {
+          "coverage": 1,
+          "coveredDurationSeconds": 86400,
+          "durationWeightedMean": 100,
+          "insufficiencyReason": null,
+          "missingDurationSeconds": 0,
+          "pLow": 0,
+          "readingCount": 8640,
+          "representedIntervalCount": 8640,
+          "status": "sufficient",
+          "temporalScore": 100,
+          "unfavorableDurationSeconds": 0
+        },
+        "temperature": {
+          "coverage": 1,
+          "coveredDurationSeconds": 86400,
+          "durationWeightedMean": 100,
+          "insufficiencyReason": null,
+          "missingDurationSeconds": 0,
+          "pLow": 0,
+          "readingCount": 8640,
+          "representedIntervalCount": 8640,
+          "status": "sufficient",
+          "temporalScore": 100,
+          "unfavorableDurationSeconds": 0
+        }
+      },
+      "scenarioConfigChecksum": "sha256:58c4a8bc19f8ef45362db10d14103f5f6d02cafc64a0728cef91cb5cb2a46476",
+      "scenarioDescription": "A one-day reference window containing an exact six-hour oxygen collapse.",
+      "scenarioId": "C4",
+      "status": "sufficient",
+      "transitionTimestamps": {
+        "dissolvedOxygen": [
+          "2026-01-05T09:00:00.000Z",
+          "2026-01-05T15:00:00.000Z"
+        ]
+      }
+    },
+    {
+      "expectedRowCount": 40,
+      "finalScore": 14.63453911467087,
+      "fixtureChecksum": "sha256:5289863a590bc3bed98936b71ff7fdcf60d0ae90115a528c7051b42a0a825f7f",
+      "generatedRowCount": 40,
+      "hasSufficientCoverage": true,
+      "insufficientParameters": [],
+      "maximumContinuityGapSeconds": 20,
+      "overallCoverage": 1,
+      "parameters": {
+        "dissolvedOxygen": {
+          "coverage": 1,
+          "coveredDurationSeconds": 100,
+          "durationWeightedMean": 1,
+          "insufficiencyReason": null,
+          "missingDurationSeconds": 0,
+          "pLow": 1,
+          "readingCount": 10,
+          "representedIntervalCount": 10,
+          "status": "sufficient",
+          "temporalScore": 1,
+          "unfavorableDurationSeconds": 100
+        },
+        "ph": {
+          "coverage": 1,
+          "coveredDurationSeconds": 100,
+          "durationWeightedMean": 41.70011676021155,
+          "insufficiencyReason": null,
+          "missingDurationSeconds": 0,
+          "pLow": 1,
+          "readingCount": 10,
+          "representedIntervalCount": 10,
+          "status": "sufficient",
+          "temporalScore": 21.350058380105775,
+          "unfavorableDurationSeconds": 100
+        },
+        "salinity": {
+          "coverage": 1,
+          "coveredDurationSeconds": 100,
+          "durationWeightedMean": 41.70011676021155,
+          "insufficiencyReason": null,
+          "missingDurationSeconds": 0,
+          "pLow": 1,
+          "readingCount": 10,
+          "representedIntervalCount": 10,
+          "status": "sufficient",
+          "temporalScore": 21.350058380105775,
+          "unfavorableDurationSeconds": 100
+        },
+        "temperature": {
+          "coverage": 1,
+          "coveredDurationSeconds": 100,
+          "durationWeightedMean": 41.70011676021155,
+          "insufficiencyReason": null,
+          "missingDurationSeconds": 0,
+          "pLow": 1,
+          "readingCount": 10,
+          "representedIntervalCount": 10,
+          "status": "sufficient",
+          "temporalScore": 21.350058380105775,
+          "unfavorableDurationSeconds": 100
+        }
+      },
+      "scenarioConfigChecksum": "sha256:2cd52cf522c7d6d183e7dd4d20f314425edb7b8a05452b87f5f3bb948a685ef6",
+      "scenarioDescription": "All four parameters remain at simultaneous unfavorable values.",
+      "scenarioId": "C5",
+      "status": "sufficient",
+      "transitionTimestamps": {}
+    },
+    {
+      "expectedRowCount": 32,
+      "finalScore": 70.597,
+      "fixtureChecksum": "sha256:70e236ab1517a17444a5f7bdc43c4f33cca31d039524e018e28d8a5701be45de",
+      "generatedRowCount": 32,
+      "hasSufficientCoverage": true,
+      "insufficientParameters": [],
+      "maximumContinuityGapSeconds": 90,
+      "overallCoverage": 1,
+      "parameters": {
+        "dissolvedOxygen": {
+          "coverage": 1,
+          "coveredDurationSeconds": 100,
+          "durationWeightedMean": 10.9,
+          "insufficiencyReason": null,
+          "missingDurationSeconds": 0,
+          "pLow": 0.9,
+          "readingCount": 2,
+          "representedIntervalCount": 2,
+          "status": "sufficient",
+          "temporalScore": 10.899999999999995,
+          "unfavorableDurationSeconds": 90
+        },
+        "ph": {
+          "coverage": 1,
+          "coveredDurationSeconds": 100,
+          "durationWeightedMean": 100,
+          "insufficiencyReason": null,
+          "missingDurationSeconds": 0,
+          "pLow": 0,
+          "readingCount": 10,
+          "representedIntervalCount": 10,
+          "status": "sufficient",
+          "temporalScore": 100,
+          "unfavorableDurationSeconds": 0
+        },
+        "salinity": {
+          "coverage": 1,
+          "coveredDurationSeconds": 100,
+          "durationWeightedMean": 100,
+          "insufficiencyReason": null,
+          "missingDurationSeconds": 0,
+          "pLow": 0,
+          "readingCount": 10,
+          "representedIntervalCount": 10,
+          "status": "sufficient",
+          "temporalScore": 100,
+          "unfavorableDurationSeconds": 0
+        },
+        "temperature": {
+          "coverage": 1,
+          "coveredDurationSeconds": 100,
+          "durationWeightedMean": 100,
+          "insufficiencyReason": null,
+          "missingDurationSeconds": 0,
+          "pLow": 0,
+          "readingCount": 10,
+          "representedIntervalCount": 10,
+          "status": "sufficient",
+          "temporalScore": 100,
+          "unfavorableDurationSeconds": 0
+        }
+      },
+      "scenarioConfigChecksum": "sha256:b6fe303b95f1ecdf784aef190f34e469a821884e1bfcfb2898697f4946a0d994",
+      "scenarioDescription": "Irregular oxygen readings distinguish duration weighting from sample averaging.",
+      "scenarioId": "C6-A",
+      "status": "sufficient",
+      "transitionTimestamps": {}
+    },
+    {
+      "expectedRowCount": 35,
+      "finalScore": 100,
+      "fixtureChecksum": "sha256:239fb3683c58d356f639d95ea60d1bffc670820b0cb3a9b9032866512cf09adb",
+      "generatedRowCount": 35,
+      "hasSufficientCoverage": false,
+      "insufficientParameters": [
+        "dissolvedOxygen"
+      ],
+      "maximumContinuityGapSeconds": 20,
+      "overallCoverage": 0.9,
+      "parameters": {
+        "dissolvedOxygen": {
+          "coverage": 0.6,
+          "coveredDurationSeconds": 60,
+          "durationWeightedMean": 100,
+          "insufficiencyReason": "coverageBelowMinimum",
+          "missingDurationSeconds": 40,
+          "pLow": 0,
+          "readingCount": 5,
+          "representedIntervalCount": 5,
+          "status": "insufficient",
+          "temporalScore": 100,
+          "unfavorableDurationSeconds": 0
+        },
+        "ph": {
+          "coverage": 1,
+          "coveredDurationSeconds": 100,
+          "durationWeightedMean": 100,
+          "insufficiencyReason": null,
+          "missingDurationSeconds": 0,
+          "pLow": 0,
+          "readingCount": 10,
+          "representedIntervalCount": 10,
+          "status": "sufficient",
+          "temporalScore": 100,
+          "unfavorableDurationSeconds": 0
+        },
+        "salinity": {
+          "coverage": 1,
+          "coveredDurationSeconds": 100,
+          "durationWeightedMean": 100,
+          "insufficiencyReason": null,
+          "missingDurationSeconds": 0,
+          "pLow": 0,
+          "readingCount": 10,
+          "representedIntervalCount": 10,
+          "status": "sufficient",
+          "temporalScore": 100,
+          "unfavorableDurationSeconds": 0
+        },
+        "temperature": {
+          "coverage": 1,
+          "coveredDurationSeconds": 100,
+          "durationWeightedMean": 100,
+          "insufficiencyReason": null,
+          "missingDurationSeconds": 0,
+          "pLow": 0,
+          "readingCount": 10,
+          "representedIntervalCount": 10,
+          "status": "sufficient",
+          "temporalScore": 100,
+          "unfavorableDurationSeconds": 0
+        }
+      },
+      "scenarioConfigChecksum": "sha256:6828a97a0ac9b5d24b796dd20f65af15a0cf7c95424b55b58cf46c835ed9a8bc",
+      "scenarioDescription": "One parameter has 60 percent coverage while the other three have full coverage.",
+      "scenarioId": "C6-B",
+      "status": "insufficient",
+      "transitionTimestamps": {}
+    }
+  ],
+  "schemaVersion": 1
+}

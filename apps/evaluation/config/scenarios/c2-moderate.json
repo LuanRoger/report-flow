@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "kind": "scoring",
+  "id": "C2",
+  "description": "Stable moderate deviations from each model reference value.",
+  "seed": 102,
+  "pondId": 1,
+  "cycleId": 1,
+  "start": "2026-01-02T00:00:00.000Z",
+  "end": "2026-01-02T00:01:40.000Z",
+  "intervalSeconds": 10,
+  "sourceType": "manual",
+  "series": {
+    "temperature": {
+      "mode": "cadence",
+      "segments": [
+        {
+          "startOffsetSeconds": 0,
+          "value": 29
+        }
+      ]
+    },
+    "ph": {
+      "mode": "cadence",
+      "segments": [
+        {
+          "startOffsetSeconds": 0,
+          "value": 7.75
+        }
+      ]
+    },
+    "salinity": {
+      "mode": "cadence",
+      "segments": [
+        {
+          "startOffsetSeconds": 0,
+          "value": 17.5
+        }
+      ]
+    },
+    "dissolvedOxygen": {
+      "mode": "cadence",
+      "segments": [
+        {
+          "startOffsetSeconds": 0,
+          "value": 4.5
+        }
+      ]
+    }
+  }
+}

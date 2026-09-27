@@ -324,7 +324,8 @@ export function buildScoreResult(
   actualEndDate: Date,
   measurements: Array<{ parameterCode: ParameterCode; value: number }>,
   parameterTemporalScores: Record<ParameterCode, ParameterTemporalScore>,
-  normalizedByParameter: Record<ParameterCode, NormalizedScore[]>
+  normalizedByParameter: Record<ParameterCode, NormalizedScore[]>,
+  maximumContinuityGapSeconds = MAXIMUM_CONTINUITY_GAP_SECONDS
 ): ScoreResult {
   const parameterScores: Record<ParameterCode, number> = {
     dissolvedOxygen: parameterTemporalScores.dissolvedOxygen.temporalScore,
@@ -362,7 +363,7 @@ export function buildScoreResult(
         },
         totalMeasurements: measurements.length,
       },
-      maximumContinuityGapSeconds: MAXIMUM_CONTINUITY_GAP_SECONDS,
+      maximumContinuityGapSeconds,
       minimumCoveragePercentage: MINIMUM_COVERAGE_PERCENTAGE,
       parameterStats,
       parameterWeights: { ...PARAMETER_WEIGHTS },
