@@ -1,6 +1,8 @@
 export const REALTIME_MEASUREMENT_PARAMETERS = [
   "temperature",
   "dissolvedOxygen",
+  "ph",
+  "salinity",
 ] as const;
 
 export const REALTIME_BUCKETS = ["15s", "1m", "5m", "15m"] as const;

@@ -5,7 +5,12 @@ export const WINDOW_SECONDS = {
   "15m": 15 * 60,
   "24h": 24 * 60 * 60,
 } as const;
-export const liveParameterCodes = ["temperature", "dissolvedOxygen"] as const;
+export const liveParameterCodes = [
+  "temperature",
+  "dissolvedOxygen",
+  "ph",
+  "salinity",
+] as const;
 export const liveBuckets = ["15s", "1m", "5m", "15m"] as const;
 export const liveWindows = ["15m", "1h", "6h", "24h"] as const;
 export const metricDefinitions = [
@@ -22,5 +27,19 @@ export const metricDefinitions = [
     fractionDigits: 2,
     title: "Dissolved oxygen",
     unit: "mg/L",
+  },
+  {
+    code: "ph",
+    description: "Average water pH",
+    fractionDigits: 2,
+    title: "pH",
+    unit: "pH",
+  },
+  {
+    code: "salinity",
+    description: "Average water salinity",
+    fractionDigits: 2,
+    title: "Salinity",
+    unit: "ppt",
   },
 ] as const;

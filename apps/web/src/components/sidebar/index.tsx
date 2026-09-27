@@ -2,7 +2,6 @@ import Link from "next/link";
 import {
   SidebarContent,
   SidebarGroup,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -14,7 +13,6 @@ export default function Sidebar() {
     <SidebarRoot>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Observer</SidebarGroupLabel>
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
