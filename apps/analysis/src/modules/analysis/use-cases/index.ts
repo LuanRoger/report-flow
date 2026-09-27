@@ -6,6 +6,7 @@ import {
 } from "../models/errors";
 import {
   deleteAnalysisById as deleteAnalysisByIdRepository,
+  getAnalysesForPond as getAnalysesForPondRepository,
   getAnalysisById as getAnalysisByIdRepository,
   getMeasurementsForCycle as getMeasurementsForCycleRepository,
   getMeasurementsForPond as getMeasurementsForPondRepository,
@@ -137,6 +138,15 @@ export async function getAnalysisById(id: number) {
   }
 
   return analysis;
+}
+
+export async function getAnalysesByPond(pondId: number) {
+  const pond = await getPondByIdRepository(pondId);
+  if (!pond) {
+    throw new PondNotFoundError(pondId);
+  }
+
+  return await getAnalysesForPondRepository(pondId);
 }
 
 export async function performAnalysisByPond(
