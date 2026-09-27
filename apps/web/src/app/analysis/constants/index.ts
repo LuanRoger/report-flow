@@ -1,10 +1,4 @@
-import type { ParameterCode } from "./actions/types";
-
-interface ParameterDefinition {
-  label: string;
-  shortLabel: string;
-  unit: string;
-}
+import type { ParameterCode, ParameterDefinition } from "@/app/analysis/types";
 
 export const PARAMETER_CODES = [
   "dissolvedOxygen",

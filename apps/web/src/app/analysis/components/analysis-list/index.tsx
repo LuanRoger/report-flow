@@ -1,5 +1,8 @@
 import { AlertCircle, ChartNoAxesColumn, Eye } from "lucide-react";
 import Link from "next/link";
+import { getAnalysesByPondAction } from "@/app/analysis/actions";
+import type { AnalysisListItem } from "@/app/analysis/types";
+import { formatDecimal, getScoreBadgeVariant } from "@/app/analysis/utils";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,27 +23,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatDateTimeMed } from "@/lib/utils/date";
-import { getAnalysesByPondAction } from "../../actions";
-import type { AnalysisListItem } from "../../actions/types";
-
-const scoreFormatter = new Intl.NumberFormat("pt-BR", {
-  maximumFractionDigits: 1,
-  minimumFractionDigits: 1,
-});
-
-const getScoreBadgeVariant = (
-  score: number
-): "default" | "secondary" | "destructive" => {
-  if (score >= 80) {
-    return "default";
-  }
-
-  if (score >= 60) {
-    return "secondary";
-  }
-
-  return "destructive";
-};
 
 const AnalysisRow = ({ analysis }: { analysis: AnalysisListItem }) => (
   <TableRow>
@@ -59,7 +41,7 @@ const AnalysisRow = ({ analysis }: { analysis: AnalysisListItem }) => (
     </TableCell>
     <TableCell>
       <Badge variant={getScoreBadgeVariant(analysis.finalScore)}>
-        {scoreFormatter.format(analysis.finalScore)}
+        {formatDecimal(analysis.finalScore)}
       </Badge>
     </TableCell>
     <TableCell className="text-right">

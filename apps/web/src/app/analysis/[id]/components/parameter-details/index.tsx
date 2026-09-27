@@ -1,3 +1,10 @@
+import { PARAMETER_DEFINITIONS } from "@/app/analysis/constants";
+import type { AnalysisDetails, ParameterCode } from "@/app/analysis/types";
+import {
+  formatDecimal,
+  formatDuration,
+  formatPercentage,
+} from "@/app/analysis/utils";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -9,13 +16,6 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import type { AnalysisDetails, ParameterCode } from "../../../actions/types";
-import { PARAMETER_DEFINITIONS } from "../../../constants";
-import {
-  formatDecimal,
-  formatDuration,
-  formatPercentage,
-} from "../../../format";
 
 type ParameterStats =
   AnalysisDetails["metadata"]["parameterStats"][ParameterCode];

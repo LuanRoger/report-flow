@@ -13,6 +13,20 @@ export const formatDecimal = (value: number): string =>
 export const formatPercentage = (value: number): string =>
   `${decimalFormatter.format(value)}%`;
 
+export const getScoreBadgeVariant = (
+  score: number
+): "default" | "secondary" | "destructive" => {
+  if (score >= 80) {
+    return "default";
+  }
+
+  if (score >= 60) {
+    return "secondary";
+  }
+
+  return "destructive";
+};
+
 export const formatDuration = (seconds: number): string => {
   if (seconds < 60) {
     return `${decimalFormatter.format(seconds)} s`;

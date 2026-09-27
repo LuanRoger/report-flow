@@ -14,6 +14,18 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { Suspense } from "react";
+import { getAnalysisByIdAction } from "@/app/analysis/actions";
+import {
+  PARAMETER_CODES,
+  PARAMETER_DEFINITIONS,
+} from "@/app/analysis/constants";
+import type { AnalysisChartDatum, ParameterCode } from "@/app/analysis/types";
+import {
+  formatDecimal,
+  formatDuration,
+  formatPercentage,
+  getScoreBadgeVariant,
+} from "@/app/analysis/utils";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -34,13 +46,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatDateTimeMed } from "@/lib/utils/date";
-import { getAnalysisByIdAction } from "../actions";
-import type { ParameterCode } from "../actions/types";
-import { PARAMETER_CODES, PARAMETER_DEFINITIONS } from "../constants";
-import { formatDecimal, formatDuration, formatPercentage } from "../format";
-import AnalysisBarChart, {
-  type AnalysisChartDatum,
-} from "./components/analysis-charts";
+import AnalysisBarChart from "./components/analysis-charts";
 import ParameterDetails from "./components/parameter-details";
 
 export const metadata: Metadata = {
@@ -78,20 +84,6 @@ const DetailItem = ({ label, value }: { label: string; value: string }) => (
     <dd className="font-medium tabular-nums">{value}</dd>
   </div>
 );
-
-const getScoreBadgeVariant = (
-  score: number
-): "default" | "secondary" | "destructive" => {
-  if (score >= 80) {
-    return "default";
-  }
-
-  if (score >= 60) {
-    return "secondary";
-  }
-
-  return "destructive";
-};
 
 const DetailsFallback = () => (
   <div className="space-y-6" role="status">

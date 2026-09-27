@@ -1,18 +1,13 @@
 "use client";
 
 import { useCallback } from "react";
+import type { AnalysisChartDatum } from "@/app/analysis/types";
 import { Bar } from "@/components/charts/bar";
 import { BarChart } from "@/components/charts/bar-chart";
 import { BarXAxis } from "@/components/charts/bar-x-axis";
 import { chartCssVars } from "@/components/charts/chart-context";
 import { Grid } from "@/components/charts/grid";
 import { ChartTooltip } from "@/components/charts/tooltip/chart-tooltip";
-
-export interface AnalysisChartDatum extends Record<string, unknown> {
-  coverage: number;
-  parameter: string;
-  score: number;
-}
 
 interface AnalysisBarChartProps {
   data: AnalysisChartDatum[];
