@@ -102,14 +102,17 @@ export class SseParser {
     this.#buffer += chunk;
     const parsed: ParsedSseEvent[] = [];
 
-    let boundary = EVENT_BOUNDARY_PATTERN.exec(this.#buffer);
-    while (boundary) {
-      const raw = this.#buffer.slice(0, boundary.index);
-      this.#buffer = this.#buffer.slice(boundary.index + boundary[0].length);
+    let boundaryIndex = this.#buffer.search(EVENT_BOUNDARY_PATTERN);
+    while (boundaryIndex >= 0) {
+      const raw = this.#buffer.slice(0, boundaryIndex);
+      const boundaryLength = this.#buffer.startsWith("\r\n\r\n", boundaryIndex)
+        ? 4
+        : 2;
+      this.#buffer = this.#buffer.slice(boundaryIndex + boundaryLength);
       if (raw.length > 0) {
         parsed.push(parseEventBlock(raw));
       }
-      boundary = EVENT_BOUNDARY_PATTERN.exec(this.#buffer);
+      boundaryIndex = this.#buffer.search(EVENT_BOUNDARY_PATTERN);
     }
 
     this.#events.push(...parsed);

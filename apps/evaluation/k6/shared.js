@@ -109,13 +109,11 @@ export const readDuration = (name, fallback) => {
 };
 
 export const durationToMilliseconds = (duration) => {
-  const match = DURATION_PATTERN.exec(duration);
-
-  if (!match) {
+  if (!DURATION_PATTERN.test(duration)) {
     throw new Error(`Invalid duration: "${duration}"`);
   }
 
-  const [, amountText, unit] = match;
+  const [, amountText, unit] = DURATION_PATTERN.exec(duration);
   const amount = Number(amountText);
   return amount * DURATION_MULTIPLIERS_MS[unit];
 };
