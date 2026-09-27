@@ -1,3 +1,4 @@
+import { curveLinear } from "@visx/curve";
 import { useCallback } from "react";
 import type { MetricSeries } from "@/app/live/types";
 import { chartCssVars } from "@/components/charts/chart-context";
@@ -67,6 +68,7 @@ export default function MetricChart({
           >
             <Grid horizontal numTicksRows={4} />
             <LiveLine
+              curve={curveLinear}
               dataKey="value"
               formatValue={formatValue}
               stroke={chartCssVars.linePrimary}
