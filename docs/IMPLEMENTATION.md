@@ -34,7 +34,7 @@ The system is organized around four production responsibilities:
 1. **Data acquisition** receives pond, cycle, and measurement data and validates the structural relationships between them.
 2. **Analytical processing** reads time-series measurements, normalizes environmental parameters, calculates temporal and aggregate scores, and persists analytical artifacts.
 3. **Conversational assistance** retrieves relevant analytical artifacts and uses them as evidence for a streamed natural-language response.
-4. **Presentation** exposes historical measurements, near-real-time aggregates, and the conversational interface through a web application.
+4. **Presentation** exposes historical measurements, persisted analysis history and details, near-real-time aggregates, and the conversational interface through a web application.
 
 A shared database connects these responsibilities. Measurement data is treated as a time series, while analyses, embeddings, chats, messages, and source provenance are represented relationally.
 
@@ -140,6 +140,8 @@ An analysis stores:
 There is deliberately no uniqueness constraint over pond, period, and model version. Repeating an analysis creates a new record. Therefore, the table represents a history of analytical executions rather than a materialized cache.
 
 This behavior is relevant for retrieval: multiple analyses may describe the same pond and period, and their creation timestamps can influence ranking or recency selection.
+
+It is also relevant to presentation. The analysis service exposes a pond-scoped historical listing ordered by descending creation time and an identifier-scoped detail resource. The listing deliberately returns compact score and period fields, while the detail resource returns the complete persisted metadata and optional narrative summary required for inspection and audit.
 
 ### 3.4 Conversation cardinality
 
@@ -1229,19 +1231,55 @@ The historical measurement page selects a pond and cycle, requests one keyset-pa
 The live dashboard:
 
 - selects a pond;
-- requests bucketed temperature and oxygen aggregates;
+- requests bucketed temperature, dissolved-oxygen, pH, and salinity aggregates;
 - polls every 15 seconds;
 - pauses when the page is hidden;
 - prevents overlapping polls;
 - ignores out-of-order older snapshots;
-- plots timestamped series.
+- plots one timestamped series for each required parameter.
 
 This is periodic near-real-time monitoring rather than push-based telemetry.
 
-### 15.4 Chat interface
+### 15.4 Analysis history and details
+
+The analysis presentation consists of two linked routes.
+
+The pond-scoped history route:
+
+- represents the selected pond as a `pondId` URL query parameter;
+- requests `GET /analyses/ponds/:id` through a validated server action;
+- validates both action input and upstream output;
+- receives a compact payload that omits the narrative summary and detailed metadata;
+- displays analysis identity, creation time, analytical period, optional cycle, and final score;
+- orders records from newest to oldest according to the service response;
+- links each row to its identifier-scoped detail route;
+- distinguishes initial selection, empty history, loading, and service-error states.
+
+The analysis service verifies that the requested pond exists before listing its analyses. A valid pond without persisted analyses returns an empty collection, while an unknown pond produces a not-found response.
+
+The identifier-scoped detail route requests `GET /analyses/:id` through a second validated server action. It presents the full persisted analytical result, including:
+
+- pond, cycle, creation time, and requested analytical window;
+- final score and all four parameter scores;
+- optional generated interpretation;
+- requested and actual data ranges;
+- total and per-parameter measurement counts;
+- overall and per-parameter temporal coverage;
+- raw-value and normalized-score statistics;
+- duration-weighted means and unfavorable-time proportions;
+- parameter weights and scoring-model configuration;
+- every persisted unfavorable interval;
+- model version, normalized critical threshold, coverage threshold, window convention, and continuity limit.
+
+Two interactive bar charts compare parameter scores and parameter coverage. These charts use the Bklit chart composition built on the project’s Visx primitives. The page also warns when coverage is insufficient because missing periods are excluded rather than penalized and can make the score appear optimistic.
+
+The list and detail pages are predominantly React Server Components. Data loading remains on the server, service credentials never cross the browser boundary, and only the interactive chart surface is a Client Component. Suspense boundaries provide loading fallbacks and allow Next.js Cache Components to partially prerender the static page shell while streaming request-dependent content. Analysis reads use no-store semantics because new historical records may be appended and records may be deleted.
+
+### 15.5 Chat interface
 
 The chat interface provides:
 
+- pond selection before initializing a conversation;
 - optimistic display of the submitted user turn;
 - separate preparing and streaming states;
 - stop control;
@@ -1452,7 +1490,9 @@ The concepts described above are technology-independent. The current project rea
 |---|---|
 | Runtime | Bun |
 | Ingestion and analysis HTTP services | Elysia |
-| Web application | Next.js and React |
+| Web application | Next.js and React with Cache Components |
+| Server action contracts | next-safe-action |
+| UI component system | shadcn/ui |
 | Runtime and boundary validation | Zod |
 | Database | PostgreSQL with TimescaleDB |
 | Vector extension and ANN index | pgvector with HNSW |
@@ -1465,7 +1505,7 @@ The concepts described above are technology-independent. The current project rea
 | Embedding model | `text-embedding-3-small`, 1,024 dimensions |
 | Browser streaming | Fetch-based typed SSE |
 | Markdown response rendering | Streamdown |
-| Visualization | Visx/D3-based components |
+| Visualization | Bklit chart compositions built on Visx/D3-based components |
 
 A Node.js, Python, Java, Go, .NET, or other implementation can reproduce the same behavior if it preserves the equations, interval semantics, ranking rules, persistence lifecycle, and prompt constraints documented above.
 
@@ -1503,6 +1543,20 @@ The most important production implementation locations are listed below for code
 - `apps/analysis/src/modules/analysis/use-cases/index.ts`
 - `apps/analysis/src/modules/analysis/repository/index.ts`
 - `apps/analysis/src/modules/analysis/schemas/index.ts`
+
+### Analysis retrieval and presentation
+
+- `apps/analysis/src/modules/analysis/index.ts`
+- `apps/analysis/src/modules/analysis/use-cases/index.ts`
+- `apps/analysis/src/modules/analysis/repository/index.ts`
+- `apps/analysis/src/modules/analysis/schemas/index.ts`
+- `apps/web/src/app/analysis/actions/index.ts`
+- `apps/web/src/app/analysis/actions/schemas.ts`
+- `apps/web/src/app/analysis/page.tsx`
+- `apps/web/src/app/analysis/components/analysis-list/index.tsx`
+- `apps/web/src/app/analysis/[id]/page.tsx`
+- `apps/web/src/app/analysis/[id]/components/analysis-charts/index.tsx`
+- `apps/web/src/app/analysis/[id]/components/parameter-details/index.tsx`
 
 ### Embeddings and retrieval
 
@@ -1542,4 +1596,6 @@ Its RAG layer converts each persisted analysis into one dense semantic document,
 
 Its conversational layer persists user and assistant lifecycle states, bounds model history, stores retrieval provenance, and streams typed source and text events through a server-side proxy to an incremental browser interface.
 
-The architecture is reproducible without its current frameworks because its essential behavior is defined by explicit formulas, temporal semantics, data constraints, ranking rules, prompt policies, and persistence transitions. Those elements—not the choice of runtime or framework—are the core implementation contribution.
+Its presentation layer provides URL-addressable pond and cycle selection, historical measurement access, four-parameter live monitoring, pond-scoped analysis history, and an auditable analysis detail view. Server-mediated validated actions keep service credentials out of the browser, while server rendering and partial prerendering limit client-side JavaScript to interactions that require it.
+
+The architecture is reproducible without its current frameworks because its essential behavior is defined by explicit formulas, temporal semantics, data constraints, ranking rules, prompt policies, persistence transitions, and explicit presentation contracts. Those elements—not the choice of runtime or framework—are the core implementation contribution.
