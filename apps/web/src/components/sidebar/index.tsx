@@ -30,6 +30,11 @@ export default function Sidebar() {
               <SidebarMenuButton asChild>
                 <Link href="/chat">Consultor</Link>
               </SidebarMenuButton>
+						</SidebarMenuItem>
+						<SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link href="/analysis">Analises</Link>
+              </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>

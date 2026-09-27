@@ -20,8 +20,8 @@
         "elysia": "^1.4.30"
       },
       "db": {
-        "drizzle-orm": "^1.0.0-rc.5",
-        "drizzle-kit": "^1.0.0-rc.5"
+        "drizzle-orm": "^1.0.0-rc.5-ab785fc",
+        "drizzle-kit": "^1.0.0-rc.5-ab785fc"
       },
       "utils": {
         "@types/luxon": "^3.7.5",
