@@ -1,7 +1,7 @@
 import { openai } from "@ai-sdk/openai";
 import { embed } from "ai";
 import { formatDate } from "@/utils/date";
-import { ANALYSIS_EMBEDDING_DIMENSIONS } from "../constants";
+import { ANALYSIS_EMBEDDING_MODEL_CONFIG } from "../constants";
 import type { ScoreResult } from "../schemas/types";
 import type { UnfavorableInterval } from "../types/analysis";
 
@@ -106,10 +106,10 @@ Parameter Weights: Temperature=${parameterWeights.temperature}, pH=${parameterWe
 
 export async function generateEmbedding(text: string): Promise<number[]> {
   const { embedding } = await embed({
-    model: openai.embeddingModel("text-embedding-3-small"),
+    model: openai.embeddingModel(ANALYSIS_EMBEDDING_MODEL_CONFIG.model),
     providerOptions: {
       openai: {
-        dimensions: ANALYSIS_EMBEDDING_DIMENSIONS,
+        dimensions: ANALYSIS_EMBEDDING_MODEL_CONFIG.dimensions,
       },
     },
     value: text,
